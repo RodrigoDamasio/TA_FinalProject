@@ -1,0 +1,40 @@
+# SearXNG settings for the final project's search service.
+# Only the backend reaches it, over Railway's private network, so the
+# limiter and public-instance features stay off. secret_key comes from
+# the SEARXNG_SECRET environment variable.
+use_default_settings: true
+
+general:
+  instance_name: "taller-research-search"
+
+search:
+  safe_search: 1
+  autocomplete: ""
+  formats:
+    - json
+
+server:
+  limiter: false
+  public_instance: false
+  image_proxy: false
+  method: "GET"
+
+outgoing:
+  request_timeout: 4.0
+  max_request_timeout: 8.0
+
+# Engines that are off by default but worth testing from a cloud IP.
+engines:
+  - name: duckduckgo
+    disabled: false
+  - name: bing
+    disabled: false
+  - name: google
+    disabled: false
+  - name: qwant
+    disabled: false
+  - name: yahoo
+    disabled: false
+  # Needs an API key and id we don't have.
+  - name: google cse
+    disabled: true
