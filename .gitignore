@@ -1,0 +1,20 @@
+# Only Final_project is published. Everything else in the Final Project folder
+# (course PDF, scripts, notes, test files) stays local.
+/*
+!/.gitignore
+!/README.md
+!/Final_project/
+
+# Safety net for anything generated inside Final_project
+__pycache__/
+.venv/
+node_modules/
+.env
+.env.local
+*.db
+.coverage
+.pytest_cache/
+.ruff_cache/
+*.db-shm
+*.db-wal
+.e2e/
