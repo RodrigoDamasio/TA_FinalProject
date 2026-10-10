@@ -2,7 +2,17 @@
 # Only the backend reaches it, over Railway's private network, so the
 # limiter and public-instance features stay off. secret_key comes from
 # the SEARXNG_SECRET environment variable.
-use_default_settings: true
+#
+# Engines: the POC (../POC_SEARXNG_RAILWAY.md) tested 11 engines from a
+# Railway IP. Only these three answered with relevant results; the rest
+# were blocked (CAPTCHA / access denied / too many requests), timed out,
+# or returned off-topic pages (bing).
+use_default_settings:
+  engines:
+    keep_only:
+      - yahoo
+      - yandex
+      - duckduckgo
 
 general:
   instance_name: "taller-research-search"
@@ -10,6 +20,7 @@ general:
 search:
   safe_search: 1
   autocomplete: ""
+  default_lang: "en"
   formats:
     - json
 
@@ -23,18 +34,10 @@ outgoing:
   request_timeout: 4.0
   max_request_timeout: 8.0
 
-# Engines that are off by default but worth testing from a cloud IP.
 engines:
   - name: duckduckgo
     disabled: false
-  - name: bing
-    disabled: false
-  - name: google
-    disabled: false
-  - name: qwant
+  - name: yandex
     disabled: false
   - name: yahoo
     disabled: false
-  # Needs an API key and id we don't have.
-  - name: google cse
-    disabled: true

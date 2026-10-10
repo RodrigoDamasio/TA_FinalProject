@@ -1,0 +1,2464 @@
+{
+  "base": "http://127.0.0.1:8080",
+  "language": "en",
+  "queries": [
+    "retrieval augmented generation vs fine-tuning",
+    "transactional outbox pattern",
+    "HMAC webhook signature verification",
+    "ChromaDB hybrid search BM25",
+    "reciprocal rank fusion",
+    "FastAPI server-sent events",
+    "Gemini API rate limits free tier",
+    "multi-agent supervisor pattern LLM",
+    "prompt injection mitigation",
+    "SSRF protection private IP ranges"
+  ],
+  "summary": {
+    "duckduckgo": {
+      "answered": "10/10",
+      "avg_results": 10.0,
+      "relevant_pct": 93,
+      "avg_seconds": 0.67,
+      "failure_reasons": []
+    },
+    "brave": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "relevant_pct": 0,
+      "avg_seconds": 0.01,
+      "failure_reasons": [
+        "Suspended: too many requests",
+        "too many requests"
+      ]
+    },
+    "bing": {
+      "answered": "10/10",
+      "avg_results": 9.7,
+      "relevant_pct": 24,
+      "avg_seconds": 0.17,
+      "failure_reasons": []
+    },
+    "google": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "relevant_pct": 0,
+      "avg_seconds": 0.03,
+      "failure_reasons": [
+        "Suspended: access denied",
+        "access denied"
+      ]
+    },
+    "qwant": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "relevant_pct": 0,
+      "avg_seconds": 0.23,
+      "failure_reasons": [
+        "CAPTCHA"
+      ]
+    },
+    "yahoo": {
+      "answered": "10/10",
+      "avg_results": 7.0,
+      "relevant_pct": 94,
+      "avg_seconds": 0.65,
+      "failure_reasons": []
+    },
+    "yep": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "relevant_pct": 0,
+      "avg_seconds": 0.01,
+      "failure_reasons": [
+        "Suspended: access denied",
+        "access denied"
+      ]
+    },
+    "mwmbl": {
+      "answered": "5/10",
+      "avg_results": 32.8,
+      "relevant_pct": 70,
+      "avg_seconds": 1.48,
+      "failure_reasons": [
+        "timeout"
+      ]
+    },
+    "yandex": {
+      "answered": "10/10",
+      "avg_results": 14.5,
+      "relevant_pct": 97,
+      "avg_seconds": 0.58,
+      "failure_reasons": []
+    },
+    "seznam": {
+      "answered": "7/10",
+      "avg_results": 9.9,
+      "relevant_pct": 58,
+      "avg_seconds": 2.87,
+      "failure_reasons": [
+        "timeout"
+      ]
+    },
+    "wikipedia": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "relevant_pct": 0,
+      "avg_seconds": 0.75,
+      "failure_reasons": []
+    },
+    "(default mix)": {
+      "answered": "10/10",
+      "avg_results": 51.7,
+      "relevant_pct": 71,
+      "avg_seconds": 2.58,
+      "failure_reasons": [
+        "brave: Suspended: too many requests",
+        "brave: too many requests",
+        "google: Suspended: access denied",
+        "google: access denied",
+        "mwmbl: timeout",
+        "qwant: CAPTCHA",
+        "seznam: Suspended: timeout",
+        "wikidata: unexpected crash",
+        "yep: Suspended: access denied",
+        "yep: access denied"
+      ]
+    }
+  },
+  "per_engine": {
+    "duckduckgo": [
+      {
+        "ok": true,
+        "seconds": 0.77,
+        "results": 10,
+        "relevant": 9,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "RAG Vs Fine-Tuning for Enhancing LLM Performance",
+            "url": "https://www.geeksforgeeks.org/nlp/rag-vs-fine-tuning-for-enhancing-llm-performance/"
+          },
+          {
+            "title": "RAG vs. fine-tuning - IBM",
+            "url": "https://www.ibm.com/think/topics/rag-vs-fine-tuning"
+          },
+          {
+            "title": "Comparing Retrieval Augmented Generation and fine-tuning",
+            "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/retrieval-augmented-generation-options/rag-vs-fine-tuning.html"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.6,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Transactional outbox pattern - AWS Prescriptive Guidance",
+            "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+          },
+          {
+            "title": "Pattern: Transactional outbox - Microservices",
+            "url": "https://microservices.io/patterns/data/transactional-outbox.html"
+          },
+          {
+            "title": "Transactional Outbox Pattern: Never Lose an Event Again",
+            "url": "https://singhajit.com/transactional-outbox-pattern/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.67,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Webhook Signature Verification: HMAC Testing Guide",
+            "url": "https://webhooktest.net/blog/webhook-signature-verification"
+          },
+          {
+            "title": "Webhook Signature Verification Setup Guide (2026): Stripe, GitHub & HMAC",
+            "url": "https://www.shawnmayzes.com/articles/webhook-signature-verification-setup-guide/"
+          },
+          {
+            "title": "Webhook Security: HMAC Verification Guide (2026) \u2014 HookSense",
+            "url": "https://hooksense.com/blog/webhook-security-hmac-best-practices"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.67,
+        "results": 10,
+        "relevant": 9,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "python - BM25Retriever + ChromaDB Hybrid Search Optimization using ...",
+            "url": "https://stackoverflow.com/questions/79477745/bm25retriever-chromadb-hybrid-search-optimization-using-langchain"
+          },
+          {
+            "title": "Chroma BM25 - Chroma Docs",
+            "url": "https://docs.trychroma.com/integrations/embedding-models/chroma-bm25"
+          },
+          {
+            "title": "Add BM25 Full Text Search algorithm for hybrid search ability to Chromadb",
+            "url": "https://github.com/chroma-core/chroma/issues/1686"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.55,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Reciprocal Rank Fusion (RRF) explained in 4 mins. - Medium",
+            "url": "https://medium.com/@devalshah1619/mathematical-intuition-behind-reciprocal-rank-fusion-rrf-explained-in-2-mins-002df0cc5e2a"
+          },
+          {
+            "title": "Hybrid Search Scoring (RRF) - Azure AI Search | Microsoft Learn",
+            "url": "https://learn.microsoft.com/en-us/azure/search/hybrid-search-ranking"
+          },
+          {
+            "title": "Reciprocal rank fusion | Elasticsearch Reference",
+            "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.67,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Server-Sent Events (SSE) - FastAPI",
+            "url": "https://fastapi.tiangolo.com/tutorial/server-sent-events/"
+          },
+          {
+            "title": "Server-Sent Events - EventSourceResponse and ServerSentEvent - FastAPI",
+            "url": "https://fastapi.tiangolo.com/reference/sse/"
+          },
+          {
+            "title": "How to send server-side events from python (fastapi) upon calls to a ...",
+            "url": "https://stackoverflow.com/questions/58895486/how-to-send-server-side-events-from-python-fastapi-upon-calls-to-a-function-th"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.68,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Rate limits | Gemini API | Google AI for Developers",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          },
+          {
+            "title": "ai.google.dev",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits.md.txt"
+          },
+          {
+            "title": "Gemini API Free Tier 2026: Gemini 3 Flash Limits, Quotas",
+            "url": "https://pecollective.com/tools/gemini-free-tier-guide/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.74,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Agent Supervisor in ML Systems \u2014 Complete Guide (2026)",
+            "url": "https://123ofai.com/articles/blocks/agent-supervisor"
+          },
+          {
+            "title": "Multi-Agent Patterns \u2014 Coordinating Multiple LLM Agents",
+            "url": "https://www.agentpatternscatalog.org/multi-agent-patterns/"
+          },
+          {
+            "title": "Building Multi-Agents Supervisor System from Scratch with ... - Medium",
+            "url": "https://medium.com/@anuragmishra_27746/building-multi-agents-supervisor-system-from-scratch-with-langgraph-langsmith-b602e8c2c95d"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.66,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "LLM Prompt Injection Prevention - OWASP Cheat Sheet Series",
+            "url": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html"
+          },
+          {
+            "title": "Defend against indirect prompt injection attacks",
+            "url": "https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection"
+          },
+          {
+            "title": "Prompt Injection Attacks: Examples and Defences",
+            "url": "https://blog.cyberdesserts.com/prompt-injection-attacks/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.66,
+        "results": 10,
+        "relevant": 5,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "SSRF protection - OpenProject",
+            "url": "https://www.openproject.org/docs/installation-and-operations/configuration/ssrf-protection/"
+          },
+          {
+            "title": "Enable SSRF protection | Deploy | n8n Docs",
+            "url": "https://docs.n8n.io/deploy/host-n8n/configure-n8n/security/enable-ssrf-protection"
+          },
+          {
+            "title": "Private IP Addresses Deep Dive: Security Risks, SSRF, and Modern ...",
+            "url": "https://www.penligent.ai/hackinglabs/private-ip-addresses-deep-dive-security-risks-ssrf-and-modern-exploitation/"
+          }
+        ],
+        "unresponsive": []
+      }
+    ],
+    "brave": [
+      {
+        "ok": true,
+        "seconds": 0.11,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      }
+    ],
+    "bing": [
+      {
+        "ok": true,
+        "seconds": 0.42,
+        "results": 10,
+        "relevant": 0,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "RETRIEVAL Definition & Meaning - Merriam-Webster",
+            "url": "https://www.merriam-webster.com/dictionary/retrieval"
+          },
+          {
+            "title": "RETRIEVAL | English meaning - Cambridge Dictionary",
+            "url": "https://dictionary.cambridge.org/dictionary/english/retrieval"
+          },
+          {
+            "title": "RETRIEVAL Definition & Meaning | Dictionary.com",
+            "url": "https://www.dictionary.com/browse/retrieval"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.12,
+        "results": 10,
+        "relevant": 0,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "TRANSACTIONAL Definition & Meaning - Merriam-Webster",
+            "url": "https://www.merriam-webster.com/dictionary/transactional"
+          },
+          {
+            "title": "TRANSACTIONAL Definition & Meaning | Dictionary.com",
+            "url": "https://www.dictionary.com/browse/transactional"
+          },
+          {
+            "title": "TRANSACTIONAL | English meaning - Cambridge Dictionary",
+            "url": "https://dictionary.cambridge.org/dictionary/english/transactional"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.11,
+        "results": 10,
+        "relevant": 0,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Cameron Park, California - Wikipedia",
+            "url": "https://en.m.wikipedia.org/wiki/Cameron_Park,_California"
+          },
+          {
+            "title": "Cameron Park, California Parks and Recreation",
+            "url": "http://www.seecalifornia.com/parks/cameron-park-parks.html"
+          },
+          {
+            "title": "Parks and Facilities - Cameron Park Community Services District",
+            "url": "https://www.cameronpark.org/parks-and-facilities"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.22,
+        "results": 10,
+        "relevant": 1,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "ChromaDB - the open-source search infrastructure for AI",
+            "url": "https://www.trychroma.com/products/chromadb"
+          },
+          {
+            "title": "ChromaDB - Wikipedia",
+            "url": "https://en.wikipedia.org/wiki/ChromaDB"
+          },
+          {
+            "title": "Introduction - Chroma Docs",
+            "url": "https://docs.trychroma.com/docs/overview/introduction"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.13,
+        "results": 10,
+        "relevant": 0,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "RECIPROCAL Definition & Meaning - Merriam-Webster",
+            "url": "https://www.merriam-webster.com/dictionary/reciprocal"
+          },
+          {
+            "title": "Reciprocal - Math is Fun",
+            "url": "https://www.mathsisfun.com/reciprocal.html"
+          },
+          {
+            "title": "RECIPROCAL | English meaning - Cambridge Dictionary",
+            "url": "https://dictionary.cambridge.org/dictionary/english/reciprocal"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.13,
+        "results": 10,
+        "relevant": 0,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "FastAPI - FastAPI",
+            "url": "https://fastapi.tiangolo.com/"
+          },
+          {
+            "title": "Tutorial - User Guide - FastAPI",
+            "url": "https://fastapi.tiangolo.com/tutorial/"
+          },
+          {
+            "title": "GitHub - fastapi/fastapi: FastAPI framework, high performance, easy \u2026",
+            "url": "https://github.com/FastAPI/FastAPI"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.14,
+        "results": 10,
+        "relevant": 9,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Rate limits | Gemini API | Google AI for Developers",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          },
+          {
+            "title": "ai.google.dev",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits.md.txt"
+          },
+          {
+            "title": "Gemini API Free Tier 2026: Gemini 3 Flash Limits, Quotas",
+            "url": "https://pecollective.com/tools/gemini-free-tier-guide/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.12,
+        "results": 10,
+        "relevant": 0,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Multi \u2014 one task, the right AI workflow",
+            "url": "https://getmulti.ai/"
+          },
+          {
+            "title": "MultiCare - Hospitals, Clinics & Urgent Care in Washington State",
+            "url": "https://www.multicare.org/"
+          },
+          {
+            "title": "MULTI- Definition & Meaning - Merriam-Webster",
+            "url": "https://www.merriam-webster.com/dictionary/multi-"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.17,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "LLM Prompt Injection Prevention - OWASP Cheat Sheet Series",
+            "url": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html"
+          },
+          {
+            "title": "Defend against indirect prompt injection attacks",
+            "url": "https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection"
+          },
+          {
+            "title": "Prompt Injection Attacks: Examples and Defences",
+            "url": "https://blog.cyberdesserts.com/prompt-injection-attacks/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.14,
+        "results": 7,
+        "relevant": 3,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Enable SSRF protection | Deploy | n8n Docs",
+            "url": "https://docs.n8n.io/deploy/host-n8n/configure-n8n/security/enable-ssrf-protection"
+          },
+          {
+            "title": "SSRF protection - OpenProject",
+            "url": "https://www.openproject.org/docs/installation-and-operations/configuration/ssrf-protection/"
+          },
+          {
+            "title": "Private IP Addresses Deep Dive: Security Risks, SSRF, and ...",
+            "url": "https://www.penligent.ai/hackinglabs/private-ip-addresses-deep-dive-security-risks-ssrf-and-modern-exploitation/"
+          }
+        ],
+        "unresponsive": []
+      }
+    ],
+    "google": [
+      {
+        "ok": true,
+        "seconds": 0.33,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      }
+    ],
+    "qwant": [
+      {
+        "ok": true,
+        "seconds": 0.58,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.21,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.18,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.2,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.2,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.21,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.18,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.17,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.2,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.2,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      }
+    ],
+    "yahoo": [
+      {
+        "ok": true,
+        "seconds": 0.78,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "RAG Vs Fine-Tuning for Enhancing LLM Performance",
+            "url": "https://www.geeksforgeeks.org/nlp/rag-vs-fine-tuning-for-enhancing-llm-performance/"
+          },
+          {
+            "title": "RAG vs. fine-tuning - IBM",
+            "url": "https://www.ibm.com/think/topics/rag-vs-fine-tuning"
+          },
+          {
+            "title": "Comparing Retrieval Augmented Generation and fine-tuning",
+            "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/retrieval-augmented-generation-options/rag-vs-fine-tuning.html"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.63,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Transactional outbox pattern - AWS Prescriptive Guidance",
+            "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+          },
+          {
+            "title": "Pattern: Transactional outbox - Microservices",
+            "url": "https://microservices.io/patterns/data/transactional-outbox.html"
+          },
+          {
+            "title": "Transactional Outbox Pattern: Never Lose an Event Again",
+            "url": "https://singhajit.com/transactional-outbox-pattern/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.62,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Webhook Signature Verification: HMAC Testing Guide",
+            "url": "https://webhooktest.net/blog/webhook-signature-verification"
+          },
+          {
+            "title": "Webhook Signature Verification Setup Guide (2026): Stripe ...",
+            "url": "https://www.shawnmayzes.com/articles/webhook-signature-verification-setup-guide/"
+          },
+          {
+            "title": "Webhook Security: HMAC Verification Guide (2026) \u2014 HookSense",
+            "url": "https://hooksense.com/blog/webhook-security-hmac-best-practices"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.55,
+        "results": 7,
+        "relevant": 6,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "python - BM25Retriever + ChromaDB Hybrid Search Optimization ...",
+            "url": "https://stackoverflow.com/questions/79477745/bm25retriever-chromadb-hybrid-search-optimization-using-langchain"
+          },
+          {
+            "title": "Add BM25 Full Text Search algorithm for hybrid search ability ...",
+            "url": "https://github.com/chroma-core/chroma/issues/1686"
+          },
+          {
+            "title": "Chroma BM25 - Chroma Docs",
+            "url": "https://docs.trychroma.com/integrations/embedding-models/chroma-bm25"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.83,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Hybrid Search Scoring (RRF) - Azure AI Search | Microsoft Learn",
+            "url": "https://learn.microsoft.com/en-us/azure/search/hybrid-search-ranking"
+          },
+          {
+            "title": "Reciprocal rank fusion | Elasticsearch Reference",
+            "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion"
+          },
+          {
+            "title": "Introducing reciprocal rank fusion for hybrid search",
+            "url": "https://opensearch.org/blog/introducing-reciprocal-rank-fusion-hybrid-search/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.57,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Server-Sent Events (SSE) - FastAPI",
+            "url": "https://fastapi.tiangolo.com/tutorial/server-sent-events/"
+          },
+          {
+            "title": "Server-Sent Events - EventSourceResponse and ServerSentEvent ...",
+            "url": "https://fastapi.tiangolo.com/reference/sse/"
+          },
+          {
+            "title": "How to send server-side events from python (fastapi) upon ...",
+            "url": "https://stackoverflow.com/questions/58895486/how-to-send-server-side-events-from-python-fastapi-upon-calls-to-a-function-th"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.59,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Rate limits | Gemini API | Google AI for Developers",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          },
+          {
+            "title": "Gemini API Free Tier 2026: Gemini 3 Flash Limits, Quotas",
+            "url": "https://pecollective.com/tools/gemini-free-tier-guide/"
+          },
+          {
+            "title": "ai.google.dev",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits.md.txt"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.63,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Agent Supervisor in ML Systems \u2014 Complete Guide (2026)",
+            "url": "https://123ofai.com/articles/blocks/agent-supervisor"
+          },
+          {
+            "title": "Building Multi-Agents Supervisor System from Scratch with ...",
+            "url": "https://medium.com/@anuragmishra_27746/building-multi-agents-supervisor-system-from-scratch-with-langgraph-langsmith-b602e8c2c95d"
+          },
+          {
+            "title": "Multi-Agent Patterns \u2014 Coordinating Multiple LLM Agents",
+            "url": "https://www.agentpatternscatalog.org/multi-agent-patterns/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.59,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "LLM Prompt Injection Prevention - OWASP Cheat Sheet Series",
+            "url": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html"
+          },
+          {
+            "title": "Defend against indirect prompt injection attacks | Microsoft ...",
+            "url": "https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection"
+          },
+          {
+            "title": "Prompt Injection Attacks: Examples and Defences",
+            "url": "https://blog.cyberdesserts.com/prompt-injection-attacks/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.66,
+        "results": 7,
+        "relevant": 4,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "SSRF protection - OpenProject",
+            "url": "https://www.openproject.org/docs/installation-and-operations/configuration/ssrf-protection/"
+          },
+          {
+            "title": "Enable SSRF protection | Deploy | n8n Docs",
+            "url": "https://docs.n8n.io/deploy/host-n8n/configure-n8n/security/enable-ssrf-protection"
+          },
+          {
+            "title": "Private IP Addresses Deep Dive: Security Risks, SSRF, and ...",
+            "url": "https://www.penligent.ai/hackinglabs/private-ip-addresses-deep-dive-security-risks-ssrf-and-modern-exploitation/"
+          }
+        ],
+        "unresponsive": []
+      }
+    ],
+    "yep": [
+      {
+        "ok": true,
+        "seconds": 0.07,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "Suspended: access denied"
+          ]
+        ]
+      }
+    ],
+    "mwmbl": [
+      {
+        "ok": true,
+        "seconds": 1.26,
+        "results": 53,
+        "relevant": 3,
+        "with_snippet": 52,
+        "top": [
+          {
+            "title": "retrieval augmented generation - Stack Overflow",
+            "url": "http://stackoverflow.blog/retrieval-augmented-generation/"
+          },
+          {
+            "title": "GitHub - tdolega/rag-tge: Retrieval Augmented Generation - Truth\u2026",
+            "url": "https://github.com/tdolega/rag-tge"
+          },
+          {
+            "title": "Large language model",
+            "url": "https://en.wikipedia.org/wiki/Large_language_model"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 4.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "mwmbl",
+            "timeout"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 4.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "mwmbl",
+            "timeout"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.17,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.19,
+        "results": 30,
+        "relevant": 30,
+        "with_snippet": 28,
+        "top": [
+          {
+            "title": "Reciprocal Rank Fusion - ParadeDB",
+            "url": "https://www.paradedb.com/docs/reference/hybrid/rrf"
+          },
+          {
+            "title": "Reciprocal Rank Fusion (RRF) or How to Stop Worrying about Boost\u2026",
+            "url": "https://haystackconf.com/eu2023/talk-2/"
+          },
+          {
+            "title": "Add support for Reciprocal Rank Fusion to the search API by jdco\u2026",
+            "url": "https://github.com/elastic/elasticsearch/pull/93396"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.18,
+        "results": 42,
+        "relevant": 42,
+        "with_snippet": 37,
+        "top": [
+          {
+            "title": "GitHub - motyar/mchat: Simple chat with HTML5 Server-Sent Events",
+            "url": "https://github.com/motyar/mchat"
+          },
+          {
+            "title": "Server-Sent Events: A WebSockets alternative ready for another l\u2026",
+            "url": "https://www.ably.io/topic/server-sent-events"
+          },
+          {
+            "title": "Server-sent events | Can I use... Support tables for HTML5, CSS3\u2026",
+            "url": "http://caniuse.com/eventsource"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.18,
+        "results": 2,
+        "relevant": 2,
+        "with_snippet": 2,
+        "top": [
+          {
+            "title": "Google AI Studio",
+            "url": "https://en.wikipedia.org/wiki/Google_AI_Studio"
+          },
+          {
+            "title": "Gemini (language model)",
+            "url": "https://en.wikipedia.org/wiki/Gemini_(language_model)"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.17,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.58,
+        "results": 37,
+        "relevant": 37,
+        "with_snippet": 37,
+        "top": [
+          {
+            "title": "Prompt injection",
+            "url": "https://en.wikipedia.org/wiki/Prompt_injection"
+          },
+          {
+            "title": "Simon Willison: Prompt injection",
+            "url": "https://simonwillison.net/series/prompt-injection"
+          },
+          {
+            "title": "GitHub - protectai/rebuff: LLM Prompt Injection Detector",
+            "url": "https://github.com/woop/rebuff"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 4.0,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "mwmbl",
+            "timeout"
+          ]
+        ]
+      }
+    ],
+    "yandex": [
+      {
+        "ok": true,
+        "seconds": 0.93,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Retrieval-Augmented Generation vs Fine-Tuning: What\u2019s Right for...",
+            "url": "https://www.k2view.com/blog/retrieval-augmented-generation-vs-fine-tuning/"
+          },
+          {
+            "title": "Retrieval-Augmented Generation vs Fine-Tuning",
+            "url": "https://www.heliosz.ai/blog/retrieval-augmented-generation-vs-fine-tuning/"
+          },
+          {
+            "title": "RAG vs fine-tuning: when to use each (decision guide)",
+            "url": "https://www.glean.com/blog/retrieval-augemented-generation-vs-fine-tuning"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.5,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Pattern: Transactional outbox",
+            "url": "https://microservices.io/patterns/data/transactional-outbox.html"
+          },
+          {
+            "title": "Transactional outbox pattern - AWS Prescriptive Guidance",
+            "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+          },
+          {
+            "title": "Transactional Outbox Pattern | Microservices Architecture... - YouTube",
+            "url": "https://www.youtube.com/watch?v=M-Fhb8LzhPo"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.54,
+        "results": 15,
+        "relevant": 14,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Webhook Signature Verifier Online | Check Generic HMAC Webhooks",
+            "url": "https://encode64.com/en/security-token-tools/webhook-signature-verifier"
+          },
+          {
+            "title": "Webhook Signature Verifier \u2014 Verify HMAC Signatures Free",
+            "url": "https://tools.jlvextension.com/webhook-signature-verifier/"
+          },
+          {
+            "title": "Webhook Signature Verifier | Verify Stripe, GitHub & HMAC...",
+            "url": "https://devtoollab.com/tools/webhook-signature-verifier"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.56,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Medium",
+            "url": "https://medium.com/@nepalsakshi05/taking-chroma-reranking-to-the-next-level-with-a-hybrid-retrieval-system-b24ca9eb1a28"
+          },
+          {
+            "title": "Hybrid search: BM25 + vector search | BestLLMfor",
+            "url": "https://bestllmfor.com/guide/recherche-hybride-bm25/"
+          },
+          {
+            "title": "python - BM25Retriever + ChromaDB Hybrid Search... - Stack Overflow",
+            "url": "https://stackoverflow.com/questions/79477745/bm25retriever-chromadb-hybrid-search-optimization-using-langchain"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.49,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Reciprocal rank fusion | Elasticsearch Reference",
+            "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion"
+          },
+          {
+            "title": "Medium",
+            "url": "https://medium.com/@devalshah1619/mathematical-intuition-behind-reciprocal-rank-fusion-rrf-explained-in-2-mins-002df0cc5e2a"
+          },
+          {
+            "title": "Hybrid Search Scoring (RRF) - Azure AI Search | Microsoft Learn",
+            "url": "https://learn.microsoft.com/en-us/azure/search/hybrid-search-ranking"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.51,
+        "results": 15,
+        "relevant": 13,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Medium",
+            "url": "https://medium.com/@nandagopal05/server-sent-events-with-python-fastapi-f1960e0c8e4b"
+          },
+          {
+            "title": "Server-Sent Events for Push-Notifications on FastAPI",
+            "url": "https://plainenglish.io/python/server-sent-events-for-push-notifications-on-fastapi"
+          },
+          {
+            "title": "Server-Sent Events (SSE) - FastAPI | Sebasti\u00e1n Ram\u00edrez Monta\u00f1o",
+            "url": "https://www.linkedin.com/posts/tiangolo_server-sent-events-sse-fastapi-activity-7433807066445586433-8bww"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.49,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Rate limits | Gemini API | Google AI for Developers",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          },
+          {
+            "title": "Gemini API Rate Limits 2026: Free vs Paid Tier... | LaoZhang AI Blog",
+            "url": "https://blog.laozhang.ai/en/posts/gemini-api-rate-limits-guide"
+          },
+          {
+            "title": "Free Google Gemini API Key & Free Tier: Base URL, Rate Limits, 11...",
+            "url": "https://freellm.net/providers/google-gemini"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.64,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "18: Multi-Agent Systems \u2014 The Supervisor Pattern | PyAI",
+            "url": "https://pyai.io/en/ai/langchain-langgraph/multi-agent-supervisor-pattern/"
+          },
+          {
+            "title": "Multi-Agent Supervisor \u2014 Agentic AI Patterns \u2014 AWS GALAXY",
+            "url": "https://awsgalaxy.com/learning/agentic-ai-patterns/multi-agent"
+          },
+          {
+            "title": "Supervisor (Multi-Agent) - Runflow",
+            "url": "https://docs.runflow.ai/core-concepts/supervisor"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.53,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "GitHub - Valhall-ai/prompt-injection-mitigations: A collection of...",
+            "url": "https://github.com/Valhall-ai/prompt-injection-mitigations"
+          },
+          {
+            "title": "Prompt Injection Mitigation: 7 Defense Strategies for LLMs",
+            "url": "https://afine.com/prompt-injection-mitigation-7-defense-strategies-for-llms"
+          },
+          {
+            "title": "7 Prompt Injection Mitigation Strategies for Enterprise AI",
+            "url": "https://witness.ai/blog/prompt-injection-mitigation-strategies/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.59,
+        "results": 15,
+        "relevant": 14,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Fixing Fluent Forms URL Validation Issues: .co.uk... - Fluent Forms",
+            "url": "https://fluentforms.com/fluent-forms-url-validation-issues-fix/"
+          },
+          {
+            "title": "AI Proxy SSRF Protection, DNS Rebinding & Injection Defense",
+            "url": "https://govynai.com/blog/ssrf-injection-defense-ai-proxy/"
+          },
+          {
+            "title": "Monitor SSRF - Prevent Server-Side Request Forgery | ByteHide...",
+            "url": "https://docs.bytehide.com/platforms/dotnet/products/monitor/protections/ssrf"
+          }
+        ],
+        "unresponsive": []
+      }
+    ],
+    "seznam": [
+      {
+        "ok": true,
+        "seconds": 3.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "seznam",
+            "timeout"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 3.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "seznam",
+            "timeout"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 3.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "seznam",
+            "timeout"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 3.11,
+        "results": 10,
+        "relevant": 3,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "hybrid-search \u00b7 GitHub Topics \u00b7 GitHub",
+            "url": "https://github.com/topics/hybrid-search?l=html"
+          },
+          {
+            "title": "BM25 Retriever | Developer Documentation",
+            "url": "https://developers.llamaindex.ai/python/framework/integrations/retrievers/bm25_retriever/"
+          },
+          {
+            "title": "GitHub - AdilShamim8/Customer-Support-Chatbot-102: A fully\u2026",
+            "url": "https://github.com/AdilShamim8/Customer-Support-Chatbot-102"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 2.81,
+        "results": 9,
+        "relevant": 9,
+        "with_snippet": 9,
+        "top": [
+          {
+            "title": "Weighted reciprocal rank fusion (RRF) in Elasticsearch\u2026",
+            "url": "https://www.elastic.co/search-labs/blog/weighted-reciprocal-rank-fusion-rrf"
+          },
+          {
+            "title": "Issues \u00b7 drittich/reciprocal-rank-fusion \u00b7 GitHub",
+            "url": "https://github.com/drittich/reciprocal-rank-fusion/issues"
+          },
+          {
+            "title": "Reciprocal Rank Fusion - Apache Doris",
+            "url": "https://doris.apache.org/docs/dev/key-features/reciprocal-rank-fusion/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 2.58,
+        "results": 10,
+        "relevant": 7,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Server-Sent Events (SSE) - FastAPI",
+            "url": "https://fastapi.tiangolo.com/tutorial/server-sent-events/"
+          },
+          {
+            "title": "server-sent-event \u00b7 GitHub Topics \u00b7 GitHub",
+            "url": "https://github.com/topics/server-sent-event"
+          },
+          {
+            "title": "Server-Sent Events (SSE) - FastAPI",
+            "url": "https://fastapi.tiangolo.com/tr/tutorial/server-sent-events/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 3.1,
+        "results": 10,
+        "relevant": 2,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Rate limits | Gemini API | Google AI for Developers",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          },
+          {
+            "title": "Gemini Developer API pricing | Gemini API | Google AI for\u2026",
+            "url": "https://ai.google.dev/gemini-api/docs/pricing"
+          },
+          {
+            "title": "Gemini API Free Tier 2026: The Real Limits and Pricing",
+            "url": "https://perkstack.co/blog/gemini-api-free"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 2.79,
+        "results": 10,
+        "relevant": 8,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Multi-Agent Orchestration Patterns | Techgrind.io",
+            "url": "https://www.techgrind.io/ai-systems/multi-agent-orchestration"
+          },
+          {
+            "title": "Multi-agent patterns in LlamaIndex | Developer Documentation",
+            "url": "https://developers.llamaindex.ai/python/framework/understanding/agent/multi_agent/"
+          },
+          {
+            "title": "Multi-Agent Design Patterns That Work in Production",
+            "url": "https://mudassirkhan.me/blog/multi-agent-design-patterns"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 2.71,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Prompt injection - Wikipedia",
+            "url": "https://en.wikipedia.org/wiki/Prompt_injection"
+          },
+          {
+            "title": "Mitigating prompt injection attacks with a layered defense\u2026",
+            "url": "https://blog.google/security/mitigating-prompt-injection-attacks/"
+          },
+          {
+            "title": "GitHub - Valhall-ai/prompt-injection-mitigations: A collection\u2026",
+            "url": "https://github.com/Valhall-ai/prompt-injection-mitigations"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 2.56,
+        "results": 10,
+        "relevant": 1,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "SSRF protection - OpenProject",
+            "url": "https://www.openproject.org/docs/installation-and-operations/configuration/ssrf-protection/"
+          },
+          {
+            "title": "Complete SSRF Guide - Server-Side Request Forgery Security",
+            "url": "https://ssrf.page/"
+          },
+          {
+            "title": "AI Proxy SSRF Protection, DNS Rebinding & Injection Defense",
+            "url": "https://govynai.com/blog/ssrf-injection-defense-ai-proxy/"
+          }
+        ],
+        "unresponsive": []
+      }
+    ],
+    "wikipedia": [
+      {
+        "ok": true,
+        "seconds": 0.49,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.58,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.73,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 1.11,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.62,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.54,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 1.08,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.6,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.89,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.83,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      }
+    ]
+  },
+  "mixed": [
+    {
+      "ok": true,
+      "seconds": 0.71,
+      "results": 88,
+      "relevant": 27,
+      "with_snippet": 87,
+      "top": [
+        {
+          "title": "RAG Vs Fine-Tuning for Enhancing LLM Performance",
+          "url": "https://www.geeksforgeeks.org/nlp/rag-vs-fine-tuning-for-enhancing-llm-performance/"
+        },
+        {
+          "title": "RAG vs. fine-tuning - IBM",
+          "url": "https://www.ibm.com/think/topics/rag-vs-fine-tuning"
+        },
+        {
+          "title": "Comparing Retrieval Augmented Generation and fine-tuning",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/retrieval-augmented-generation-options/rag-vs-fine-tuning.html"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "seznam",
+          "Suspended: timeout"
+        ],
+        [
+          "yep",
+          "Suspended: access denied"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 4.01,
+      "results": 27,
+      "relevant": 17,
+      "with_snippet": 27,
+      "top": [
+        {
+          "title": "Pattern: Transactional outbox - Microservices",
+          "url": "https://microservices.io/patterns/data/transactional-outbox.html"
+        },
+        {
+          "title": "Transactional outbox pattern - AWS Prescriptive Guidance",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+        },
+        {
+          "title": "Transactional Outbox Pattern: Never Lose an Event Again - Ajit Singh",
+          "url": "https://singhajit.com/transactional-outbox-pattern/"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "mwmbl",
+          "timeout"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "seznam",
+          "Suspended: timeout"
+        ],
+        [
+          "yep",
+          "Suspended: access denied"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 4.01,
+      "results": 35,
+      "relevant": 24,
+      "with_snippet": 35,
+      "top": [
+        {
+          "title": "Webhook Signature Verification: HMAC Testing Guide",
+          "url": "https://webhooktest.net/blog/webhook-signature-verification"
+        },
+        {
+          "title": "Webhook Signature Verification Setup Guide (2026): Stripe, GitHub & HMAC",
+          "url": "https://www.shawnmayzes.com/articles/webhook-signature-verification-setup-guide/"
+        },
+        {
+          "title": "Webhook Security: HMAC Verification Guide (2026) \u2014 HookSense",
+          "url": "https://hooksense.com/blog/webhook-security-hmac-best-practices"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "mwmbl",
+          "timeout"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "seznam",
+          "Suspended: timeout"
+        ],
+        [
+          "yep",
+          "Suspended: access denied"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 2.32,
+      "results": 40,
+      "relevant": 25,
+      "with_snippet": 40,
+      "top": [
+        {
+          "title": "python - BM25Retriever + ChromaDB Hybrid Search Optimization using ...",
+          "url": "https://stackoverflow.com/questions/79477745/bm25retriever-chromadb-hybrid-search-optimization-using-langchain"
+        },
+        {
+          "title": "Taking Chroma Reranking to the Next Level with a Hybrid ... - Medium",
+          "url": "https://medium.com/@nepalsakshi05/taking-chroma-reranking-to-the-next-level-with-a-hybrid-retrieval-system-b24ca9eb1a28"
+        },
+        {
+          "title": "Chroma BM25 - Chroma Docs",
+          "url": "https://docs.trychroma.com/integrations/embedding-models/chroma-bm25"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "yep",
+          "Suspended: access denied"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 2.14,
+      "results": 68,
+      "relevant": 58,
+      "with_snippet": 66,
+      "top": [
+        {
+          "title": "Reciprocal rank fusion | Elasticsearch Reference",
+          "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion"
+        },
+        {
+          "title": "Hybrid Search Scoring (RRF) - Azure AI Search | Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/azure/search/hybrid-search-ranking"
+        },
+        {
+          "title": "Reciprocal Rank Fusion (RRF) explained in 4 mins. - Medium",
+          "url": "https://medium.com/@devalshah1619/mathematical-intuition-behind-reciprocal-rank-fusion-rrf-explained-in-2-mins-002df0cc5e2a"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "wikidata",
+          "unexpected crash"
+        ],
+        [
+          "yep",
+          "Suspended: access denied"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 2.08,
+      "results": 82,
+      "relevant": 69,
+      "with_snippet": 77,
+      "top": [
+        {
+          "title": "Server-Sent Events (SSE) - FastAPI",
+          "url": "https://fastapi.tiangolo.com/tutorial/server-sent-events/"
+        },
+        {
+          "title": "Server-Sent Events with Python FastAPI - Medium",
+          "url": "https://medium.com/@nandagopal05/server-sent-events-with-python-fastapi-f1960e0c8e4b"
+        },
+        {
+          "title": "FastAPI framework, high performance, easy to learn, fast to code...",
+          "url": "https://fastapi.tiangolo.com/"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "yep",
+          "Suspended: access denied"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 2.21,
+      "results": 33,
+      "relevant": 26,
+      "with_snippet": 33,
+      "top": [
+        {
+          "title": "Rate limits | Gemini API | Google AI for Developers",
+          "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+        },
+        {
+          "title": "Gemini API Free Tier 2026: Gemini 3 Flash Limits, Quotas",
+          "url": "https://pecollective.com/tools/gemini-free-tier-guide/"
+        },
+        {
+          "title": "Gemini API Rate Limits 2026: Free vs Paid Tier... | LaoZhang AI Blog",
+          "url": "https://blog.laozhang.ai/en/posts/gemini-api-rate-limits-guide"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "yep",
+          "Suspended: access denied"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 2.18,
+      "results": 43,
+      "relevant": 31,
+      "with_snippet": 43,
+      "top": [
+        {
+          "title": "Agent Supervisor in ML Systems \u2014 Complete Guide (2026)",
+          "url": "https://123ofai.com/articles/blocks/agent-supervisor"
+        },
+        {
+          "title": "LangGraph Multi-Agent \u2014 Supervisor Pattern... | MyEngineeringPath",
+          "url": "https://myengineeringpath.dev/genai-engineer/langgraph-multi-agent/"
+        },
+        {
+          "title": "Building Multi-Agents Supervisor System from Scratch with ... - Medium",
+          "url": "https://medium.com/@anuragmishra_27746/building-multi-agents-supervisor-system-from-scratch-with-langgraph-langsmith-b602e8c2c95d"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "yep",
+          "Suspended: access denied"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 2.18,
+      "results": 70,
+      "relevant": 70,
+      "with_snippet": 70,
+      "top": [
+        {
+          "title": "LLM Prompt Injection Prevention - OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html"
+        },
+        {
+          "title": "Mitigating prompt injection attacks with a layered defense strategy",
+          "url": "https://blog.google/security/mitigating-prompt-injection-attacks/"
+        },
+        {
+          "title": "Defend against indirect prompt injection attacks | Microsoft ...",
+          "url": "https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "too many requests"
+        ],
+        [
+          "google",
+          "access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "yep",
+          "access denied"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 4.01,
+      "results": 31,
+      "relevant": 20,
+      "with_snippet": 31,
+      "top": [
+        {
+          "title": "SSRF protection - OpenProject",
+          "url": "https://www.openproject.org/docs/installation-and-operations/configuration/ssrf-protection/"
+        },
+        {
+          "title": "Enable SSRF protection | Deploy | n8n Docs",
+          "url": "https://docs.n8n.io/deploy/host-n8n/configure-n8n/security/enable-ssrf-protection"
+        },
+        {
+          "title": "Private IP Addresses Deep Dive: Security Risks, SSRF, and Modern ...",
+          "url": "https://www.penligent.ai/hackinglabs/private-ip-addresses-deep-dive-security-risks-ssrf-and-modern-exploitation/"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "mwmbl",
+          "timeout"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "yep",
+          "Suspended: access denied"
+        ]
+      ]
+    }
+  ]
+}

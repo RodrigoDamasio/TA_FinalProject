@@ -1,0 +1,1033 @@
+{
+  "base": "http://127.0.0.1:8080",
+  "queries": [
+    "retrieval augmented generation vs fine-tuning",
+    "transactional outbox pattern",
+    "HMAC webhook signature verification",
+    "ChromaDB hybrid search BM25",
+    "reciprocal rank fusion",
+    "FastAPI server-sent events",
+    "Gemini API rate limits free tier",
+    "multi-agent supervisor pattern LLM",
+    "prompt injection mitigation",
+    "SSRF protection private IP ranges"
+  ],
+  "summary": {
+    "duckduckgo": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "avg_seconds": 0.1,
+      "failure_reasons": [
+        "CAPTCHA"
+      ]
+    },
+    "brave": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "avg_seconds": 0.01,
+      "failure_reasons": [
+        "Suspended: too many requests",
+        "too many requests"
+      ]
+    },
+    "bing": {
+      "answered": "10/10",
+      "avg_results": 9.4,
+      "avg_seconds": 0.15,
+      "failure_reasons": []
+    },
+    "google": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "avg_seconds": 0.04,
+      "failure_reasons": [
+        "Suspended: access denied",
+        "access denied"
+      ]
+    },
+    "qwant": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "avg_seconds": 0.24,
+      "failure_reasons": [
+        "CAPTCHA"
+      ]
+    },
+    "yahoo": {
+      "answered": "10/10",
+      "avg_results": 7.0,
+      "avg_seconds": 0.64,
+      "failure_reasons": []
+    },
+    "wikipedia": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "avg_seconds": 0.83,
+      "failure_reasons": []
+    },
+    "(default mix)": {
+      "answered": "10/10",
+      "avg_results": 16.0,
+      "avg_seconds": 0.69,
+      "failure_reasons": [
+        "brave: Suspended: too many requests",
+        "duckduckgo: CAPTCHA",
+        "google: Suspended: access denied",
+        "qwant: CAPTCHA",
+        "wikidata: unexpected crash"
+      ]
+    }
+  },
+  "per_engine": {
+    "duckduckgo": [
+      {
+        "ok": true,
+        "seconds": 0.18,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.09,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.09,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.09,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.08,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.09,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.09,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.09,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.08,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.09,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      }
+    ],
+    "brave": [
+      {
+        "ok": true,
+        "seconds": 0.1,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "brave",
+            "too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      }
+    ],
+    "bing": [
+      {
+        "ok": true,
+        "seconds": 0.2,
+        "results": 10,
+        "with_snippet": 10,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.16,
+        "results": 10,
+        "with_snippet": 10,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.11,
+        "results": 10,
+        "with_snippet": 10,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.14,
+        "results": 10,
+        "with_snippet": 10,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.15,
+        "results": 10,
+        "with_snippet": 10,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.17,
+        "results": 10,
+        "with_snippet": 10,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.16,
+        "results": 10,
+        "with_snippet": 10,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.12,
+        "results": 10,
+        "with_snippet": 10,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.18,
+        "results": 10,
+        "with_snippet": 10,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.14,
+        "results": 4,
+        "with_snippet": 4,
+        "unresponsive": []
+      }
+    ],
+    "google": [
+      {
+        "ok": true,
+        "seconds": 0.38,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "google",
+            "access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.0,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      }
+    ],
+    "qwant": [
+      {
+        "ok": true,
+        "seconds": 0.57,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.2,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.21,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.18,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.18,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.2,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.22,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.22,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.21,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.19,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      }
+    ],
+    "yahoo": [
+      {
+        "ok": true,
+        "seconds": 0.75,
+        "results": 7,
+        "with_snippet": 7,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.61,
+        "results": 7,
+        "with_snippet": 7,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.73,
+        "results": 7,
+        "with_snippet": 7,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.59,
+        "results": 7,
+        "with_snippet": 7,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.63,
+        "results": 7,
+        "with_snippet": 7,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.57,
+        "results": 7,
+        "with_snippet": 7,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.58,
+        "results": 7,
+        "with_snippet": 7,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.68,
+        "results": 7,
+        "with_snippet": 7,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.6,
+        "results": 7,
+        "with_snippet": 7,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.62,
+        "results": 7,
+        "with_snippet": 7,
+        "unresponsive": []
+      }
+    ],
+    "wikipedia": [
+      {
+        "ok": true,
+        "seconds": 0.84,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.53,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.7,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.43,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.94,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 1.26,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 1.06,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 1.17,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.81,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.55,
+        "results": 0,
+        "with_snippet": 0,
+        "unresponsive": []
+      }
+    ]
+  },
+  "mixed": [
+    {
+      "ok": true,
+      "seconds": 0.8,
+      "results": 17,
+      "with_snippet": 17,
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 0.58,
+      "results": 17,
+      "with_snippet": 17,
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 1.03,
+      "results": 17,
+      "with_snippet": 17,
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 0.49,
+      "results": 17,
+      "with_snippet": 17,
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 1.27,
+      "results": 17,
+      "with_snippet": 17,
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "wikidata",
+          "unexpected crash"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 0.47,
+      "results": 17,
+      "with_snippet": 17,
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 0.5,
+      "results": 17,
+      "with_snippet": 17,
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 0.56,
+      "results": 17,
+      "with_snippet": 17,
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 0.53,
+      "results": 17,
+      "with_snippet": 17,
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 0.65,
+      "results": 7,
+      "with_snippet": 7,
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ]
+      ]
+    }
+  ]
+}

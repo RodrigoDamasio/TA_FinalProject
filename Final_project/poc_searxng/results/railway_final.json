@@ -1,0 +1,936 @@
+{
+  "base": "http://127.0.0.1:8080",
+  "language": "en",
+  "queries": [
+    "retrieval augmented generation vs fine-tuning",
+    "transactional outbox pattern",
+    "HMAC webhook signature verification",
+    "ChromaDB hybrid search BM25",
+    "reciprocal rank fusion",
+    "FastAPI server-sent events",
+    "Gemini API rate limits free tier",
+    "multi-agent supervisor pattern LLM",
+    "prompt injection mitigation",
+    "SSRF protection private IP ranges"
+  ],
+  "summary": {
+    "yahoo": {
+      "answered": "10/10",
+      "avg_results": 7.0,
+      "relevant_pct": 96,
+      "avg_seconds": 0.58,
+      "failure_reasons": []
+    },
+    "yandex": {
+      "answered": "10/10",
+      "avg_results": 14.5,
+      "relevant_pct": 97,
+      "avg_seconds": 0.52,
+      "failure_reasons": []
+    },
+    "duckduckgo": {
+      "answered": "10/10",
+      "avg_results": 10.0,
+      "relevant_pct": 89,
+      "avg_seconds": 0.61,
+      "failure_reasons": []
+    },
+    "(default mix)": {
+      "answered": "10/10",
+      "avg_results": 23.1,
+      "relevant_pct": 96,
+      "avg_seconds": 0.61,
+      "failure_reasons": []
+    }
+  },
+  "per_engine": {
+    "yahoo": [
+      {
+        "ok": true,
+        "seconds": 0.75,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "RAG Vs Fine-Tuning for Enhancing LLM Performance",
+            "url": "https://www.geeksforgeeks.org/nlp/rag-vs-fine-tuning-for-enhancing-llm-performance/"
+          },
+          {
+            "title": "Fine Tuning vs Retrieval Augmented Generation: A Guide",
+            "url": "https://sudonull.com/fine-tuning-vs-retrieval-augmented-generation-a-guide"
+          },
+          {
+            "title": "Comparing Retrieval Augmented Generation and fine-tuning",
+            "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/retrieval-augmented-generation-options/rag-vs-fine-tuning.html"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.61,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Transactional outbox pattern - AWS Prescriptive Guidance",
+            "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+          },
+          {
+            "title": "Pattern: Transactional outbox - Microservices",
+            "url": "https://microservices.io/patterns/data/transactional-outbox.html"
+          },
+          {
+            "title": "Transactional Outbox Pattern: Never Lose an Event Again",
+            "url": "https://singhajit.com/transactional-outbox-pattern/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.58,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Webhook Signature Verification: HMAC Testing Guide",
+            "url": "https://webhooktest.net/blog/webhook-signature-verification"
+          },
+          {
+            "title": "Webhook Security: HMAC Verification Guide (2026) \u2014 HookSense",
+            "url": "https://hooksense.com/blog/webhook-security-hmac-best-practices"
+          },
+          {
+            "title": "Webhook Signature Verification Setup Guide (2026): Stripe ...",
+            "url": "https://www.shawnmayzes.com/articles/webhook-signature-verification-setup-guide/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.6,
+        "results": 7,
+        "relevant": 6,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "python - BM25Retriever + ChromaDB Hybrid Search Optimization ...",
+            "url": "https://stackoverflow.com/questions/79477745/bm25retriever-chromadb-hybrid-search-optimization-using-langchain"
+          },
+          {
+            "title": "Add BM25 Full Text Search algorithm for hybrid search ability ...",
+            "url": "https://github.com/chroma-core/chroma/issues/1686"
+          },
+          {
+            "title": "Chroma BM25 - Chroma Docs",
+            "url": "https://docs.trychroma.com/integrations/embedding-models/chroma-bm25"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.52,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Hybrid Search Scoring (RRF) - Azure AI Search | Microsoft Learn",
+            "url": "https://learn.microsoft.com/en-us/azure/search/hybrid-search-ranking"
+          },
+          {
+            "title": "Reciprocal rank fusion | Elasticsearch Reference",
+            "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion"
+          },
+          {
+            "title": "Introducing reciprocal rank fusion for hybrid search",
+            "url": "https://opensearch.org/blog/introducing-reciprocal-rank-fusion-hybrid-search/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.53,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Server-Sent Events (SSE) - FastAPI",
+            "url": "https://fastapi.tiangolo.com/tutorial/server-sent-events/"
+          },
+          {
+            "title": "Server-Sent Events - EventSourceResponse and ServerSentEvent ...",
+            "url": "https://fastapi.tiangolo.com/reference/sse/"
+          },
+          {
+            "title": "How to send server-side events from python (fastapi) upon ...",
+            "url": "https://stackoverflow.com/questions/58895486/how-to-send-server-side-events-from-python-fastapi-upon-calls-to-a-function-th"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.55,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Rate limits | Gemini API | Google AI for Developers",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          },
+          {
+            "title": "Gemini API Free Tier 2026: Gemini 3 Flash Limits, Quotas",
+            "url": "https://pecollective.com/tools/gemini-free-tier-guide/"
+          },
+          {
+            "title": "Gemini API Rate Limits 2026: Free vs Paid Tiers and How to ...",
+            "url": "https://blog.laozhang.ai/en/posts/gemini-api-rate-limits-guide"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.57,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Agent Supervisor in ML Systems \u2014 Complete Guide (2026)",
+            "url": "https://123ofai.com/articles/blocks/agent-supervisor"
+          },
+          {
+            "title": "Multi-Agent Patterns \u2014 Coordinating Multiple LLM Agents",
+            "url": "https://www.agentpatternscatalog.org/multi-agent-patterns/"
+          },
+          {
+            "title": "Multi-Agent Coordination Patterns 2026 \u2014 Supervisor, Swarm ...",
+            "url": "https://aipromptshub.co/tutorial/multi-agent-coordination-patterns"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.54,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "LLM Prompt Injection Prevention - OWASP Cheat Sheet Series",
+            "url": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html"
+          },
+          {
+            "title": "Prompt Injection Attacks: Examples and Defences",
+            "url": "https://blog.cyberdesserts.com/prompt-injection-attacks/"
+          },
+          {
+            "title": "Defend against indirect prompt injection attacks | Microsoft ...",
+            "url": "https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.57,
+        "results": 7,
+        "relevant": 5,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Private IP Addresses Deep Dive: Security Risks, SSRF, and ...",
+            "url": "https://www.penligent.ai/hackinglabs/private-ip-addresses-deep-dive-security-risks-ssrf-and-modern-exploitation/"
+          },
+          {
+            "title": "SSRF protection - OpenProject",
+            "url": "https://www.openproject.org/docs/installation-and-operations/configuration/ssrf-protection/"
+          },
+          {
+            "title": "Enable SSRF protection | Deploy | n8n Docs",
+            "url": "https://docs.n8n.io/deploy/host-n8n/configure-n8n/security/enable-ssrf-protection"
+          }
+        ],
+        "unresponsive": []
+      }
+    ],
+    "yandex": [
+      {
+        "ok": true,
+        "seconds": 0.91,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Retrieval-Augmented Generation vs Fine-Tuning: What\u2019s Right for...",
+            "url": "https://www.k2view.com/blog/retrieval-augmented-generation-vs-fine-tuning/"
+          },
+          {
+            "title": "Retrieval-Augmented Generation vs Fine-Tuning",
+            "url": "https://www.heliosz.ai/blog/retrieval-augmented-generation-vs-fine-tuning/"
+          },
+          {
+            "title": "RAG vs fine-tuning: when to use each (decision guide)",
+            "url": "https://www.glean.com/blog/retrieval-augemented-generation-vs-fine-tuning"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.51,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Pattern: Transactional outbox",
+            "url": "https://microservices.io/patterns/data/transactional-outbox.html"
+          },
+          {
+            "title": "Transactional outbox pattern - AWS Prescriptive Guidance",
+            "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+          },
+          {
+            "title": "Transactional Outbox Pattern | Microservices Architecture... - YouTube",
+            "url": "https://www.youtube.com/watch?v=M-Fhb8LzhPo"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.48,
+        "results": 15,
+        "relevant": 14,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Webhook Signature Verifier Online | Check Generic HMAC Webhooks",
+            "url": "https://encode64.com/en/security-token-tools/webhook-signature-verifier"
+          },
+          {
+            "title": "Webhook Signature Verifier \u2014 Verify HMAC Signatures Free",
+            "url": "https://tools.jlvextension.com/webhook-signature-verifier/"
+          },
+          {
+            "title": "Webhook Signature Verifier | Verify Stripe, GitHub & HMAC...",
+            "url": "https://devtoollab.com/tools/webhook-signature-verifier"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.42,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Medium",
+            "url": "https://medium.com/@nepalsakshi05/taking-chroma-reranking-to-the-next-level-with-a-hybrid-retrieval-system-b24ca9eb1a28"
+          },
+          {
+            "title": "Hybrid search: BM25 + vector search | BestLLMfor",
+            "url": "https://bestllmfor.com/guide/recherche-hybride-bm25/"
+          },
+          {
+            "title": "python - BM25Retriever + ChromaDB Hybrid Search... - Stack Overflow",
+            "url": "https://stackoverflow.com/questions/79477745/bm25retriever-chromadb-hybrid-search-optimization-using-langchain"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.51,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Reciprocal rank fusion | Elasticsearch Reference",
+            "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion"
+          },
+          {
+            "title": "Medium",
+            "url": "https://medium.com/@devalshah1619/mathematical-intuition-behind-reciprocal-rank-fusion-rrf-explained-in-2-mins-002df0cc5e2a"
+          },
+          {
+            "title": "Hybrid Search Scoring (RRF) - Azure AI Search | Microsoft Learn",
+            "url": "https://learn.microsoft.com/en-us/azure/search/hybrid-search-ranking"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.49,
+        "results": 15,
+        "relevant": 13,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Medium",
+            "url": "https://medium.com/@nandagopal05/server-sent-events-with-python-fastapi-f1960e0c8e4b"
+          },
+          {
+            "title": "Server-Sent Events for Push-Notifications on FastAPI",
+            "url": "https://plainenglish.io/python/server-sent-events-for-push-notifications-on-fastapi"
+          },
+          {
+            "title": "Server-Sent Events (SSE) - FastAPI | Sebasti\u00e1n Ram\u00edrez Monta\u00f1o",
+            "url": "https://www.linkedin.com/posts/tiangolo_server-sent-events-sse-fastapi-activity-7433807066445586433-8bww"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.45,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Rate limits | Gemini API | Google AI for Developers",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          },
+          {
+            "title": "Gemini API Rate Limits 2026: Free vs Paid Tier... | LaoZhang AI Blog",
+            "url": "https://blog.laozhang.ai/en/posts/gemini-api-rate-limits-guide"
+          },
+          {
+            "title": "Free Google Gemini API Key & Free Tier: Base URL, Rate Limits, 11...",
+            "url": "https://freellm.net/providers/google-gemini"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.45,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "18: Multi-Agent Systems \u2014 The Supervisor Pattern | PyAI",
+            "url": "https://pyai.io/en/ai/langchain-langgraph/multi-agent-supervisor-pattern/"
+          },
+          {
+            "title": "Multi-Agent Supervisor \u2014 Agentic AI Patterns \u2014 AWS GALAXY",
+            "url": "https://awsgalaxy.com/learning/agentic-ai-patterns/multi-agent"
+          },
+          {
+            "title": "Supervisor (Multi-Agent) - Runflow",
+            "url": "https://docs.runflow.ai/core-concepts/supervisor"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.51,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "GitHub - Valhall-ai/prompt-injection-mitigations: A collection of...",
+            "url": "https://github.com/Valhall-ai/prompt-injection-mitigations"
+          },
+          {
+            "title": "Prompt Injection Mitigation: 7 Defense Strategies for LLMs",
+            "url": "https://afine.com/prompt-injection-mitigation-7-defense-strategies-for-llms"
+          },
+          {
+            "title": "7 Prompt Injection Mitigation Strategies for Enterprise AI",
+            "url": "https://witness.ai/blog/prompt-injection-mitigation-strategies/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.42,
+        "results": 15,
+        "relevant": 14,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Fixing Fluent Forms URL Validation Issues: .co.uk... - Fluent Forms",
+            "url": "https://fluentforms.com/fluent-forms-url-validation-issues-fix/"
+          },
+          {
+            "title": "AI Proxy SSRF Protection, DNS Rebinding & Injection Defense",
+            "url": "https://govynai.com/blog/ssrf-injection-defense-ai-proxy/"
+          },
+          {
+            "title": "Monitor SSRF - Prevent Server-Side Request Forgery | ByteHide...",
+            "url": "https://docs.bytehide.com/platforms/dotnet/products/monitor/protections/ssrf"
+          }
+        ],
+        "unresponsive": []
+      }
+    ],
+    "duckduckgo": [
+      {
+        "ok": true,
+        "seconds": 0.68,
+        "results": 10,
+        "relevant": 5,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "RAG Vs Fine-Tuning for Enhancing LLM Performance",
+            "url": "https://www.geeksforgeeks.org/nlp/rag-vs-fine-tuning-for-enhancing-llm-performance/"
+          },
+          {
+            "title": "RAG vs. fine-tuning - IBM",
+            "url": "https://www.ibm.com/think/topics/rag-vs-fine-tuning"
+          },
+          {
+            "title": "Comparing Retrieval Augmented Generation and fine-tuning",
+            "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/retrieval-augmented-generation-options/rag-vs-fine-tuning.html"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.64,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Transactional outbox pattern - AWS Prescriptive Guidance",
+            "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+          },
+          {
+            "title": "Pattern: Transactional outbox - Microservices",
+            "url": "https://microservices.io/patterns/data/transactional-outbox.html"
+          },
+          {
+            "title": "Transactional Outbox Pattern: Never Lose an Event Again",
+            "url": "https://singhajit.com/transactional-outbox-pattern/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.62,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Webhook Signature Verification: HMAC Testing Guide",
+            "url": "https://webhooktest.net/blog/webhook-signature-verification"
+          },
+          {
+            "title": "Webhook Signature Verification Setup Guide (2026): Stripe, GitHub & HMAC",
+            "url": "https://www.shawnmayzes.com/articles/webhook-signature-verification-setup-guide/"
+          },
+          {
+            "title": "Webhook Security: HMAC Verification Guide (2026) \u2014 HookSense",
+            "url": "https://hooksense.com/blog/webhook-security-hmac-best-practices"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.5,
+        "results": 10,
+        "relevant": 9,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "python - BM25Retriever + ChromaDB Hybrid Search Optimization using ...",
+            "url": "https://stackoverflow.com/questions/79477745/bm25retriever-chromadb-hybrid-search-optimization-using-langchain"
+          },
+          {
+            "title": "Chroma BM25 - Chroma Docs",
+            "url": "https://docs.trychroma.com/integrations/embedding-models/chroma-bm25"
+          },
+          {
+            "title": "Add BM25 Full Text Search algorithm for hybrid search ability to Chromadb",
+            "url": "https://github.com/chroma-core/chroma/issues/1686"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.55,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Reciprocal Rank Fusion (RRF) explained in 4 mins. - Medium",
+            "url": "https://medium.com/@devalshah1619/mathematical-intuition-behind-reciprocal-rank-fusion-rrf-explained-in-2-mins-002df0cc5e2a"
+          },
+          {
+            "title": "Hybrid Search Scoring (RRF) - Azure AI Search | Microsoft Learn",
+            "url": "https://learn.microsoft.com/en-us/azure/search/hybrid-search-ranking"
+          },
+          {
+            "title": "Reciprocal rank fusion | Elasticsearch Reference",
+            "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.58,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Server-Sent Events (SSE) - FastAPI",
+            "url": "https://fastapi.tiangolo.com/tutorial/server-sent-events/"
+          },
+          {
+            "title": "Server-Sent Events - EventSourceResponse and ServerSentEvent - FastAPI",
+            "url": "https://fastapi.tiangolo.com/reference/sse/"
+          },
+          {
+            "title": "How to send server-side events from python (fastapi) upon calls to a ...",
+            "url": "https://stackoverflow.com/questions/58895486/how-to-send-server-side-events-from-python-fastapi-upon-calls-to-a-function-th"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.6,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Rate limits | Gemini API | Google AI for Developers",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          },
+          {
+            "title": "Gemini API Free Tier 2026: Gemini 3 Flash Limits, Quotas",
+            "url": "https://pecollective.com/tools/gemini-free-tier-guide/"
+          },
+          {
+            "title": "Gemini API Rate Limits 2026: Free vs Paid Tiers and How to Raise",
+            "url": "https://blog.laozhang.ai/en/posts/gemini-api-rate-limits-guide"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.78,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Agent Supervisor in ML Systems \u2014 Complete Guide (2026)",
+            "url": "https://123ofai.com/articles/blocks/agent-supervisor"
+          },
+          {
+            "title": "Multi-Agent Patterns \u2014 Coordinating Multiple LLM Agents",
+            "url": "https://www.agentpatternscatalog.org/multi-agent-patterns/"
+          },
+          {
+            "title": "Building Multi-Agents Supervisor System from Scratch with ... - Medium",
+            "url": "https://medium.com/@anuragmishra_27746/building-multi-agents-supervisor-system-from-scratch-with-langgraph-langsmith-b602e8c2c95d"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.59,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "LLM Prompt Injection Prevention - OWASP Cheat Sheet Series",
+            "url": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html"
+          },
+          {
+            "title": "Defend against indirect prompt injection attacks",
+            "url": "https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection"
+          },
+          {
+            "title": "Prompt Injection Attacks: Examples and Defences",
+            "url": "https://blog.cyberdesserts.com/prompt-injection-attacks/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.59,
+        "results": 10,
+        "relevant": 5,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "SSRF protection - OpenProject",
+            "url": "https://www.openproject.org/docs/installation-and-operations/configuration/ssrf-protection/"
+          },
+          {
+            "title": "Enable SSRF protection | Deploy | n8n Docs",
+            "url": "https://docs.n8n.io/deploy/host-n8n/configure-n8n/security/enable-ssrf-protection"
+          },
+          {
+            "title": "Private IP Addresses Deep Dive: Security Risks, SSRF, and Modern ...",
+            "url": "https://www.penligent.ai/hackinglabs/private-ip-addresses-deep-dive-security-risks-ssrf-and-modern-exploitation/"
+          }
+        ],
+        "unresponsive": []
+      }
+    ]
+  },
+  "mixed": [
+    {
+      "ok": true,
+      "seconds": 0.61,
+      "results": 25,
+      "relevant": 24,
+      "with_snippet": 25,
+      "top": [
+        {
+          "title": "RAG Vs Fine-Tuning for Enhancing LLM Performance",
+          "url": "https://www.geeksforgeeks.org/nlp/rag-vs-fine-tuning-for-enhancing-llm-performance/"
+        },
+        {
+          "title": "RAG vs. fine-tuning - IBM",
+          "url": "https://www.ibm.com/think/topics/rag-vs-fine-tuning"
+        },
+        {
+          "title": "Fine Tuning vs Retrieval Augmented Generation: A Guide",
+          "url": "https://sudonull.com/fine-tuning-vs-retrieval-augmented-generation-a-guide"
+        }
+      ],
+      "unresponsive": []
+    },
+    {
+      "ok": true,
+      "seconds": 0.6,
+      "results": 17,
+      "relevant": 17,
+      "with_snippet": 17,
+      "top": [
+        {
+          "title": "Transactional outbox pattern - AWS Prescriptive Guidance",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+        },
+        {
+          "title": "Pattern: Transactional outbox - Microservices",
+          "url": "https://microservices.io/patterns/data/transactional-outbox.html"
+        },
+        {
+          "title": "Transactional Outbox Pattern: Never Lose an Event Again - Ajit Singh",
+          "url": "https://singhajit.com/transactional-outbox-pattern/"
+        }
+      ],
+      "unresponsive": []
+    },
+    {
+      "ok": true,
+      "seconds": 0.58,
+      "results": 25,
+      "relevant": 24,
+      "with_snippet": 25,
+      "top": [
+        {
+          "title": "Webhook Signature Verification: HMAC Testing Guide",
+          "url": "https://webhooktest.net/blog/webhook-signature-verification"
+        },
+        {
+          "title": "Webhook Security: HMAC Verification Guide (2026) \u2014 HookSense",
+          "url": "https://hooksense.com/blog/webhook-security-hmac-best-practices"
+        },
+        {
+          "title": "Webhook Signature Verification Setup Guide (2026): Stripe, GitHub & HMAC",
+          "url": "https://www.shawnmayzes.com/articles/webhook-signature-verification-setup-guide/"
+        }
+      ],
+      "unresponsive": []
+    },
+    {
+      "ok": true,
+      "seconds": 0.58,
+      "results": 22,
+      "relevant": 21,
+      "with_snippet": 22,
+      "top": [
+        {
+          "title": "python - BM25Retriever + ChromaDB Hybrid Search Optimization using ...",
+          "url": "https://stackoverflow.com/questions/79477745/bm25retriever-chromadb-hybrid-search-optimization-using-langchain"
+        },
+        {
+          "title": "Taking Chroma Reranking to the Next Level with a Hybrid ... - Medium",
+          "url": "https://medium.com/@nepalsakshi05/taking-chroma-reranking-to-the-next-level-with-a-hybrid-retrieval-system-b24ca9eb1a28"
+        },
+        {
+          "title": "Add BM25 Full Text Search algorithm for hybrid search ability to Chromadb",
+          "url": "https://github.com/chroma-core/chroma/issues/1686"
+        }
+      ],
+      "unresponsive": []
+    },
+    {
+      "ok": true,
+      "seconds": 0.51,
+      "results": 22,
+      "relevant": 22,
+      "with_snippet": 22,
+      "top": [
+        {
+          "title": "Hybrid Search Scoring (RRF) - Azure AI Search | Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/azure/search/hybrid-search-ranking"
+        },
+        {
+          "title": "Reciprocal rank fusion | Elasticsearch Reference",
+          "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion"
+        },
+        {
+          "title": "Reciprocal Rank Fusion (RRF) explained in 4 mins. - Medium",
+          "url": "https://medium.com/@devalshah1619/mathematical-intuition-behind-reciprocal-rank-fusion-rrf-explained-in-2-mins-002df0cc5e2a"
+        }
+      ],
+      "unresponsive": []
+    },
+    {
+      "ok": true,
+      "seconds": 0.57,
+      "results": 24,
+      "relevant": 22,
+      "with_snippet": 24,
+      "top": [
+        {
+          "title": "Server-Sent Events with Python FastAPI - Medium",
+          "url": "https://medium.com/@nandagopal05/server-sent-events-with-python-fastapi-f1960e0c8e4b"
+        },
+        {
+          "title": "Server-Sent Events (SSE) - FastAPI",
+          "url": "https://fastapi.tiangolo.com/tutorial/server-sent-events/"
+        },
+        {
+          "title": "Server-Sent Events - EventSourceResponse and ServerSentEvent - FastAPI",
+          "url": "https://fastapi.tiangolo.com/reference/sse/"
+        }
+      ],
+      "unresponsive": []
+    },
+    {
+      "ok": true,
+      "seconds": 0.73,
+      "results": 22,
+      "relevant": 22,
+      "with_snippet": 22,
+      "top": [
+        {
+          "title": "Rate limits | Gemini API | Google AI for Developers",
+          "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+        },
+        {
+          "title": "Gemini API Rate Limits 2026: Free vs Paid Tier... | LaoZhang AI Blog",
+          "url": "https://blog.laozhang.ai/en/posts/gemini-api-rate-limits-guide"
+        },
+        {
+          "title": "Gemini API Free Tier 2026: Gemini 3 Flash Limits, Quotas",
+          "url": "https://pecollective.com/tools/gemini-free-tier-guide/"
+        }
+      ],
+      "unresponsive": []
+    },
+    {
+      "ok": true,
+      "seconds": 0.73,
+      "results": 24,
+      "relevant": 24,
+      "with_snippet": 24,
+      "top": [
+        {
+          "title": "Agent Supervisor in ML Systems \u2014 Complete Guide (2026)",
+          "url": "https://123ofai.com/articles/blocks/agent-supervisor"
+        },
+        {
+          "title": "LangGraph Multi-Agent \u2014 Supervisor Pattern... | MyEngineeringPath",
+          "url": "https://myengineeringpath.dev/genai-engineer/langgraph-multi-agent/"
+        },
+        {
+          "title": "Multi-Agent Coordination Patterns (2026): Supervisor, Swarm...",
+          "url": "https://aipromptshub.co/tutorial/multi-agent-coordination-patterns"
+        }
+      ],
+      "unresponsive": []
+    },
+    {
+      "ok": true,
+      "seconds": 0.57,
+      "results": 24,
+      "relevant": 24,
+      "with_snippet": 24,
+      "top": [
+        {
+          "title": "LLM Prompt Injection Prevention - OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html"
+        },
+        {
+          "title": "Mitigating prompt injection attacks with a layered defense strategy",
+          "url": "https://blog.google/security/mitigating-prompt-injection-attacks/"
+        },
+        {
+          "title": "Prompt Injection Attacks: Examples and Defences",
+          "url": "https://blog.cyberdesserts.com/prompt-injection-attacks/"
+        }
+      ],
+      "unresponsive": []
+    },
+    {
+      "ok": true,
+      "seconds": 0.59,
+      "results": 26,
+      "relevant": 21,
+      "with_snippet": 26,
+      "top": [
+        {
+          "title": "SSRF protection - OpenProject",
+          "url": "https://www.openproject.org/docs/installation-and-operations/configuration/ssrf-protection/"
+        },
+        {
+          "title": "Enable SSRF protection | Deploy | n8n Docs",
+          "url": "https://docs.n8n.io/deploy/host-n8n/configure-n8n/security/enable-ssrf-protection"
+        },
+        {
+          "title": "Private IP Addresses Deep Dive: Security Risks, SSRF, and Modern ...",
+          "url": "https://www.penligent.ai/hackinglabs/private-ip-addresses-deep-dive-security-risks-ssrf-and-modern-exploitation/"
+        }
+      ],
+      "unresponsive": []
+    }
+  ]
+}

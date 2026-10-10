@@ -1,0 +1,2423 @@
+{
+  "base": "http://127.0.0.1:8080",
+  "language": "en",
+  "queries": [
+    "retrieval augmented generation vs fine-tuning",
+    "transactional outbox pattern",
+    "HMAC webhook signature verification",
+    "ChromaDB hybrid search BM25",
+    "reciprocal rank fusion",
+    "FastAPI server-sent events",
+    "Gemini API rate limits free tier",
+    "multi-agent supervisor pattern LLM",
+    "prompt injection mitigation",
+    "SSRF protection private IP ranges"
+  ],
+  "summary": {
+    "duckduckgo": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "relevant_pct": 0,
+      "avg_seconds": 0.08,
+      "failure_reasons": [
+        "CAPTCHA"
+      ]
+    },
+    "brave": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "relevant_pct": 0,
+      "avg_seconds": 0.04,
+      "failure_reasons": [
+        "Suspended: too many requests",
+        "too many requests"
+      ]
+    },
+    "bing": {
+      "answered": "10/10",
+      "avg_results": 9.9,
+      "relevant_pct": 0,
+      "avg_seconds": 0.27,
+      "failure_reasons": []
+    },
+    "google": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "relevant_pct": 0,
+      "avg_seconds": 0.07,
+      "failure_reasons": [
+        "Suspended: access denied",
+        "access denied"
+      ]
+    },
+    "qwant": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "relevant_pct": 0,
+      "avg_seconds": 0.35,
+      "failure_reasons": [
+        "CAPTCHA"
+      ]
+    },
+    "yahoo": {
+      "answered": "10/10",
+      "avg_results": 7.0,
+      "relevant_pct": 87,
+      "avg_seconds": 0.71,
+      "failure_reasons": []
+    },
+    "yep": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "relevant_pct": 0,
+      "avg_seconds": 1.12,
+      "failure_reasons": [
+        "HTTP error"
+      ]
+    },
+    "mwmbl": {
+      "answered": "8/10",
+      "avg_results": 28.0,
+      "relevant_pct": 77,
+      "avg_seconds": 0.84,
+      "failure_reasons": [
+        "timeout"
+      ]
+    },
+    "yandex": {
+      "answered": "10/10",
+      "avg_results": 14.5,
+      "relevant_pct": 95,
+      "avg_seconds": 0.74,
+      "failure_reasons": []
+    },
+    "seznam": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "relevant_pct": 0,
+      "avg_seconds": 3.11,
+      "failure_reasons": [
+        "timeout"
+      ]
+    },
+    "wikipedia": {
+      "answered": "0/10",
+      "avg_results": 0,
+      "relevant_pct": 0,
+      "avg_seconds": 0.04,
+      "failure_reasons": []
+    },
+    "(default mix)": {
+      "answered": "10/10",
+      "avg_results": 50.2,
+      "relevant_pct": 71,
+      "avg_seconds": 2.01,
+      "failure_reasons": [
+        "brave: Suspended: too many requests",
+        "brave: too many requests",
+        "duckduckgo: CAPTCHA",
+        "google: Suspended: access denied",
+        "google: access denied",
+        "mwmbl: timeout",
+        "qwant: CAPTCHA",
+        "seznam: Suspended: timeout",
+        "wikidata: timeout",
+        "wikidata: unexpected crash",
+        "yep: HTTP error"
+      ]
+    }
+  },
+  "per_engine": {
+    "duckduckgo": [
+      {
+        "ok": true,
+        "seconds": 0.17,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.07,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.07,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.07,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.07,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.08,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.07,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.07,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.07,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.07,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "duckduckgo",
+            "CAPTCHA"
+          ]
+        ]
+      }
+    ],
+    "brave": [
+      {
+        "ok": true,
+        "seconds": 0.32,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "brave",
+            "Suspended: too many requests"
+          ]
+        ]
+      }
+    ],
+    "bing": [
+      {
+        "ok": true,
+        "seconds": 0.37,
+        "results": 9,
+        "relevant": 0,
+        "with_snippet": 9,
+        "top": [
+          {
+            "title": "50 Facts About Cameo",
+            "url": "https://facts.net/lifestyle/entertainment/50-facts-about-cameo/"
+          },
+          {
+            "title": "Robert Pattinson's Secret 'Marty Supreme' Cameo Confirmed by Josh ...",
+            "url": "https://indigomusic.com/pop-cultures/whats-up-pop-news/robert-pattinsons-secret-marty-supreme-cameo-confirmed-by-josh-safdie-11004361"
+          },
+          {
+            "title": "Snapchat Group Cameos Creatives Images - Lovepik",
+            "url": "https://lovepik.com/images/creative-snapchat-group-cameos.html"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.23,
+        "results": 10,
+        "relevant": 0,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "What is Mobile App Development Process - GeeksforGeeks",
+            "url": "https://www.geeksforgeeks.org/mobile-computing/what-is-mobile-app-development-process/"
+          },
+          {
+            "title": "Android Mobile App Developer Tools - Android Developers",
+            "url": "https://developer.android.com/"
+          },
+          {
+            "title": "Build your first app | Get started | Android Developers",
+            "url": "https://developer.android.com/get-started/overview"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.26,
+        "results": 10,
+        "relevant": 0,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Microsoft Teams",
+            "url": "https://teams.microsoft.com/"
+          },
+          {
+            "title": "Sign In | Microsoft Teams",
+            "url": "https://www.microsoft.com/en-us/microsoft-teams/log-in?msockid=3a6cb7079d43627217e8a0e99cff63fe"
+          },
+          {
+            "title": "Acesse sua conta | Microsoft Teams",
+            "url": "https://www.microsoft.com/pt-br/microsoft-teams/log-in?msockid=3a6cb7079d43627217e8a0e99cff63fe"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.26,
+        "results": 10,
+        "relevant": 0,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "ChromaDB - the open-source search infrastructure for AI",
+            "url": "https://www.trychroma.com/products/chromadb"
+          },
+          {
+            "title": "Introduction - Chroma Docs",
+            "url": "https://docs.trychroma.com/docs/overview/introduction"
+          },
+          {
+            "title": "Chroma - open-source search infrastructure for AI",
+            "url": "https://www.trychroma.com/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.34,
+        "results": 10,
+        "relevant": 0,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Pedagogia \u2013 Wikip\u00e9dia, a enciclop\u00e9dia livre",
+            "url": "https://pt.m.wikipedia.org/wiki/Pedagogia"
+          },
+          {
+            "title": "O que \u00e9 Pedagogia: curso, \u00e1reas de atua\u00e7\u00e3o, sal\u00e1rios e mais",
+            "url": "https://faculdade.grancursosonline.com.br/blog/o-que-e-pedagogia/"
+          },
+          {
+            "title": "Pedagogia: o que se aprende, onde atuar, sal\u00e1rio e perfil do pedagogo",
+            "url": "https://www.todadisciplina.com.br/guia-de-pedagogia/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.24,
+        "results": 10,
+        "relevant": 0,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "FastAPI - FastAPI",
+            "url": "https://fastapi.tiangolo.com/"
+          },
+          {
+            "title": "Tutorial - User Guide - FastAPI",
+            "url": "https://fastapi.tiangolo.com/tutorial/"
+          },
+          {
+            "title": "GitHub - fastapi/fastapi: FastAPI framework, high performance, easy \u2026",
+            "url": "https://github.com/FastAPI/FastAPI"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.25,
+        "results": 10,
+        "relevant": 0,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "\u200eGoogle Gemini",
+            "url": "https://gemini.google.com/"
+          },
+          {
+            "title": "\u200eGoogle Gemini",
+            "url": "https://gemini.google.com/?hl=pt-br"
+          },
+          {
+            "title": "Gemini: seu assistente de IA do Google",
+            "url": "https://gemini.google/br/about/?hl=pt-BR"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.24,
+        "results": 10,
+        "relevant": 0,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Multi - Multilaser agora \u00e9 Multi",
+            "url": "https://www.multilaser.com.br/"
+          },
+          {
+            "title": "Multi | Lojas, Ofertas e Promo\u00e7\u00f5es dos Shoppings Multiplan",
+            "url": "https://www.meumulti.com.br/"
+          },
+          {
+            "title": "Portal do Cliente",
+            "url": "https://painel.multi360.com.br/login.html"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.26,
+        "results": 10,
+        "relevant": 0,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "O que \u00e9 prompt, para que serve, exemplos, como criar e usar",
+            "url": "https://www.docusign.com/pt-br/blog/o-que-e-prompt?msockid=08a12db32a4362ae021a3a5d2b81633a"
+          },
+          {
+            "title": "Como Abrir o Prompt de Comando nos Windows 8, 10 e 11 - wikiHow",
+            "url": "https://pt.wikihow.com/Abrir-o-Prompt-de-Comando-no-Windows"
+          },
+          {
+            "title": "30 Melhores Prompts de IA em 2026 (Prontos para Copiar)",
+            "url": "https://fasdainternet.com.br/melhores-prompts-de-ia-2026/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.28,
+        "results": 10,
+        "relevant": 0,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "LinkedIn",
+            "url": "https://www.linkedin.com/check/en"
+          },
+          {
+            "title": "MOLAA | Museum of Latin American Art - LinkedIn",
+            "url": "https://www.linkedin.com/company/museum-of-latin-american-art"
+          },
+          {
+            "title": "Shitiz Dudeja - Senior Staff Engineer, Qualcomm India | LinkedIn",
+            "url": "https://in.linkedin.com/in/shitiz-dudeja-257b0a15"
+          }
+        ],
+        "unresponsive": []
+      }
+    ],
+    "google": [
+      {
+        "ok": true,
+        "seconds": 0.56,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "google",
+            "Suspended: access denied"
+          ]
+        ]
+      }
+    ],
+    "qwant": [
+      {
+        "ok": true,
+        "seconds": 0.77,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.28,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.26,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.34,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.25,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.28,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.29,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.32,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.34,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.34,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "qwant",
+            "CAPTCHA"
+          ]
+        ]
+      }
+    ],
+    "yahoo": [
+      {
+        "ok": true,
+        "seconds": 1.36,
+        "results": 7,
+        "relevant": 4,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "RAG Vs Fine-Tuning for Enhancing LLM Performance",
+            "url": "https://www.geeksforgeeks.org/nlp/rag-vs-fine-tuning-for-enhancing-llm-performance/"
+          },
+          {
+            "title": "Comparing Retrieval Augmented Generation and fine-tuning",
+            "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/retrieval-augmented-generation-options/rag-vs-fine-tuning.html"
+          },
+          {
+            "title": "RAG vs. fine-tuning - IBM",
+            "url": "https://www.ibm.com/think/topics/rag-vs-fine-tuning"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.61,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Pattern: Transactional outbox - Microservices",
+            "url": "https://microservices.io/patterns/data/transactional-outbox.html"
+          },
+          {
+            "title": "Transactional outbox pattern - AWS Prescriptive Guidance",
+            "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+          },
+          {
+            "title": "Transactional Outbox Pattern: Never Lose an Event Again",
+            "url": "https://singhajit.com/transactional-outbox-pattern/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.56,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Webhook Signature Verification: HMAC Testing Guide",
+            "url": "https://webhooktest.net/blog/webhook-signature-verification"
+          },
+          {
+            "title": "Webhook Signature Verification (HMAC-SHA256) in Node, Python ...",
+            "url": "https://dev.to/shotatanikawa/webhook-signature-verification-hmac-sha256-in-node-python-ruby-2026-guide-26m"
+          },
+          {
+            "title": "Webhook Signature Verification Setup Guide (2026): Stripe ...",
+            "url": "https://www.shawnmayzes.com/articles/webhook-signature-verification-setup-guide/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.64,
+        "results": 7,
+        "relevant": 5,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Add BM25 Full Text Search algorithm for hybrid search ability ...",
+            "url": "https://github.com/chroma-core/chroma/issues/1686"
+          },
+          {
+            "title": "python - BM25Retriever + ChromaDB Hybrid Search Optimization ...",
+            "url": "https://stackoverflow.com/questions/79477745/bm25retriever-chromadb-hybrid-search-optimization-using-langchain"
+          },
+          {
+            "title": "Chroma BM25 - Chroma Docs",
+            "url": "https://docs.trychroma.com/integrations/embedding-models/chroma-bm25"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.62,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Hybrid Search Scoring (RRF) - Azure AI Search | Microsoft Learn",
+            "url": "https://learn.microsoft.com/en-us/azure/search/hybrid-search-ranking"
+          },
+          {
+            "title": "Reciprocal rank fusion | Elasticsearch Reference",
+            "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion"
+          },
+          {
+            "title": "Introducing reciprocal rank fusion for hybrid search",
+            "url": "https://opensearch.org/blog/introducing-reciprocal-rank-fusion-hybrid-search/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.58,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Server-Sent Events (SSE) - FastAPI",
+            "url": "https://fastapi.tiangolo.com/tutorial/server-sent-events/"
+          },
+          {
+            "title": "Server-Sent Events - EventSourceResponse and ServerSentEvent ...",
+            "url": "https://fastapi.tiangolo.com/reference/sse/"
+          },
+          {
+            "title": "How to send server-side events from python (fastapi) upon ...",
+            "url": "https://stackoverflow.com/questions/58895486/how-to-send-server-side-events-from-python-fastapi-upon-calls-to-a-function-th"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.75,
+        "results": 7,
+        "relevant": 6,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Rate limits | Gemini API | Google AI for Developers",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          },
+          {
+            "title": "Gemini API Free Tier 2026: Gemini 3 Flash Limits, Quotas",
+            "url": "https://pecollective.com/tools/gemini-free-tier-guide/"
+          },
+          {
+            "title": "Gemini API Rate Limits 2026: Free vs Paid Tiers and How to ...",
+            "url": "https://blog.laozhang.ai/en/posts/gemini-api-rate-limits-guide"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.63,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Agent Supervisor in ML Systems \u2014 Complete Guide (2026)",
+            "url": "https://123ofai.com/articles/blocks/agent-supervisor"
+          },
+          {
+            "title": "Multi-Agent Patterns \u2014 Coordinating Multiple LLM Agents",
+            "url": "https://www.agentpatternscatalog.org/multi-agent-patterns/"
+          },
+          {
+            "title": "Multi-Agent Coordination Patterns 2026 \u2014 Supervisor, Swarm ...",
+            "url": "https://aipromptshub.co/tutorial/multi-agent-coordination-patterns"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.57,
+        "results": 7,
+        "relevant": 7,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "LLM Prompt Injection Prevention - OWASP Cheat Sheet Series",
+            "url": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html"
+          },
+          {
+            "title": "Prompt Injection Attacks: Examples and Defences",
+            "url": "https://blog.cyberdesserts.com/prompt-injection-attacks/"
+          },
+          {
+            "title": "Defend against indirect prompt injection attacks | Microsoft ...",
+            "url": "https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.75,
+        "results": 7,
+        "relevant": 4,
+        "with_snippet": 7,
+        "top": [
+          {
+            "title": "Private IP Addresses Deep Dive: Security Risks, SSRF, and ...",
+            "url": "https://www.penligent.ai/hackinglabs/private-ip-addresses-deep-dive-security-risks-ssrf-and-modern-exploitation/"
+          },
+          {
+            "title": "SSRF protection - OpenProject",
+            "url": "https://www.openproject.org/docs/installation-and-operations/configuration/ssrf-protection/"
+          },
+          {
+            "title": "Enable SSRF protection | Deploy | n8n Docs",
+            "url": "https://docs.n8n.io/deploy/host-n8n/configure-n8n/security/enable-ssrf-protection"
+          }
+        ],
+        "unresponsive": []
+      }
+    ],
+    "yep": [
+      {
+        "ok": true,
+        "seconds": 1.54,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "HTTP error"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 1.04,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "HTTP error"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 1.04,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "HTTP error"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 1.03,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "HTTP error"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 1.25,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "HTTP error"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 1.11,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "HTTP error"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 1.04,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "HTTP error"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 1.04,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "HTTP error"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 1.11,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "HTTP error"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 1.04,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "yep",
+            "HTTP error"
+          ]
+        ]
+      }
+    ],
+    "mwmbl": [
+      {
+        "ok": true,
+        "seconds": 1.07,
+        "results": 50,
+        "relevant": 2,
+        "with_snippet": 49,
+        "top": [
+          {
+            "title": "retrieval augmented generation - Stack Overflow",
+            "url": "http://stackoverflow.blog/retrieval-augmented-generation/"
+          },
+          {
+            "title": "GitHub - tdolega/rag-tge: Retrieval Augmented Generation - Truth\u2026",
+            "url": "https://github.com/tdolega/rag-tge"
+          },
+          {
+            "title": "Retrieval Augmented Generation with Weaviate - YouTube",
+            "url": "https://www.youtube.com/watch?v=OSt3sFT1i18"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.3,
+        "results": 45,
+        "relevant": 45,
+        "with_snippet": 41,
+        "top": [
+          {
+            "title": "The Transactional Outbox Pattern",
+            "url": "https://developer.confluent.io/courses/microservices/the-transactional-outbox-pattern/"
+          },
+          {
+            "title": "GitHub - koolay/outbox: A sdk for outbox microservice pattern",
+            "url": "https://github.com/koolay/outbox"
+          },
+          {
+            "title": "Transactional Outbox Patterns - DZone",
+            "url": "https://dzone.com/articles/transactional-outbox-pattern-step-by-step-with-spr"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.28,
+        "results": 18,
+        "relevant": 18,
+        "with_snippet": 18,
+        "top": [
+          {
+            "title": "How to Implement SHA256 Webhook Signature Verification",
+            "url": "https://hookdeck.com/webhooks/guides/how-to-implement-sha256-webhook-signature-verification"
+          },
+          {
+            "title": "NuGet Gallery | Square 42.0.0",
+            "url": "http://nuget.org/packages/Square/42.0.0"
+          },
+          {
+            "title": "NuGet Gallery | Square 41.0.1",
+            "url": "http://nuget.org/packages/Square/41.0.1"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.34,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.32,
+        "results": 30,
+        "relevant": 30,
+        "with_snippet": 28,
+        "top": [
+          {
+            "title": "Reciprocal Rank Fusion - ParadeDB",
+            "url": "https://www.paradedb.com/docs/reference/hybrid/rrf"
+          },
+          {
+            "title": "Reciprocal Rank Fusion (RRF) or How to Stop Worrying about Boost\u2026",
+            "url": "https://haystackconf.com/eu2023/talk-2/"
+          },
+          {
+            "title": "Add support for Reciprocal Rank Fusion to the search API by jdco\u2026",
+            "url": "https://github.com/elastic/elasticsearch/pull/93396"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 1.07,
+        "results": 42,
+        "relevant": 42,
+        "with_snippet": 37,
+        "top": [
+          {
+            "title": "GitHub - motyar/mchat: Simple chat with HTML5 Server-Sent Events",
+            "url": "https://github.com/motyar/mchat"
+          },
+          {
+            "title": "Server-Sent Events: A WebSockets alternative ready for another l\u2026",
+            "url": "https://www.ably.io/topic/server-sent-events"
+          },
+          {
+            "title": "Server-sent events | Can I use... Support tables for HTML5, CSS3\u2026",
+            "url": "http://caniuse.com/eventsource"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.33,
+        "results": 2,
+        "relevant": 2,
+        "with_snippet": 2,
+        "top": [
+          {
+            "title": "Google AI Studio",
+            "url": "https://en.wikipedia.org/wiki/Google_AI_Studio"
+          },
+          {
+            "title": "Gemini (language model)",
+            "url": "https://en.wikipedia.org/wiki/Gemini_(language_model)"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 4.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "mwmbl",
+            "timeout"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 0.35,
+        "results": 33,
+        "relevant": 33,
+        "with_snippet": 33,
+        "top": [
+          {
+            "title": "Simon Willison: Prompt injection",
+            "url": "https://simonwillison.net/series/prompt-injection"
+          },
+          {
+            "title": "GitHub - protectai/rebuff: LLM Prompt Injection Detector",
+            "url": "https://github.com/woop/rebuff"
+          },
+          {
+            "title": "What Is a Prompt Injection Attack? | IBM",
+            "url": "https://www.ibm.com/topics/prompt-injection"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.33,
+        "results": 4,
+        "relevant": 0,
+        "with_snippet": 4,
+        "top": [
+          {
+            "title": "Create a private IP connection for Looker (Google Cloud core)",
+            "url": "http://cloud.google.com/looker/docs/looker-core-create-private-ip"
+          },
+          {
+            "title": "How did the private ip address ranges get selected? - internet \u2026",
+            "url": "http://ask.metafilter.com/111834/"
+          },
+          {
+            "title": "Learn about using private IP \u00a0|\u00a0 Cloud SQL for PostgreSQL \u00a0|\u00a0 Go\u2026",
+            "url": "http://cloud.google.com/sql/docs/postgres/private-ip"
+          }
+        ],
+        "unresponsive": []
+      }
+    ],
+    "yandex": [
+      {
+        "ok": true,
+        "seconds": 1.24,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Retrieval-Augmented Generation vs Fine-Tuning: What\u2019s Right for...",
+            "url": "https://www.k2view.com/blog/retrieval-augmented-generation-vs-fine-tuning/"
+          },
+          {
+            "title": "RAG vs. Fine Tuning - YouTube",
+            "url": "https://www.youtube.com/watch?v=00Q0G84kq3M"
+          },
+          {
+            "title": "Retrieval-Augmented Generation vs Fine-Tuning",
+            "url": "https://www.heliosz.ai/blog/retrieval-augmented-generation-vs-fine-tuning/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.79,
+        "results": 10,
+        "relevant": 10,
+        "with_snippet": 10,
+        "top": [
+          {
+            "title": "Transactional outbox pattern - AWS Prescriptive Guidance",
+            "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+          },
+          {
+            "title": "Pattern: Transactional outbox",
+            "url": "https://microservices.io/patterns/data/transactional-outbox.html"
+          },
+          {
+            "title": "Transactional Outbox Pattern | Microservices Architecture... - YouTube",
+            "url": "https://www.youtube.com/watch?v=M-Fhb8LzhPo"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.66,
+        "results": 15,
+        "relevant": 14,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Webhook Signature Verifier Online | Check Generic HMAC Webhooks",
+            "url": "https://encode64.com/en/security-token-tools/webhook-signature-verifier"
+          },
+          {
+            "title": "Webhook Signature Verifier | Verify Stripe, GitHub & HMAC...",
+            "url": "https://devtoollab.com/tools/webhook-signature-verifier"
+          },
+          {
+            "title": "Webhook Signature Verifier \u2014 Verify HMAC Signatures Free",
+            "url": "https://tools.jlvextension.com/webhook-signature-verifier/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.74,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Medium",
+            "url": "https://medium.com/@nepalsakshi05/taking-chroma-reranking-to-the-next-level-with-a-hybrid-retrieval-system-b24ca9eb1a28"
+          },
+          {
+            "title": "python - BM25Retriever + ChromaDB Hybrid Search... - Stack Overflow",
+            "url": "https://stackoverflow.com/questions/79477745/bm25retriever-chromadb-hybrid-search-optimization-using-langchain"
+          },
+          {
+            "title": "Hybrid search: BM25 + vector search | BestLLMfor",
+            "url": "https://bestllmfor.com/guide/recherche-hybride-bm25/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.66,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Reciprocal rank fusion | Elasticsearch Reference",
+            "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion"
+          },
+          {
+            "title": "Medium",
+            "url": "https://medium.com/@devalshah1619/mathematical-intuition-behind-reciprocal-rank-fusion-rrf-explained-in-2-mins-002df0cc5e2a"
+          },
+          {
+            "title": "Hybrid Search Scoring (RRF) - Azure AI Search | Microsoft Learn",
+            "url": "https://learn.microsoft.com/en-us/azure/search/hybrid-search-ranking"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.63,
+        "results": 15,
+        "relevant": 12,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Medium",
+            "url": "https://medium.com/@nandagopal05/server-sent-events-with-python-fastapi-f1960e0c8e4b"
+          },
+          {
+            "title": "Server-Sent Events for Push-Notifications on FastAPI",
+            "url": "https://plainenglish.io/python/server-sent-events-for-push-notifications-on-fastapi"
+          },
+          {
+            "title": "FastAPI framework, high performance, easy to learn, fast to code...",
+            "url": "https://fastapi.tiangolo.com/tutorial/first-steps/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.6,
+        "results": 15,
+        "relevant": 14,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Rate limits | Gemini API | Google AI for Developers",
+            "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+          },
+          {
+            "title": "Free Google Gemini API Key & Free Tier: Base URL, Rate Limits, 11...",
+            "url": "https://freellm.net/providers/google-gemini"
+          },
+          {
+            "title": "Gemini API Rate Limits 2026: Free vs Paid Tier... | LaoZhang AI Blog",
+            "url": "https://blog.laozhang.ai/en/posts/gemini-api-rate-limits-guide"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.6,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "18: Multi-Agent Systems \u2014 The Supervisor Pattern | PyAI",
+            "url": "https://pyai.io/en/ai/langchain-langgraph/multi-agent-supervisor-pattern/"
+          },
+          {
+            "title": "Supervisor (Multi-Agent) - Runflow",
+            "url": "https://docs.runflow.ai/core-concepts/supervisor"
+          },
+          {
+            "title": "Multi-Agent Supervisor \u2014 Agentic AI Patterns \u2014 AWS GALAXY",
+            "url": "https://awsgalaxy.com/learning/agentic-ai-patterns/multi-agent"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.73,
+        "results": 15,
+        "relevant": 15,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "GitHub - Valhall-ai/prompt-injection-mitigations: A collection of...",
+            "url": "https://github.com/Valhall-ai/prompt-injection-mitigations"
+          },
+          {
+            "title": "LLM01:2025 Prompt Injection - OWASP Gen AI Security Project",
+            "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
+          },
+          {
+            "title": "Mitigating prompt injection attacks with a layered defense strategy",
+            "url": "https://blog.google/security/mitigating-prompt-injection-attacks/"
+          }
+        ],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.75,
+        "results": 15,
+        "relevant": 13,
+        "with_snippet": 15,
+        "top": [
+          {
+            "title": "Monitor SSRF - Prevent Server-Side Request Forgery | ByteHide...",
+            "url": "https://docs.bytehide.com/platforms/dotnet/products/monitor/protections/ssrf"
+          },
+          {
+            "title": "How to Prevent SSRF Attacks: Complete Guide for Developers",
+            "url": "https://reintech.io/blog/how-to-prevent-server-side-request-forgery-ssrf-attacks"
+          },
+          {
+            "title": "Webhook Security Best Practices & SSRF Protection | ServerScout",
+            "url": "https://www.serverscout.ie/kb/security/securing-webhook-endpoints"
+          }
+        ],
+        "unresponsive": []
+      }
+    ],
+    "seznam": [
+      {
+        "ok": true,
+        "seconds": 3.02,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "seznam",
+            "timeout"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 3.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "seznam",
+            "timeout"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 3.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "seznam",
+            "timeout"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 3.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "seznam",
+            "timeout"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 3.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "seznam",
+            "timeout"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 3.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "seznam",
+            "timeout"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 3.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "seznam",
+            "timeout"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 3.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "seznam",
+            "timeout"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 3.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "seznam",
+            "timeout"
+          ]
+        ]
+      },
+      {
+        "ok": true,
+        "seconds": 4.01,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": [
+          [
+            "seznam",
+            "timeout"
+          ]
+        ]
+      }
+    ],
+    "wikipedia": [
+      {
+        "ok": true,
+        "seconds": 0.08,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.03,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.03,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.03,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.03,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.12,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.03,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.03,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.03,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      },
+      {
+        "ok": true,
+        "seconds": 0.03,
+        "results": 0,
+        "relevant": 0,
+        "with_snippet": 0,
+        "top": [],
+        "unresponsive": []
+      }
+    ]
+  },
+  "mixed": [
+    {
+      "ok": true,
+      "seconds": 1.32,
+      "results": 82,
+      "relevant": 21,
+      "with_snippet": 81,
+      "top": [
+        {
+          "title": "ssl - Python Requests throwing \"SSLError\" - Stack Overflow",
+          "url": "https://stackoverflow.com/questions/10667960/python-requests-throwing-sslerror"
+        },
+        {
+          "title": "retrieval augmented generation - Stack Overflow",
+          "url": "http://stackoverflow.blog/retrieval-augmented-generation/"
+        },
+        {
+          "title": "RAG Vs Fine-Tuning for Enhancing LLM Performance",
+          "url": "https://www.geeksforgeeks.org/nlp/rag-vs-fine-tuning-for-enhancing-llm-performance/"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "seznam",
+          "Suspended: timeout"
+        ],
+        [
+          "yep",
+          "HTTP error"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 1.13,
+      "results": 58,
+      "relevant": 58,
+      "with_snippet": 54,
+      "top": [
+        {
+          "title": "Pattern: Transactional outbox - Microservices",
+          "url": "https://microservices.io/patterns/data/transactional-outbox.html"
+        },
+        {
+          "title": "Transactional outbox pattern - AWS Prescriptive Guidance",
+          "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html"
+        },
+        {
+          "title": "The Transactional Outbox Pattern",
+          "url": "https://developer.confluent.io/courses/microservices/the-transactional-outbox-pattern/"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "seznam",
+          "Suspended: timeout"
+        ],
+        [
+          "yep",
+          "HTTP error"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 1.03,
+      "results": 50,
+      "relevant": 39,
+      "with_snippet": 50,
+      "top": [
+        {
+          "title": "Wikipedia",
+          "url": "https://www.wikipedia.org/"
+        },
+        {
+          "title": "How to Implement SHA256 Webhook Signature Verification",
+          "url": "https://hookdeck.com/webhooks/guides/how-to-implement-sha256-webhook-signature-verification"
+        },
+        {
+          "title": "Webhook Signature Verification: HMAC Testing Guide",
+          "url": "https://webhooktest.net/blog/webhook-signature-verification"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "seznam",
+          "Suspended: timeout"
+        ],
+        [
+          "yep",
+          "HTTP error"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 1.12,
+      "results": 29,
+      "relevant": 17,
+      "with_snippet": 29,
+      "top": [
+        {
+          "title": "Add BM25 Full Text Search algorithm for hybrid search ability to...",
+          "url": "https://github.com/chroma-core/chroma/issues/1686"
+        },
+        {
+          "title": "Taking Chroma Reranking to the Next Level with a Hybrid ...",
+          "url": "https://medium.com/@nepalsakshi05/taking-chroma-reranking-to-the-next-level-with-a-hybrid-retrieval-system-b24ca9eb1a28"
+        },
+        {
+          "title": "python - BM25Retriever + ChromaDB Hybrid Search... - Stack Overflow",
+          "url": "https://stackoverflow.com/questions/79477745/bm25retriever-chromadb-hybrid-search-optimization-using-langchain"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "seznam",
+          "Suspended: timeout"
+        ],
+        [
+          "yep",
+          "HTTP error"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 1.03,
+      "results": 50,
+      "relevant": 50,
+      "with_snippet": 48,
+      "top": [
+        {
+          "title": "Reciprocal rank fusion | Elasticsearch Reference",
+          "url": "https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion"
+        },
+        {
+          "title": "Hybrid Search Scoring (RRF) - Azure AI Search | Microsoft Learn",
+          "url": "https://learn.microsoft.com/en-us/azure/search/hybrid-search-ranking"
+        },
+        {
+          "title": "Reciprocal Rank Fusion - ParadeDB",
+          "url": "https://www.paradedb.com/docs/reference/hybrid/rrf"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "seznam",
+          "Suspended: timeout"
+        ],
+        [
+          "wikidata",
+          "unexpected crash"
+        ],
+        [
+          "yep",
+          "HTTP error"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 4.01,
+      "results": 72,
+      "relevant": 60,
+      "with_snippet": 67,
+      "top": [
+        {
+          "title": "Server-Sent Events with Python FastAPI - Medium",
+          "url": "https://medium.com/@nandagopal05/server-sent-events-with-python-fastapi-f1960e0c8e4b"
+        },
+        {
+          "title": "FastAPI - FastAPI",
+          "url": "https://fastapi.tiangolo.com/"
+        },
+        {
+          "title": "GitHub - motyar/mchat: Simple chat with HTML5 Server-Sent Events",
+          "url": "https://github.com/motyar/mchat"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "seznam",
+          "Suspended: timeout"
+        ],
+        [
+          "wikidata",
+          "timeout"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 1.38,
+      "results": 31,
+      "relevant": 20,
+      "with_snippet": 31,
+      "top": [
+        {
+          "title": "Rate limits | Gemini API | Google AI for Developers",
+          "url": "https://ai.google.dev/gemini-api/docs/rate-limits"
+        },
+        {
+          "title": "Gemini API Rate Limits 2026: Free vs Paid Tier... | LaoZhang AI Blog",
+          "url": "https://blog.laozhang.ai/en/posts/gemini-api-rate-limits-guide"
+        },
+        {
+          "title": "Gemini (language model) - Wikipedia",
+          "url": "https://en.wikipedia.org/wiki/Gemini_(language_model)"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "seznam",
+          "Suspended: timeout"
+        ],
+        [
+          "yep",
+          "HTTP error"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 4.01,
+      "results": 31,
+      "relevant": 21,
+      "with_snippet": 31,
+      "top": [
+        {
+          "title": "Multi - Multilaser agora \u00e9 Multi",
+          "url": "https://www.multilaser.com.br/"
+        },
+        {
+          "title": "18: Multi-Agent Systems \u2014 The Supervisor Pattern | PyAI",
+          "url": "https://pyai.io/en/ai/langchain-langgraph/multi-agent-supervisor-pattern/"
+        },
+        {
+          "title": "Agent Supervisor in ML Systems \u2014 Complete Guide (2026)",
+          "url": "https://123ofai.com/articles/blocks/agent-supervisor"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "mwmbl",
+          "timeout"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "seznam",
+          "Suspended: timeout"
+        ],
+        [
+          "yep",
+          "HTTP error"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 1.05,
+      "results": 64,
+      "relevant": 54,
+      "with_snippet": 64,
+      "top": [
+        {
+          "title": "O que \u00e9 prompt, para que serve, exemplos, como criar e usar",
+          "url": "https://www.docusign.com/pt-br/blog/o-que-e-prompt?msockid=1b25f6c0de716588268fe12edfa96470"
+        },
+        {
+          "title": "Simon Willison: Prompt injection",
+          "url": "https://simonwillison.net/series/prompt-injection"
+        },
+        {
+          "title": "LLM Prompt Injection Prevention - OWASP Cheat Sheet Series",
+          "url": "https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "seznam",
+          "Suspended: timeout"
+        ],
+        [
+          "yep",
+          "HTTP error"
+        ]
+      ]
+    },
+    {
+      "ok": true,
+      "seconds": 4.01,
+      "results": 35,
+      "relevant": 16,
+      "with_snippet": 34,
+      "top": [
+        {
+          "title": "How to Change Your Cameo Picture or Friend in Snapchat - Alphr",
+          "url": "https://www.alphr.com/snapchat-how-to-change-cameo-2/"
+        },
+        {
+          "title": "Create a private IP connection for Looker (Google Cloud core)",
+          "url": "http://cloud.google.com/looker/docs/looker-core-create-private-ip"
+        },
+        {
+          "title": "Private IP Addresses Deep Dive: Security Risks, SSRF, and ...",
+          "url": "https://www.penligent.ai/hackinglabs/private-ip-addresses-deep-dive-security-risks-ssrf-and-modern-exploitation/"
+        }
+      ],
+      "unresponsive": [
+        [
+          "brave",
+          "Suspended: too many requests"
+        ],
+        [
+          "duckduckgo",
+          "CAPTCHA"
+        ],
+        [
+          "google",
+          "Suspended: access denied"
+        ],
+        [
+          "qwant",
+          "CAPTCHA"
+        ],
+        [
+          "seznam",
+          "Suspended: timeout"
+        ],
+        [
+          "wikidata",
+          "timeout"
+        ],
+        [
+          "yep",
+          "HTTP error"
+        ]
+      ]
+    }
+  ]
+}
