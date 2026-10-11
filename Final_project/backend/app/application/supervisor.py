@@ -1,11 +1,15 @@
-"""The supervisor loop (the lab's core): each iteration the Supervisor decides — via the
-DELEGATE/TASK/FINAL protocol — which worker acts next, or writes the final answer.
+"""The supervisor loop (SUPERVISOR_PLAN §3): each iteration the Supervisor decides — via the
+DELEGATE/TASK/FINAL protocol — which worker acts next, or delivers the report (FINAL = the full
+report Markdown, turned into a `Report` by `parse_report`).
 
-Guards: one repair call for an invalid reply; an iteration limit and a per-run call budget,
-both ending in a forced FINAL call; and a deterministic fallback (latest draft, then the
-research notes) when even that fails or the quota runs out. The loop can never spin."""
+Guards: one repair call for an invalid reply or a broken order rule; an iteration limit and a
+per-run call budget (`3 × iterations left + 5`), both ending in a forced FINAL call that the
+workers can never spend (`ReserveGuard`); and a deterministic fallback (latest Writer draft,
+then the Researcher's findings) when even that fails or the quota runs out. The loop can never
+spin. Owner: SUPERVISOR."""
 
 import logging
+import re
 import threading
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
@@ -24,6 +28,7 @@ from app.domain.ports import (
     AssistantMessage,
     LLMClient,
     LLMRequest,
+    LLMResponse,
     MemoryStore,
     Retriever,
     RunRepository,
@@ -35,7 +40,15 @@ from app.domain.transcript import CallMeta, Decision, Delegation, ToolCallRecord
 
 from .budget import CallBudget
 from .citations import cited_numbers, clean_citations
-from .context import evidence_list, memory_block, transcript_view
+from .context import (
+    budget_line,
+    depth_block,
+    evidence_block,
+    last_hint,
+    memory_block,
+    sources_block,
+    transcript_view,
+)
 from .memory import memory_from_run
 from .prompts import PromptLibrary
 from .report import parse_report, snippets_for
@@ -44,6 +57,31 @@ from .tools.base import ToolContext, ToolMemo, ToolRegistry
 from .workers.base import StepCounter, WorkerContext, WorkerOutput, WorkerRegistry
 
 logger = logging.getLogger("app.supervisor")
+
+RESERVE = 1  # LLM calls kept for the forced FINAL
+REVIEWERS = frozenset({"reviewer", "fact_checker"})
+ORDER_TOGETHER = (
+    "The reviewer and fact_checker check the writer's draft, so delegate them after the "
+    "writer has answered."
+)
+ORDER_NO_DRAFT = "There is no draft yet: delegate the writer first."
+ORDER_NO_EVIDENCE = "Delegate the researcher first: there is no evidence yet."
+BUDGET_STOP = "Worker stopped: the run's LLM budget is used up."
+_TITLE = re.compile(r"^# \S", re.MULTILINE)
+_HEADING = re.compile(r"^#{1,2} ", re.MULTILINE)
+
+
+class ReserveGuard:
+    """The workers' client: refuses a call (BudgetExceeded) when only the reserve is left, so
+    the last call always stays for the forced FINAL. The Supervisor uses the bare client."""
+
+    def __init__(self, inner: LLMClient, budget: CallBudget, reserve: int = RESERVE) -> None:
+        self._inner, self._budget, self._reserve = inner, budget, reserve
+
+    def generate(self, request: LLMRequest) -> LLMResponse:
+        if self._budget.remaining() <= self._reserve:
+            raise BudgetExceeded(self._budget.limit)
+        return self._inner.generate(request)
 
 
 @dataclass(frozen=True)
@@ -148,43 +186,50 @@ class Supervisor:
     ) -> None:
         while run.status is RunStatus.RUNNING:
             if run.iteration >= run.iteration_limit:
-                return self._force(run, llm, fence, lock, "the iteration limit was reached")
-            if budget.remaining() <= 1:
-                return self._force(run, llm, fence, lock, "the LLM call budget was reached")
+                return self._force(run, llm, budget, fence, lock, "the iteration limit was reached")
+            if budget.remaining() <= RESERVE:
+                return self._force(run, llm, budget, fence, lock, "the LLM call budget was reached")
             run.agent_started("supervisor", None)
             self._save(run, lock)
             decision, meta = self._decide(run, llm, budget, fence)
             if decision is None:
                 run.notice("The Supervisor's reply broke the protocol twice.", "protocol", meta)
-                return self._force(run, llm, fence, lock, "the Supervisor's replies were invalid")
+                return self._force(
+                    run, llm, budget, fence, lock, "the Supervisor's replies were invalid"
+                )
             run.record_decision(decision, meta)
             self._save(run, lock)
             if decision.final is not None:
-                self._propose(run, decision.final, forced=False, degraded=False)
+                self._finish(run, decision.final, forced=False, degraded=False)
                 return None
-            self._run_workers(run, decision.delegations, llm, fence, lock, memo)
+            guarded = ReserveGuard(llm, budget)
+            self._run_workers(run, decision.delegations, guarded, fence, lock, memo)
         return None
 
     def _system(self) -> str:
         parallel = (
             f"You may send up to {self.s.max_parallel} DELEGATE/TASK pairs in one reply, to "
-            "different workers, when their work is independent (for example reviewer and "
-            "fact_checker on the same draft)."
+            "different workers, when their work is independent: reviewer and fact_checker on "
+            "the same draft."
             if self.s.max_parallel > 1
             else ""
         )
-        hint = " (and fact_checker)" if "fact_checker" in self.registry.names else ""
+        hint = " and fact_checker (in parallel)" if "fact_checker" in self.registry.names else ""
         return self.prompts.supervisor_system(self.registry.describe(), parallel, hint, self.canary)
 
-    def _task_prompt(self, run: ResearchRun, fence: DataFence, forced: bool = False) -> str:
+    def _task_prompt(
+        self, run: ResearchRun, fence: DataFence, budget: CallBudget, forced: bool = False
+    ) -> str:
         left = 0 if forced else max(0, run.iteration_limit - run.iteration)
         return self.prompts.supervisor_task(
             question=fence.wrap(run.question, "question"),
+            guidance=depth_block(run.depth),  # placeholder names: test_architecture
+            sources=sources_block(run.sources, run.workspace_id),
             memories=memory_block(run, fence),
-            evidence=evidence_list(run),
+            evidence=evidence_block(run),
             transcript=transcript_view(run, fence, self.s.supervisor_context_tokens),
-            iterations_left=left,
-            last_hint=" This is your last one: reply with FINAL." if left == 1 else "",
+            iterations_left=budget_line(left, budget),
+            last_hint=last_hint(left),
         )
 
     def _request(self, messages: list) -> LLMRequest:
@@ -201,15 +246,15 @@ class Supervisor:
     ) -> tuple[Decision | None, CallMeta]:
         """One Supervisor call + parse; on a protocol error, ONE repair call."""
         counter = StepCounter(llm, self.output)
-        user = UserMessage(self._task_prompt(run, fence))
+        user = UserMessage(self._task_prompt(run, fence, budget))
         response = counter.generate(self._request([user]))
         reply = response.text or ""
         try:
-            return self._parse(reply, cut=response.finish_reason == "max_tokens"), counter.meta(
-                self.s.supervisor_model
-            )
+            decision = self._parse(reply, cut=response.finish_reason == "max_tokens")
+            self._check_order(decision, run)
+            return decision, counter.meta(self.s.supervisor_model)
         except ProtocolError as err:
-            if budget.remaining() <= 1:  # keep the last call for the forced completion
+            if budget.remaining() <= RESERVE:  # keep the last call for the forced completion
                 return None, counter.meta(self.s.supervisor_model)
             logger.info("run=%s protocol error, repairing", run.id)
             repair = UserMessage(self.prompts.supervisor_repair(str(err)))
@@ -217,6 +262,7 @@ class Supervisor:
             try:
                 cut = again.finish_reason == "max_tokens"
                 decision = replace(self._parse(again.text or "", cut=cut), repaired=True)
+                self._check_order(decision, run)
             except ProtocolError:
                 return None, counter.meta(self.s.supervisor_model)
             return decision, counter.meta(self.s.supervisor_model)
@@ -232,6 +278,25 @@ class Supervisor:
             self.s.max_parallel,
             self.s.task_max_chars,
         )
+
+    @staticmethod
+    def _check_order(decision: Decision, run: ResearchRun) -> None:
+        """The three order rules that only waste calls when broken (plan §3.6). `parse_decision`
+        stays pure; a violation goes through the same single repair call."""
+        workers = {d.worker for d in decision.delegations}
+        if not workers:
+            return
+        if "writer" in workers and workers & REVIEWERS:
+            raise ProtocolError(ORDER_TOGETHER)
+        if workers & REVIEWERS and run.latest_result("writer") is None:
+            raise ProtocolError(ORDER_NO_DRAFT)
+        if (
+            "writer" in workers
+            and run.iteration == 0
+            and not run.evidence
+            and run.latest_result("researcher") is None
+        ):
+            raise ProtocolError(ORDER_NO_EVIDENCE)
 
     # ---- workers -------------------------------------------------------------------------
 
@@ -282,6 +347,7 @@ class Supervisor:
             add_evidence,
             evidence_by_n,
             fence,
+            sources=run.sources,
             evidence_count=evidence_count,
         )
 
@@ -318,6 +384,12 @@ class Supervisor:
             except (LLMBadResponse, LLMRequestRejected) as err:
                 logger.info("run=%s worker=%s failed: %s", run.id, d.worker, type(err).__name__)
                 out = WorkerOutput(WorkerResult(d.worker, f"Worker failed: {err}", failed=True))
+            except BudgetExceeded:
+                logger.info("run=%s worker=%s stopped: budget", run.id, d.worker)
+                out = WorkerOutput(
+                    WorkerResult(d.worker, BUDGET_STOP, failed=True),
+                    [(f"The {d.worker} stopped: the run's LLM budget is used up.", "budget")],
+                )
             return d, out, counter.meta(self.s.worker_model), False
 
         if len(delegations) == 1:
@@ -345,7 +417,13 @@ class Supervisor:
     # ---- completion ----------------------------------------------------------------------
 
     def _force(
-        self, run: ResearchRun, llm: LLMClient, fence: DataFence, lock: threading.Lock, why: str
+        self,
+        run: ResearchRun,
+        llm: LLMClient,
+        budget: CallBudget,
+        fence: DataFence,
+        lock: threading.Lock,
+        why: str,
     ) -> None:
         """One call that may ONLY answer FINAL; anything else → the fallback chain."""
         run.notice(f"Forced completion: {why}.", "forced")
@@ -353,7 +431,9 @@ class Supervisor:
         self._save(run, lock)
         counter = StepCounter(llm, self.output)
         user = (
-            self._task_prompt(run, fence, forced=True) + "\n\n" + self.prompts.supervisor_forced()
+            self._task_prompt(run, fence, budget, forced=True)
+            + "\n\n"
+            + self.prompts.supervisor_forced()
         )
         response = counter.generate(self._request([UserMessage(user)]))
         try:
@@ -367,19 +447,25 @@ class Supervisor:
             )
             return self._degrade(run, f"{why} and the forced answer was invalid")
         run.record_decision(decision, counter.meta(self.s.supervisor_model), count=False)
-        self._propose(run, decision.final or "", forced=True, degraded=False)
+        self._finish(run, decision.final or "", forced=True, degraded=False)
         return None
 
-    def _propose(self, run: ResearchRun, text: str, *, forced: bool, degraded: bool) -> None:
+    def _finish(self, run: ResearchRun, text: str, *, forced: bool, degraded: bool) -> None:
+        """FINAL → report (plan §3.4): citations → redaction → title → parse_report →
+        set_report → propose_final. No Sources section is appended: the report rebuilds its
+        references from the cited evidence."""
         text, _, unknown = clean_citations(text, {r.n for r in run.evidence})
         if unknown:
             run.notice(
-                f"Removed {len(unknown)} citation(s) to unknown evidence from the final answer.",
+                f"Removed {len(unknown)} citation(s) to unknown evidence from the final report.",
                 "unknown_citation",
             )
         text, redacted = self.output.clean(text)
         if redacted:
-            run.notice("Sensitive-looking data was redacted from the answer.", "redacted")
+            run.notice("Sensitive-looking data was redacted from the report.", "redacted")
+        text = text.strip()
+        if not _TITLE.search(text):
+            text = f"# {_one_line(run.question)}\n\n{text}"
         snippets = snippets_for(run.evidence, cited_numbers(text), self.retriever.get)
         run.set_report(
             parse_report(
@@ -391,23 +477,28 @@ class Supervisor:
         )
 
     def _degrade(self, run: ResearchRun, why: str) -> None:
-        """Fallback chain (course §1.3): latest Writer draft → Researcher notes → fail."""
+        """Fallback chain (plan §3.5): latest Writer draft → Researcher findings → fail. The
+        note is a closing section, so the report's summary stays meaningful."""
         if run.status is not RunStatus.RUNNING:
             return
         draft, notes = run.latest_result("writer"), run.latest_result("researcher")
+        note = (
+            "## About this report\n\n"
+            f"Assembled automatically because {why}. The Supervisor did not finalize it."
+        )
         if draft is not None:
-            body = draft.content
+            body = f"{draft.content.strip()}\n\n{note}"
         elif notes is not None:
-            body = "## Research notes\n\n" + notes.content
+            findings = _HEADING.sub("### ", notes.content.strip())
+            body = (
+                f"# {_one_line(run.question)}\n\n{_first_paragraph(findings)}\n\n"
+                f"## Research findings\n\n{findings}\n\n{note}"
+            )
         else:
             run.fail(f"No result could be produced: {why}.")
             return
-        run.notice(f"Answer assembled automatically: {why}.", "degraded")
-        note = (
-            f"> **Note:** this answer was assembled automatically because {why}. "
-            "It was not finalized by the Supervisor and may be incomplete.\n\n"
-        )
-        self._propose(run, note + body, forced=True, degraded=True)
+        run.notice(f"Report assembled automatically: {why}.", "degraded")
+        self._finish(run, body, forced=True, degraded=True)
 
     # ---- persistence -----------------------------------------------------------------------
 
@@ -417,6 +508,21 @@ class Supervisor:
 
     def _save_locked(self, run: ResearchRun) -> None:
         self.runs.save(run)
+
+
+def _one_line(text: str) -> str:
+    return " ".join(text.split())
+
+
+def _first_paragraph(markdown: str, limit: int = 600) -> str:
+    """The first paragraph that is not a heading, as one line (the degraded summary)."""
+    for block in markdown.split("\n\n"):
+        lines = [x.strip().lstrip("-*+ ").strip() for x in block.splitlines()]
+        lines = [x for x in lines if x and not x.startswith("#")]
+        if lines:
+            text = " ".join(lines)
+            return text if len(text) <= limit else text[:limit].rsplit(" ", 1)[0] + "…"
+    return "The research findings are below."
 
 
 def _why(err: Exception) -> str:

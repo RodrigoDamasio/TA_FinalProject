@@ -1,1 +1,1 @@
-You have no decisions left. Reply now with FINAL: write the best final answer you can from the conversation above, keeping the [n] citations and ending with the Sources section. Do not delegate.
+You have no decisions left. Reply now with FINAL and the complete report: start from the latest writer draft if there is one, apply the reviewer's and fact_checker's fixes yourself, keep the "# " title, the summary paragraph, the "## " sections and every [E<n>] citation, and add no Sources section. Do not delegate.

@@ -1,16 +1,22 @@
-# User question
+# Research question
 {question}
 
-# Earlier research by this assistant (may be outdated)
+# Depth
+{guidance}
+
+# Allowed sources
+{sources}
+
+# Past reports by this assistant (may be outdated)
 {memories}
 
-# Evidence found so far
+# Evidence so far
 {evidence}
 
 # Conversation so far
 {transcript}
 
-# Decisions left
-You have {iterations_left} decision(s) left.{last_hint}
+# Limits
+{iterations_left}{last_hint}
 
 Reply now in one of the two shapes.
