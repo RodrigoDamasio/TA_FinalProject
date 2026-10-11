@@ -447,3 +447,21 @@ All with **0 real calls**: `ScriptedLLM`, `HashingEmbedder`/`InMemoryVectorStore
 6. `writer.py` evidence selection and budget (component: priority, budget, search failure, missing chunks).
 7. Writer call and post-processing (first draft, revision, truncation, unknown citation, structure notices, fence, empty, determinism, canary, injection).
 8. Hand the guidance texts (§3.2) and the `demo_llm` sample (gap #7) to phase 3; record any deviations here.
+
+## 13. Deviations
+
+Implementation on branch `impl/writer` (from tag `contracts-v1`).
+
+| Plan | Implementation | Why |
+|---|---|---|
+| §3.5 template placeholders `{findings}`, `{depth}`, `{words_min}` … `{sections_max}` | Findings fill the existing `{notes}`. The depth name and the word/section targets are rendered by `depth_block()` into `{guidance}` (`Depth: detailed. <guidance>` + `Target: …` line) under a `# Depth` heading | The Shared architecture test fixes the set of known placeholders. The prompt text the model sees is the same |
+| §3.6 `snippets_for(markdown, evidence, retriever)` | Kept the `contracts-v1` signature `snippets_for(evidence, numbers, get)`, which the Supervisor already calls. One `get` call, `{}` on any error, as planned | Changing it would touch `supervisor.py` (SUPERVISOR) |
+| §3.3 findings = `results["researcher"]` | All successful Researcher results from `WorkerContext.history` (v1.1 gap 4), oldest first, each in its own `research_findings` fence, duplicates removed. Evidence priority: the latest findings' citations first, then earlier ones | Gap 4 was accepted; findings of an earlier or parallel task are no longer lost |
+| §3.3 review and fact check blocks | Shown only in revision mode (a previous draft exists); failed results (`failed=True`) are never shown | A review of no draft of ours is not feedback on this one; a failed result is an error message |
+| §3.3 budget | Uses `ctx.context_chars`. Shares as planned; the size of a block includes its fence | `WRITER_CONTEXT_TOKENS` exists in config, but the Supervisor passes `worker_context_chars` to every worker. Wiring it is SUPERVISOR/Shared (see the PR) |
+| §6 missing chunks | Notice flag `evidence_missing` | The plan gave the text, not the flag |
+| §3.6 step 5 | A `# ` heading that comes **after** a section heading is not the title (it becomes a section) | Otherwise the text before it (whole sections) would become the preamble |
+| §3.6 step 7 | The first-sentence fallback strips list, quote and heading markers; when used, those words are counted **once** in `word_count` | Found by the Writer tests: the copy inflated the length check |
+| §3.6 step 10 snippets | `format_snippet` cuts at a word boundary with `…`; a text with no space in reach is cut hard at 300 without `…` | Keeps the step 3 test of `snippets_for` |
+| §10 #7 demo Writer | Reads the `Target:` line and writes the depth's minimum number of sections and words (headings `Overview`, `Notes`, …), so a fake run raises no structure notice. Two assertions that pinned the stub's two-section demo draft (`test_supervisor.py` S1, `test_api.py` A1) now expect four sections | A fake run must pass the Writer's own check, or every E2E transcript carries `report_format` notices |
+| `VERSION` | Not bumped | Shared; the API test pins `"2"`. Bump on merge |
