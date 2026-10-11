@@ -81,15 +81,27 @@ def test_iteration_limit_forces_completion_and_falls_back_to_the_draft(harness):
     loop = [delegate("researcher", "Find RAG facts."), delegate("writer", "Draft it.")]
     h = harness(llm=FakeLLM(script={"supervisor": [*loop, final("## Forced [1]")]}))
     run = h.submit(max_iterations=2)
-    assert run.forced and not run.degraded and run.final_output.startswith("## Forced [1]")
+    assert run.forced and not run.degraded
+    # no "# " title in the forced FINAL: the question becomes the title
+    assert run.final_output.startswith(
+        "# When should I use RAG instead of fine-tuning?\n\n## Forced"
+    )
+    assert run.report.title == "When should I use RAG instead of fine-tuning?"
     assert "notice:forced" in kinds(run) and run.iteration == 2
     assert "You have no decisions left" in h.llm.prompts("supervisor")[-1]
 
     h2 = harness(llm=FakeLLM(script={"supervisor": [*loop, delegate("reviewer", "More.")]}))
     run = h2.submit(max_iterations=2)
     assert run.forced and run.degraded and run.status is RunStatus.COMPLETED
-    assert run.final_output.startswith("> **Note:** this answer was assembled automatically")
+    # the latest Writer draft, then a closing note section (not a note before the summary)
+    assert run.final_output.startswith("# When should I use RAG")
+    assert run.final_output.endswith(
+        "## About this report\n\nAssembled automatically because the iteration limit was "
+        "reached and the forced answer was invalid. The Supervisor did not finalize it."
+    )
     assert "Demo draft" in run.final_output and set(run.flags) >= {"forced", "degraded"}
+    assert run.report.summary.startswith("Demo summary")
+    assert run.report.sections[-1].heading == "About this report"
 
 
 # S4
@@ -98,12 +110,15 @@ def test_quota_mid_run_uses_the_fallback_chain_without_more_calls(harness):
     h = harness(llm=FakeLLM(script={"supervisor": [None, None, quota]}))
     run = h.submit()
     assert run.degraded and run.status is RunStatus.COMPLETED and h.llm.calls() == 6
-    assert "## Research notes" not in run.final_output  # the writer draft existed
+    assert "## Research findings" not in run.final_output  # the writer draft existed
     assert "LLM quota was reached" in run.final_output
 
     h2 = harness(llm=FakeLLM(script={"supervisor": [None, LLMUnavailable("down")]}))
     run = h2.submit()
-    assert run.degraded and run.final_output.split("\n\n", 1)[1].startswith("## Research notes")
+    assert run.degraded and run.final_output.startswith("# When should I use RAG")
+    assert run.final_output.split("\n\n")[2] == "## Research findings"
+    assert [s.heading for s in run.report.sections] == ["Research findings", "About this report"]
+    assert run.report.summary.startswith("A relevant fact from the evidence")
 
     h3 = harness(llm=FakeLLM(fail={"supervisor": quota}))
     run = h3.submit()
@@ -198,8 +213,10 @@ def test_memory_is_recalled_excluded_for_the_same_task_and_recorded(harness):
     h = harness()
     first = h.submit("When should I use RAG instead of fine-tuning?", use_memory=True)
     assert first.memories == []
+    before = h.llm.calls("supervisor")
     same = h.submit("When should I use RAG instead of fine-tuning?", use_memory=True)
-    assert same.memories == [] and same.llm_calls == 0  # same prompts: all from the cache
+    # same Supervisor prompts: every Supervisor call is served by the cache
+    assert same.memories == [] and h.llm.calls("supervisor") == before
     other = h.submit("How does RAG retrieval keep LLM answers current?", use_memory=True)
     # both earlier runs had the same task: only the newest one is recalled
     assert [m["run_id"] for m in other.memories] == [same.id]
@@ -266,7 +283,7 @@ def test_forced_prompt_always_says_no_decisions_left(harness):
     h = harness(llm=FakeLLM(script={"supervisor": ["nonsense", "still nonsense"]}))
     h.submit(max_iterations=5)
     forced = h.llm.prompts("supervisor")[-1]
-    assert "You have 0 decision(s) left." in forced and "You have no decisions left" in forced
+    assert "Decisions left: 0." in forced and "You have no decisions left" in forced
 
 
 def test_cut_off_supervisor_reply_is_repaired(harness):

@@ -1,5 +1,6 @@
 """Demo Supervisor: researcher → writer → reviewer, then FINAL = the latest Writer draft.
-After human feedback it asks the writer once more. Owner: SUPERVISOR."""
+After human feedback it asks the writer once more. It reads the same task prompt Gemini gets
+(SUPERVISOR_PLAN §3.9), so its parsing follows that prompt's headings. Owner: SUPERVISOR."""
 
 import re
 
@@ -7,13 +8,14 @@ from .common import question, section
 
 ORDER = ("researcher", "writer", "reviewer")
 _RESULT = re.compile(r"Result from (\w+)(?: \(failed\))?:")
+QUESTION = "Research question"
 _WRITER_BLOCK = re.compile(r'worker="writer">\n(.*?)\n</data id=', re.DOTALL)
 
 
 def respond(prompt: str) -> str:
     if "You have no decisions left" in prompt:
         return final(prompt, "No decisions left.")
-    conversation = section(prompt, "Conversation so far", until="Decisions left")
+    conversation = section(prompt, "Conversation so far", until="Limits")
     if "Human reviewer feedback" in conversation:
         after = conversation.rsplit("Human reviewer feedback", 1)[1]
         if "Result from writer" not in after:
@@ -26,7 +28,7 @@ def respond(prompt: str) -> str:
     for worker in ORDER:
         if worker not in done:
             task = {
-                "researcher": f"Find the key facts about: {question(prompt)}",
+                "researcher": f"Find the key facts about: {question(prompt, QUESTION)}",
                 "writer": "Write the report from the research findings and evidence.",
                 "reviewer": "Review the latest draft against the question and the findings.",
             }[worker]
@@ -35,12 +37,12 @@ def respond(prompt: str) -> str:
 
 
 def final(prompt: str, reason: str) -> str:
-    drafts = _WRITER_BLOCK.findall(section(prompt, "Conversation so far", until="Decisions left"))
+    drafts = _WRITER_BLOCK.findall(section(prompt, "Conversation so far", until="Limits"))
     body = (
         drafts[-1].strip()
         if drafts
         else (
-            f"# {question(prompt) or 'Research report'}\n\n"
+            f"# {question(prompt, QUESTION) or 'Research report'}\n\n"
             "Demo mode (LLM_MODE=fake, no Gemini call): no draft was written.\n\n"
             "## Notes\n\nThe scripted Supervisor finished without a Writer draft."
         )

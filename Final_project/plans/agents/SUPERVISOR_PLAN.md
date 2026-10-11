@@ -420,3 +420,16 @@ Each step ends with tests green and Ruff clean.
 9. **Forced and degraded** paths with the new Markdown. Component tests.
 10. **Memory** recall block and recording. Component tests.
 11. **Cache determinism** test over the caching fake; full suite, coverage ≥ 90 %, Ruff.
+
+## 13. Deviations (implementation, branch `impl/supervisor`)
+
+| Plan | Implementation | Why |
+|---|---|---|
+| §3.9 `supervisor_task.md` placeholders `{depth}` and `{limits}` | The file uses `{guidance}` (the depth block) and `{iterations_left}` (the limits line) | `tests/test_architecture.py` (Shared) allowlists placeholder names, and `depth`/`limits` are not on it. The rendered prompt is exactly the plan's; only the placeholder names differ. A Shared-test change is listed in the PR instead |
+| §3.8 memory block: `Past report (date)` and `References:` | Shown **when the stored memory has them** (`created_at`, `reference_titles`); otherwise `Past report: <question>` and the summary only | `ResearchRun.use_memories` (Shared, `domain/run.py`) stores only `run_id`, `question` and `summary`. Contract change request in the PR (additive) |
+| §3.2.1 tool-use summary line `New evidence: E4–E12 (9 chunks)` | Counts only numbers **not given out by earlier tool calls** of the run; `New evidence: none` when nothing is new; `Tools: none used` when the step made no tool call. Tools with 0 calls are not listed | The example's `search_documents ×0` cannot be derived from the records (offered tools are not recorded) |
+| §3.2.1 `NOTICE` "tool_call-related noise" | Notices flagged `tool`, `tool_call`, `capped`, `repeat` or `fallback` are hidden from the Supervisor | No worker emits such notices today; the list keeps the summary the single source if one is added |
+| §3.9 `supervisor.md` | Adds a short `# Past reports` section with the §3.8 rule (outdated, focus only, never cite, research again) | The plan states the rule in §3.8 but the draft had only "never cite them" |
+| §9 component tests | The harness test for memory no longer asserts a fully cached rerun; a new test builds the Supervisor directly over stub workers and asserts the identical rerun costs 0 real calls | The step-3 RAG retriever stub breaks score ties by chunk id, which contains the run id, so the Researcher/Writer prompts can differ between reruns (flaky at the tag). RAG owns the fix |
+| §3.3 `ToolContext` | Now passes `sources=run.sources` | The step-3 stub left it empty (`ToolRegistry.box` set it anyway, so no behavior change) |
+| Demo Supervisor (`infrastructure/demo/supervisor.py`) | Still researcher → writer → reviewer, no fact_checker | `tests/api/test_api.py` (Shared) asserts the fake run's `agents_used` and 8 calls. Only its prompt parsing follows the new headings |
