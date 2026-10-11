@@ -127,7 +127,8 @@ def test_reply_texts():
     assert TEXTS.rate_limited(5 * 3600 + 100) == (
         "You've reached the limit of 10 questions per day. Try again in about 5 h."
     )
-    assert "about 1 h" in TEXTS.rate_limited(30)
+    assert "about 1 h" in TEXTS.rate_limited(600)
+    assert TEXTS.rate_limited(30).startswith("You're sending questions too fast.")
     assert "(2,345 characters)" in TEXTS.too_long(2345)
     for text in (TEXTS.text_only(), TEXTS.busy(), TEXTS.too_short(), TEXTS.busy_server(),
                  TEXTS.quota(), TEXTS.unavailable(), TEXTS.error()):  # fmt: skip

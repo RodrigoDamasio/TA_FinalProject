@@ -135,6 +135,8 @@ class TelegramTexts:
         return "I'm still working on your previous question. I'll send its report when it's ready."
 
     def rate_limited(self, retry_after_s: float) -> str:
+        if retry_after_s <= 120:  # the per-minute limit (2 questions), not the daily one
+            return "You're sending questions too fast. Please wait a minute and try again."
         hours = max(1, round(retry_after_s / 3600))
         return (
             f"You've reached the limit of {self.runs_per_day} questions per day. "

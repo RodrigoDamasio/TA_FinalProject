@@ -68,6 +68,12 @@ def error_code(kind: str, result: SendResult) -> str:
     return f"{'telegram' if kind == 'telegram' else 'http'} {result.status}"
 
 
+def _send_order(msg: OutboxMessage) -> tuple[str, str, int]:
+    """`due` order, with "working on it" first among rows queued in the same second (a fast
+    run can finish in the second it was accepted)."""
+    return (msg.next_attempt_at, msg.created_at, 0 if msg.event == EVENT_ACCEPTED else 1)
+
+
 class OutboxDispatcher:
     def __init__(
         self,
@@ -108,7 +114,7 @@ class OutboxDispatcher:
             now = self._clock()
             superseded: set[str] = set()
             handled = 0
-            for msg in self._outbox.due(now, self._batch):
+            for msg in sorted(self._outbox.due(now, self._batch), key=_send_order):
                 if msg.id in superseded:
                     continue
                 handled += 1

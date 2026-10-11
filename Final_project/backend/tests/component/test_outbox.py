@@ -272,7 +272,8 @@ def test_pending_accepted_is_superseded_by_the_report(tmp_path):
     assert [t.startswith("Working on it") for _, t in telegram.sent] == [True, False]
 
 
-def test_accepted_then_completed_in_order(tmp_path):
+@pytest.mark.parametrize("attempt", range(5))  # ids are random: the tie must not decide
+def test_accepted_then_completed_in_order(tmp_path, attempt):
     telegram = FakeTelegram()
     d, runs, outbox = dispatcher(tmp_path, soon(), telegram=telegram)
     run = ResearchRun.create("A research question", 5, False, False,
