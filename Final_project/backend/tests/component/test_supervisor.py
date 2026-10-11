@@ -47,7 +47,9 @@ def test_happy_path_research_write_review_final(harness):
     assert run.iteration == 4 and run.llm_calls == 8 == h.llm.calls()
     assert run.final_output.startswith("# When should I use RAG")
     assert run.report is not None and run.report.title.startswith("When should I use RAG")
-    assert [s.heading for s in run.report.sections] == ["Overview", "Notes"]
+    # the demo Writer fits the depth profile (detailed: 4–6 sections)
+    assert [s.heading for s in run.report.sections][:2] == ["Overview", "Notes"]
+    assert len(run.report.sections) == 4
     assert [r.id for r in run.report.references] == ["E1", "E2", "E3"] and run.tool_calls == 1
     assert [r.n for r in run.evidence] == list(range(1, len(run.evidence) + 1))
     events = h.events(run.id)

@@ -35,7 +35,7 @@ def test_run_async_sync_and_wait_with_approval(api):
     assert meta["est_cost_usd"] > 0 and meta["prompt_version"] == "2" and meta["tool_calls"] == 1
     assert meta["agents_used"] == ["Researcher", "Writer", "Reviewer"]
     report = view["report"]
-    assert report["title"] and report["summary"] and len(report["sections"]) == 2
+    assert report["title"] and report["summary"] and len(report["sections"]) == 4
     assert report["references"][0].startswith("[E1] ")  # the assignment's string form
     assert set(report["sources"][0]) == {
         "id", "title", "url", "document_name", "page", "source_kind", "snippet",
