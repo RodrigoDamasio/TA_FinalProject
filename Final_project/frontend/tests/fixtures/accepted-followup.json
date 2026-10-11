@@ -1,0 +1,10 @@
+{
+  "run_id": "run_e0d0d9325358",
+  "status": "queued",
+  "status_url": "/research/run_e0d0d9325358",
+  "events_url": "/research/run_e0d0d9325358/events",
+  "web_url": "http://localhost:3000/?run=run_e0d0d9325358",
+  "callback_secret": null,
+  "conversation_id": "conv_bdac08dfa18ee962",
+  "turn": 2
+}

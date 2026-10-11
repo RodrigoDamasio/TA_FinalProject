@@ -1,4 +1,4 @@
-/** Zod schemas mirroring the backend v1.1 API (BACKEND_PLAN §14, app/application/views.py,
+/** Zod schemas mirroring the backend v1.2 API (BACKEND_PLAN §14, app/application/views.py,
  * app/domain/transcript.py `history_entry`). Every API response and every SSE event is
  * parsed; invalid data is never rendered. Unknown keys are dropped. Field lists were taken
  * from a fake-mode server (`/openapi.json` and real responses, pinned in tests/fixtures.ts). */
@@ -208,6 +208,7 @@ export const MetadataSchema = z.object({
   cached_calls: num,
   tool_calls: num,
   evidence: num.optional().default(0),
+  context_turns: num.optional().default(0), // v1.2: earlier turns shown to the agents
   tokens: z.object({ input: num, output: num }),
   est_cost_usd: num,
   per_agent: z.record(str, z.object({ calls: num, tokens: num, duration_ms: num })),
@@ -221,8 +222,14 @@ export const MetadataSchema = z.object({
 });
 export type Metadata = z.infer<typeof MetadataSchema>;
 
+/** v1.2 ids: `conv_` + 16 hex. */
+export const CONVERSATION_ID = /^conv_[a-f0-9]{16}$/;
+
 export const ResearchViewSchema = z.object({
   run_id: str,
+  // v1.2. Optional: stored samples and older backends do not send them.
+  conversation_id: str.optional(),
+  turn: num.optional(),
   status: RunStatusSchema,
   question: str,
   depth: str,
@@ -251,8 +258,38 @@ export const AcceptedSchema = z.object({
   status_url: str,
   events_url: str,
   web_url: str.optional(),
+  conversation_id: str.optional(), // v1.2 (optional: older backends)
+  turn: num.optional(),
 });
 export type Accepted = z.infer<typeof AcceptedSchema>;
+
+/** `GET /conversations/{id}` (v1.2): the turns of a chat, oldest first. */
+export const ConversationTurnSchema = z.object({
+  run_id: str,
+  turn: num,
+  question: str,
+  status: str, // a RunStatus; kept open
+  title: str.nullable(),
+  depth: str.optional(),
+  created_at: str,
+});
+export const ConversationSchema = z.object({
+  conversation_id: str,
+  max_turns: num,
+  turns: z.array(ConversationTurnSchema),
+});
+export type Conversation = z.infer<typeof ConversationSchema>;
+
+/** `GET /tools`. The family stays open: "conversation" (v1.2, internal) and any future one
+ * parse; only the known ones get a label. */
+export const TOOL_FAMILIES = ["web", "wikipedia", "documents", "conversation"] as const;
+export const ToolSpecSchema = z.object({
+  name: str,
+  family: str,
+  description: str,
+  parameters: z.record(str, z.unknown()).optional(),
+});
+export type ToolSpec = z.infer<typeof ToolSpecSchema>;
 
 export const DeliverySchema = z.object({
   id: str,
@@ -314,6 +351,9 @@ export const LimitsSchema = z.object({
   max_parallel_delegations: num.optional(),
   approval_timeout_min: num.optional(),
   feedback_max_chars: num,
+  // v1.2 (not sent by /health yet: the UI falls back to the contract values 2 and 30)
+  followup_min_chars: num.optional(),
+  conversation_max_turns: num.optional(),
   // Sent since the frontend merge; optional so older backends still parse.
   upload_max_bytes: num.optional(),
   workspace_max_docs: num.optional(),

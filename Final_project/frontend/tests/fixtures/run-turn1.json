@@ -1,0 +1,380 @@
+{
+  "run_id": "run_0fb55a39f967",
+  "conversation_id": "conv_bdac08dfa18ee962",
+  "turn": 1,
+  "status": "completed",
+  "question": "When should I use RAG instead of fine-tuning?",
+  "depth": "brief",
+  "sources": [
+    "web",
+    "wikipedia"
+  ],
+  "channel": "web",
+  "report": {
+    "title": "When should I use RAG instead of fine-tuning?",
+    "summary": "Demo summary: the evidence covers the main points of this question [E1].",
+    "sections": [
+      {
+        "heading": "Overview",
+        "content": "Demo draft written from the research findings [E1][E2][E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]."
+      },
+      {
+        "heading": "Notes",
+        "content": "This text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]."
+      }
+    ],
+    "references": [
+      "[E1] when should i use rag instead of fine-tuning: overview — https://example.org/when-should-i-use-rag/overview",
+      "[E2] when should i use rag instead of fine-tuning: practical guide — https://example.org/when-should-i-use-rag/practical-guide",
+      "[E3] when should i use rag instead of fine-tuning: trade-offs — https://example.org/when-should-i-use-rag/trade-offs"
+    ],
+    "sources": [
+      {
+        "id": "E1",
+        "title": "when should i use rag instead of fine-tuning: overview",
+        "url": "https://example.org/when-should-i-use-rag/overview",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "Demo search result about when should i use rag instead of fine-tuning, covering its overview. In demo mode this text stands in for a real web page snippet."
+      },
+      {
+        "id": "E2",
+        "title": "when should i use rag instead of fine-tuning: practical guide",
+        "url": "https://example.org/when-should-i-use-rag/practical-guide",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "Demo search result about when should i use rag instead of fine-tuning, covering its practical guide. In demo mode this text stands in for a real web page snippet."
+      },
+      {
+        "id": "E3",
+        "title": "when should i use rag instead of fine-tuning: trade-offs",
+        "url": "https://example.org/when-should-i-use-rag/trade-offs",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "Demo search result about when should i use rag instead of fine-tuning, covering its trade-offs. In demo mode this text stands in for a real web page snippet."
+      }
+    ],
+    "depth": "brief",
+    "word_count": 225
+  },
+  "metadata": {
+    "iterations": 4,
+    "context_turns": 0,
+    "iteration_limit": 4,
+    "max_iterations": 4,
+    "agents_used": [
+      "Researcher",
+      "Writer",
+      "Reviewer"
+    ],
+    "duration_seconds": 0.0,
+    "forced": false,
+    "degraded": false,
+    "llm_calls": 8,
+    "cached_calls": 0,
+    "tool_calls": 1,
+    "evidence": 3,
+    "tokens": {
+      "input": 10597,
+      "output": 640
+    },
+    "est_cost_usd": 0.001316,
+    "per_agent": {
+      "Supervisor": {
+        "calls": 4,
+        "tokens": 7073,
+        "duration_ms": 213
+      },
+      "Researcher": {
+        "calls": 2,
+        "tokens": 1860,
+        "duration_ms": 124
+      },
+      "Writer": {
+        "calls": 1,
+        "tokens": 1021,
+        "duration_ms": 54
+      },
+      "Reviewer": {
+        "calls": 1,
+        "tokens": 1283,
+        "duration_ms": 58
+      }
+    },
+    "grounding": null,
+    "models": {
+      "supervisor": "demo",
+      "workers": "demo"
+    },
+    "prompt_version": "4",
+    "generated_by": "demo mode (no LLM)",
+    "created_at": "2026-10-11T15:06:02+00:00",
+    "started_at": "2026-10-11T15:06:02+00:00",
+    "finished_at": "2026-10-11T15:06:02+00:00"
+  },
+  "conversation_history": [
+    {
+      "seq": 1,
+      "iteration": 1,
+      "agent": "Supervisor",
+      "model": "demo",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 54,
+      "tokens": {
+        "input": 1356,
+        "output": 80,
+        "thinking": 0
+      },
+      "action": "DELEGATE",
+      "target_agent": "Researcher",
+      "task": "Find the key facts about: When should I use RAG instead of fine-tuning?",
+      "delegations": [
+        {
+          "target_agent": "Researcher",
+          "task": "Find the key facts about: When should I use RAG instead of fine-tuning?"
+        }
+      ],
+      "reason": "Next step is the researcher.",
+      "repaired": false
+    },
+    {
+      "seq": 2,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "demo",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 5,
+      "tokens": {
+        "input": 850,
+        "output": 80,
+        "thinking": 0
+      },
+      "action": "TOOL_CALL",
+      "tool": "search_web",
+      "args": {
+        "query": "when should i use rag instead of fine-tuning"
+      },
+      "status": "ok",
+      "provider": "searxng",
+      "fallback": null,
+      "results": 3,
+      "evidence": [
+        "E1",
+        "E2",
+        "E3"
+      ],
+      "error": null,
+      "weak": false,
+      "repeat": false
+    },
+    {
+      "seq": 3,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "demo",
+      "llm_calls": 2,
+      "cached": false,
+      "duration_ms": 124,
+      "tokens": {
+        "input": 1700,
+        "output": 160,
+        "thinking": 0
+      },
+      "action": "RESULT",
+      "task": "Find the key facts about: When should I use RAG instead of fine-tuning?",
+      "content": "### Findings\n- A relevant fact from the evidence [E1].\n- A relevant fact from the evidence [E2].\n- A relevant fact from the evidence [E3].\n\nGaps: none (demo mode).",
+      "evidence": [
+        "E1",
+        "E2",
+        "E3"
+      ],
+      "data": {
+        "tool_calls": 1,
+        "capped": false,
+        "tools": {
+          "search_web": 1
+        },
+        "queries": [
+          "when should i use rag instead of fine-tuning"
+        ],
+        "fallbacks": 0,
+        "repeats": 0,
+        "rewrites": 0,
+        "evidence_seen": [
+          1,
+          2,
+          3
+        ],
+        "evidence_cited": [
+          1,
+          2,
+          3
+        ],
+        "summary": "researcher used search_web ×1 · 3 evidence, 3 cited"
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 4,
+      "iteration": 2,
+      "agent": "Supervisor",
+      "model": "demo",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 53,
+      "tokens": {
+        "input": 1486,
+        "output": 80,
+        "thinking": 0
+      },
+      "action": "DELEGATE",
+      "target_agent": "Writer",
+      "task": "Write the report from the research findings and evidence.",
+      "delegations": [
+        {
+          "target_agent": "Writer",
+          "task": "Write the report from the research findings and evidence."
+        }
+      ],
+      "reason": "Next step is the writer.",
+      "repaired": false
+    },
+    {
+      "seq": 5,
+      "iteration": 2,
+      "agent": "Writer",
+      "model": "demo",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 54,
+      "tokens": {
+        "input": 941,
+        "output": 80,
+        "thinking": 0
+      },
+      "action": "RESULT",
+      "task": "Write the report from the research findings and evidence.",
+      "content": "# When should I use RAG instead of fine-tuning?\n\nDemo summary: the evidence covers the main points of this question [E1].\n\n## Overview\n\nDemo draft written from the research findings [E1][E2][E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1].\n\n## Notes\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2].",
+      "evidence": [
+        "E1",
+        "E2",
+        "E3"
+      ],
+      "data": {
+        "words": 225,
+        "sections": 2
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 6,
+      "iteration": 3,
+      "agent": "Supervisor",
+      "model": "demo",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 52,
+      "tokens": {
+        "input": 1896,
+        "output": 80,
+        "thinking": 0
+      },
+      "action": "DELEGATE",
+      "target_agent": "Reviewer",
+      "task": "Review the latest draft against the question and the findings.",
+      "delegations": [
+        {
+          "target_agent": "Reviewer",
+          "task": "Review the latest draft against the question and the findings."
+        }
+      ],
+      "reason": "Next step is the reviewer.",
+      "repaired": false
+    },
+    {
+      "seq": 7,
+      "iteration": 3,
+      "agent": "Reviewer",
+      "model": "demo",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 58,
+      "tokens": {
+        "input": 1203,
+        "output": 80,
+        "thinking": 0
+      },
+      "action": "RESULT",
+      "task": "Review the latest draft against the question and the findings.",
+      "content": "Verdict: APPROVE\nIssues:\n- (low, task_fit) Demo review: a short example would help.\nBalance: none\nChecks: 225 words (200–400) · 2 sections (2–3) · 0 of 2 paragraphs uncited · 0 unknown citations",
+      "evidence": [],
+      "data": {
+        "verdict": "approve",
+        "issues": [
+          {
+            "severity": "low",
+            "category": "task_fit",
+            "section": null,
+            "text": "Demo review: a short example would help.",
+            "origin": "model"
+          }
+        ],
+        "balance_flags": [],
+        "checks": {
+          "words": 225,
+          "word_range": [
+            200,
+            400
+          ],
+          "sections": 2,
+          "section_range": [
+            2,
+            3
+          ],
+          "has_title": true,
+          "unknown": [],
+          "uncited_paragraphs": 0,
+          "paragraphs": 2
+        },
+        "verdict_overridden": false
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 8,
+      "iteration": 4,
+      "agent": "Supervisor",
+      "model": "demo",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 54,
+      "tokens": {
+        "input": 2015,
+        "output": 80,
+        "thinking": 0
+      },
+      "action": "FINAL",
+      "reason": "The draft was reviewed and approved.",
+      "forced": false
+    }
+  ],
+  "final_output": "# When should I use RAG instead of fine-tuning?\n\nDemo summary: the evidence covers the main points of this question [E1].\n\n## Overview\n\nDemo draft written from the research findings [E1][E2][E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1].\n\n## Notes\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2].",
+  "flags": [],
+  "memory_used": [],
+  "error": null,
+  "approval": {
+    "required": false,
+    "draft": null,
+    "expires_at": null,
+    "revisions": 0
+  },
+  "sample": false
+}

@@ -54,6 +54,20 @@ export function formatDate(iso: string | null | undefined): string {
   return new Date(t).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
+/** "just now", "5 min ago", "3 h ago", "2 d ago"; the date after a week; "" when invalid or
+ * when there is no clock yet (`now` null during hydration). */
+export function formatRelative(iso: string | null | undefined, now: number | null): string {
+  if (!iso || now === null) return "";
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return "";
+  const s = Math.max(0, Math.round((now - t) / 1000));
+  if (s < 60) return "just now";
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  if (s < 86_400) return `${Math.floor(s / 3600)} h ago`;
+  if (s < 7 * 86_400) return `${Math.floor(s / 86_400)} d ago`;
+  return formatDate(iso);
+}
+
 const FLAG_LABELS: Record<string, string> = {
   forced: "forced completion",
   degraded: "assembled automatically",
@@ -85,6 +99,7 @@ export const SOURCE_LABELS: Record<string, string> = {
   wikipedia: "Wikipedia",
   documents: "Documents",
   memory: "Memory",
+  conversation: "Earlier turns", // v1.2 family, internal (never a user choice)
 };
 
 export const SOURCE_ICONS: Record<string, string> = {
@@ -92,4 +107,5 @@ export const SOURCE_ICONS: Record<string, string> = {
   wikipedia: "📚",
   documents: "📄",
   memory: "🧠",
+  conversation: "💬",
 };

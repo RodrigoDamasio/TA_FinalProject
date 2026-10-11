@@ -5,6 +5,8 @@ import {
   AcceptedSchema,
   type Agent,
   AgentSchema,
+  type Conversation,
+  ConversationSchema,
   type Delivery,
   DeliverySchema,
   type Depth,
@@ -20,6 +22,8 @@ import {
   type Sample,
   SampleSchema,
   type SourceChoice,
+  type ToolSpec,
+  ToolSpecSchema,
 } from "./schemas";
 
 export type ApiErrorKind =
@@ -33,6 +37,9 @@ export type ApiErrorKind =
   | "timeout"
   | "unsupported_type"
   | "quota_exceeded"
+  | "conversation_not_found"
+  | "conversation_full"
+  | "conversation_busy"
   | "server"
   | "network"
   | "contract";
@@ -67,6 +74,7 @@ const FIELD_LABELS: Record<string, string> = {
   use_memory: "Use memory",
   feedback: "Feedback",
   file: "File",
+  conversation_id: "Chat",
 };
 
 /** "#/max_iterations" → "Max iterations". */
@@ -134,6 +142,12 @@ export function toApiError({ status, retryAfter, body }: ProblemInfo): ApiError 
       return err("not_found", "This document is no longer available.");
     case "sample-not-found":
       return err("not_found", "Sample not found.");
+    case "conversation-not-found":
+      return err("conversation_not_found", "This chat is no longer available on the server. Start a new chat.");
+    case "conversation-full":
+      return err("conversation_full", detail ?? "This chat is full. Start a new chat.");
+    case "conversation-busy":
+      return err("conversation_busy", "This chat is still answering. Wait for the current answer.");
     case "invalid-transition":
       return err("conflict", "The run already moved on.");
     case "demo-read-only":
@@ -206,10 +220,12 @@ export interface ResearchInput {
   max_iterations?: number | null;
   require_approval: boolean;
   use_memory: boolean;
+  conversation_id?: string; // v1.2: a follow-up in this chat
 }
 
 export const health = (): Promise<Health> => request("/health", HealthSchema);
 export const agents = (): Promise<Agent[]> => request("/agents", z.array(AgentSchema));
+export const tools = (): Promise<ToolSpec[]> => request("/tools", z.array(ToolSpecSchema));
 export const samples = (): Promise<Sample[]> => request("/samples", z.array(SampleSchema));
 export const sample = (id: string): Promise<ResearchView> =>
   request(`/samples/${enc(id)}`, ResearchViewSchema);
@@ -226,6 +242,9 @@ export const reject = (id: string, feedback: string | null): Promise<ResearchVie
   request(`/research/${enc(id)}/reject`, ResearchViewSchema, json("POST", { feedback }));
 export const deliveries = (id: string): Promise<Delivery[]> =>
   request(`/research/${enc(id)}/deliveries`, z.array(DeliverySchema));
+
+export const conversation = (id: string): Promise<Conversation> =>
+  request(`/conversations/${enc(id)}`, ConversationSchema);
 
 export const eventsUrl = (id: string): string => `${apiUrl()}/research/${enc(id)}/events`;
 

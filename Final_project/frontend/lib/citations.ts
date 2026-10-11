@@ -53,3 +53,13 @@ export function safeUrl(url: string): string {
     return "";
   }
 }
+
+/** Plain text for a one-line preview: citation markers and bold/italic marks removed. */
+export function plainPreview(markdown: string): string {
+  return markdown
+    .replace(/\[E\d{1,4}(?:\s*,\s*E\d{1,4})*\]/g, "")
+    .replace(/(\*\*|__)/g, "")
+    .replace(/\s+([.,;:!?])/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}
