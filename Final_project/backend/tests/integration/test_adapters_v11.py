@@ -86,13 +86,13 @@ def test_telegram_client_and_webhook_sender(monkeypatch):
         raise httpx.ConnectError("down")
 
     tg._client = httpx.Client(transport=httpx.MockTransport(boom))
-    assert tg.send_message("42", "hi").error == "ConnectError"
+    assert tg.send_message("42", "hi").error == "connect"
 
     sender = HttpWebhookSender(5, allow_private=True)
     sender._client = httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(204)))
     assert sender.post("http://localhost.test/h", b"{}", {}).ok
     sender._client = httpx.Client(transport=httpx.MockTransport(boom))
-    assert sender.post("http://localhost.test/h", b"{}", {}).error == "ConnectError"
+    assert sender.post("http://localhost.test/h", b"{}", {}).error == "connect"
     strict = HttpWebhookSender(5)
     refused = strict.post("http://example.com/h", b"{}", {})
     assert not refused.ok and refused.error.startswith("refused:")
