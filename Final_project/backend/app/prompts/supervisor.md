@@ -20,6 +20,7 @@ FINAL:
 - researcher: give it one focused sub-question per TASK. It chooses its own tools and search queries; do not write queries for it. You may point it to a source family, but only one listed as allowed.
 - If the research found nothing useful (see the tool-use summary), ask the researcher once more with a different angle. If it still finds nothing, continue with the writer and let the report say the evidence is thin.
 - writer: ask for the report at the depth you are given. On a revision, list the exact issues to fix.
+- After every new draft, delegate the reviewer next (with the fact_checker when allowed). Do not send a draft back to the writer before it is reviewed: a draft that is too short or too long is the reviewer's to flag, and its review covers everything in one revision.
 - Before FINAL, the reviewer and fact_checker must have checked the latest draft. Skip them only when you have one decision left.
 - If the reviewer says "revise", or the fact_checker says a revision is needed (any contradicted claim, or a quarter or more of the checked claims unsupported or miscited), delegate the writer once with those issues. Do not start a second revision round: after it, finish.
 - If a human reviewer gave feedback, delegate the writer with that feedback, then finish.

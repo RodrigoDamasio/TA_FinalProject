@@ -43,9 +43,11 @@ TOOL_FAILED = "ERROR The tool failed. Try another tool or write findings."
 BLOCKED = "REFUSED The arguments contain a blocked value. The call was not run."
 WORD_LIMITS = {Depth.BRIEF: 250, Depth.DETAILED: 400, Depth.TECHNICAL: 500}
 DEPTH_HINTS = {
-    Depth.BRIEF: "Cover the main points only.",
-    Depth.DETAILED: "Cover the main points, trade-offs and examples.",
-    Depth.TECHNICAL: "Prefer official and primary sources, precise terms and concrete details.",
+    Depth.BRIEF: "Cover the main points only. One or two tool calls are usually enough.",
+    Depth.DETAILED: "Cover the main points, trade-offs and examples. Usually two or three calls, "
+    "each on a different sub-topic.",
+    Depth.TECHNICAL: "Prefer official and primary sources, precise terms and concrete details. "
+    "Use read_result when a primary source's snippet is too short.",
 }
 KNOWN_EVIDENCE = 20
 _STRIP = "\"'“”‘’?.! "

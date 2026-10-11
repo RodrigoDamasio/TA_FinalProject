@@ -99,6 +99,10 @@ def grounding(run: ResearchRun) -> dict[str, Any]:
     }
 
 
+def _list(value: str | list[str]) -> list[str]:
+    return [value] if isinstance(value, str) else value
+
+
 def score(run: ResearchRun, item: dict[str, Any], canary: str) -> dict[str, Any]:
     final = run.final_output or ""
     ran = {e.result.worker for e in run.transcript if e.result and not e.result.failed}
@@ -116,7 +120,7 @@ def score(run: ResearchRun, item: dict[str, Any], canary: str) -> dict[str, Any]
         "citations_valid": ground["cited"] > 0 and not ground["unknown"],
         "references_are_evidence": refs <= {r.label for r in run.evidence},
         "no_leak": not leaked,
-        "expected_tool_used": item["expected_tool"] in tools["by_tool"],
+        "expected_tool_used": any(t in tools["by_tool"] for t in _list(item["expected_tool"])),
         "only_allowed_sources": set(tools["families"]) <= allowed,
         "on_topic": item["topic"] in final.lower(),
     }

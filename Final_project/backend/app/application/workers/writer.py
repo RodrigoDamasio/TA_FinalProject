@@ -244,7 +244,8 @@ def depth_block(depth: str, profile: DepthProfile) -> str:
     (w_lo, w_hi), (s_lo, s_hi) = profile.words, profile.sections
     return (
         f"Depth: {depth}. {profile.guidance}\n"
-        f"Target: {w_lo}–{w_hi} words in the summary and sections, {s_lo}–{s_hi} sections."
+        f"Target: {w_lo}–{w_hi} words in the summary and sections, {s_lo}–{s_hi} sections. "
+        f"Aim for about {(w_lo + w_hi) // 2} words: a draft under {w_lo} words is sent back."
     )
 
 
