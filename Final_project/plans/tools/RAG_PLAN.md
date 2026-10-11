@@ -454,3 +454,38 @@ Each step is a small, separately testable commit on the RAG branch, after `contr
 11. `samples/library/` files + `LICENSES.md` + the injection document + a seeding test with the real files (fake embedder).
 12. `eval/retrieval_dataset.json`, the evaluator and CLI, the dataset-resolution test, and the fake smoke run. The user runs the ONNX grid locally and records it in a "Deviations" section here if the defaults change.
 13. Full suite, coverage ≥ 90 %, `ruff check` + `ruff format --check`. PR listing deviations.
+
+## 13. Deviations (implementation, 2026-10-11)
+
+Implemented locally (wave 1). 153 backend tests, coverage ≥ 90 %, Ruff clean.
+
+| Plan | Implementation | Why |
+|---|---|---|
+| §3.3: cross-source dedup in `run:` **and `memory`** | Cross-source dedup in `run:` only; `memory` dedups within a run | Two runs with the same question produced the same memory text, so the second run's memory collapsed into the first one, and "newest per question" then recalled nothing |
+| §3.4: weighted RRF 0.7 vector / 0.3 BM25 | **Equal weights** (standard RRF) | With 0.7/0.3, a chunk ranked 1st by BM25 but missing from the vector list scores below the 20th vector hit, so exact identifiers (`ZEBRA-HARBOR-7Q`, header names) never surfaced. The grid below confirms it |
+| §3.4: at most 3 chunks per source | **No per-source cap** by default (`per_source` stays configurable) | With 6 evidence slots, a question about one document needs more than 3 of its chunks: the cap cost recall in every mode (grid below) |
+| §3.4: ties break by chunk id | Ties break by `(source_key, position)`, then id | Chunk ids contain the run's scope, so two identical runs ranked tied results differently, which changed prompts and broke the LLM cache (a flaky test found it) |
+| §3.2: wiki `== H ==` level | `==` = level 2, `===` = level 3 (MediaWiki's own levels) | Correct nesting below ATX `#` titles |
+| §3.9: targets = heading or pages | Also **`quote`** targets; a heading target also matches a chunk that contains the heading line | Short sections merge forward (`merge_small`) and take the next heading, so heading-only targets missed them |
+| §3.8: `memory_from_run` returns nothing without a report | Always returns a `Memory` (falls back to the final Markdown) | `Supervisor.remember` (SUPERVISOR's file) records whatever it gets; avoids touching it from this area |
+
+### Retrieval evaluation (real `bge-small` ONNX model, k = 6, 21 questions, 0 API calls)
+
+`python -m eval.retrieval_eval --embed onnx` → [`backend/eval/results/retrieval_onnx.md`](../../backend/eval/results/retrieval_onnx.md).
+
+| Per-source cap | Weights | Mode | hit@6 | MRR | Misses |
+|---|---|---|---|---|---|
+| 3 (plan) | equal | hybrid | 0.72 | 0.69 | r01, r02, r08, r11, r12 |
+| 3 (plan) | 0.7 / 0.3 | hybrid | 0.78 | 0.71 | r02, r08, r11, r12 |
+| none | 0.7 / 0.3 | hybrid | 0.83 | 0.73 | r02, r08, r12 |
+| **none** | **equal** | **hybrid (default)** | **0.89** | **0.73** | r08, r12 |
+| none | — | vector only | 0.94 | 0.77 | r02 |
+| none | — | BM25 only | 0.83 | 0.80 | r08, r11, r12 |
+
+Vector-only is slightly ahead on this small library, but hybrid stays the default: it is what finds exact identifiers that the embedder misses (tested with the planted marker). Revisit with phase 6 data.
+
+### Real model and memory (measured locally)
+
+- 255 demo chunks; the longest `embed_text` is **427 tokens** (bge-small window: 512), so nothing is silently truncated.
+- Seeding the library: ~33 s (batch 4, 2 threads), ~40 s with the Railway values (batch 1, 1 thread).
+- **Peak RSS 381 MB** with ONNX + the store + seeding + one research run (Railway values, `MALLOC_ARENA_MAX=2`). The plan estimated 500–560 MB. Railway measurement after deploy still to do.

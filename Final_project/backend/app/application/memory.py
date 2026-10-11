@@ -1,16 +1,17 @@
-"""Memory (extension): what earlier runs found, recalled for the Supervisor with BM25 (Lab 4).
+"""Memory: what earlier runs found, recalled for the Supervisor (hybrid search, RAG_PLAN §3.8).
 
 Memories whose question equals the current one are excluded, so re-running a question never
 changes its own prompt and the response cache stays effective (Lab 3 lesson)."""
 
 import re
 
-from app.domain.ports import Memory, MemoryRepository
+from app.domain.evidence import SourceKind
+from app.domain.ports import Indexer, Memory, MemoryRepository, Retriever, SourceText
 from app.domain.run import ResearchRun, now_iso
 
-from .retrieval.bm25 import BM25Index
-
 RECALL_WINDOW = 500
+MEMORY_SCOPE = "memory"
+MIN_COSINE = 0.55
 SUMMARY_CHARS = 600
 _MARKDOWN = re.compile(r"[#*_`>|]+|\[E?\d{1,4}\]")
 _LINK = re.compile(r"\[([^\]]+)\]\([^)]+\)")
@@ -38,26 +39,70 @@ def memory_from_run(run: ResearchRun) -> Memory:
     return Memory(run.id, run.question, summary[:SUMMARY_CHARS], titles[:5], now_iso())
 
 
-class BM25Memory:
-    """MemoryStore over a MemoryRepository."""
+class HybridMemoryStore:
+    """MemoryStore over the `memory` scope (RAG_PLAN §3.8): each completed run leaves one
+    chunk (its question, doubled to weight it, and its summary); recall is hybrid search with
+    a relevance floor, so RRF ranks alone never admit noise. Owner: RAG."""
 
-    def __init__(self, repo: MemoryRepository) -> None:
-        self._repo = repo
+    def __init__(
+        self,
+        repo: MemoryRepository,
+        indexer: Indexer,
+        retriever: Retriever,
+        *,
+        min_cosine: float = MIN_COSINE,
+    ) -> None:
+        self._repo, self._indexer, self._retriever = repo, indexer, retriever
+        self._min_cosine = min_cosine
 
     def record(self, memory: Memory) -> None:
         self._repo.record(memory)
+        text = f"{memory.question}\n{memory.question}\n{memory.summary}"
+        self._indexer.index(
+            [
+                SourceText(
+                    MEMORY_SCOPE,
+                    SourceKind.MEMORY,
+                    f"run:{memory.run_id}",
+                    memory.question[:120],
+                    text,
+                )  # fmt: skip
+            ]
+        )
 
     def recall(self, query: str, limit: int, exclude_question: str) -> list[Memory]:
-        excluded = _key(exclude_question)
-        newest_per_question: dict[str, Memory] = {}
-        for m in self._repo.recent(RECALL_WINDOW):  # newest first
-            if _key(m.question) != excluded:
-                newest_per_question.setdefault(_key(m.question), m)
-        candidates = {m.run_id: m for m in newest_per_question.values()}
-        if not candidates or limit <= 0:
+        if limit <= 0:
             return []
-        index = BM25Index()
-        for m in candidates.values():
-            index.add(m.run_id, "memory", f"{m.question} {m.question} {m.summary}")
-        hits = index.search(query, ["memory"], limit)
-        return [candidates[h.chunk_id] for h in hits if h.score > 0]
+        by_run = {m.run_id: m for m in self._repo.recent(RECALL_WINDOW)}
+        explain = getattr(self._retriever, "explain", None)
+        if explain is not None:
+            hits = [
+                (e.hit.chunk.source_key, e.bm25_matched or (e.cosine or 0.0) >= self._min_cosine)
+                for e in explain(query, [MEMORY_SCOPE], limit + 10)
+            ]
+        else:
+            hits = [
+                (h.chunk.source_key, True)
+                for h in self._retriever.search(query, [MEMORY_SCOPE], limit + 10)
+            ]
+        excluded = _key(exclude_question)
+        out: list[Memory] = []
+        newest: dict[str, str] = {}
+        for m in by_run.values():  # newest first (recent() order)
+            newest.setdefault(_key(m.question), m.run_id)
+        for source_key, relevant in hits:
+            m = by_run.get(source_key.removeprefix("run:"))
+            if m is None or not relevant or _key(m.question) == excluded:
+                continue
+            if newest.get(_key(m.question)) != m.run_id or m in out:
+                continue
+            out.append(m)
+            if len(out) == limit:
+                break
+        return out
+
+    def delete_older_than(self, cutoff_iso: str) -> int:
+        for m in self._repo.recent(RECALL_WINDOW * 20):
+            if m.created_at < cutoff_iso:
+                self._indexer.remove(MEMORY_SCOPE, f"run:{m.run_id}")
+        return self._repo.delete_older_than(cutoff_iso)

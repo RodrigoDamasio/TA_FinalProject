@@ -35,3 +35,13 @@ class RateLimiter:
                 if len(recent) >= self._limits[window]:
                     raise RateLimited(seconds - (now - recent[0]), window)
             hits.append(now)
+
+
+class HourlyRateLimiter(RateLimiter):
+    """One window of one hour (uploads: RATE_LIMIT_UPLOADS_PER_HOUR per IP)."""
+
+    WINDOWS = (("hour", 3600.0),)
+
+    def __init__(self, per_hour: int, clock: Callable[[], float] = time.monotonic) -> None:
+        super().__init__(0, 0, clock)
+        self._limits = {"hour": per_hour}

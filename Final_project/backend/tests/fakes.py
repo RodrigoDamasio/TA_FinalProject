@@ -192,3 +192,41 @@ class FakeClock:
 
     def advance(self, seconds: float) -> None:
         self.now += timedelta(seconds=seconds)
+
+
+class DictEmbeddingCache:
+    """EmbeddingCache in memory."""
+
+    def __init__(self) -> None:
+        self.vectors: dict[tuple[str, str], list[float]] = {}
+
+    def get_many(self, model: str, keys: list[str]) -> dict[str, list[float]]:
+        return {k: self.vectors[(model, k)] for k in keys if (model, k) in self.vectors}
+
+    def put_many(self, model: str, items: dict[str, list[float]]) -> None:
+        self.vectors.update({(model, k): v for k, v in items.items()})
+
+    def stats(self) -> dict[str, int]:
+        return {"stored": len(self.vectors)}
+
+
+def rag_stack(max_chars: int = 400, min_chars: int = 100):
+    """The real hybrid RAG stack over the fakes: (indexer, retriever, store, bm25)."""
+    from app.application.embedding import CachedEmbeddings, StaticModels
+    from app.application.indexing.chunkers import ChunkOptions, embed_text
+    from app.application.indexing.indexer import HybridIndexer
+    from app.application.retrieval.bm25 import ScopedBM25
+    from app.application.retrieval.retriever import HybridRetriever
+
+    store = InMemoryVectorStore()
+    models = StaticModels(HashingEmbedder())
+    embeddings = CachedEmbeddings(DictEmbeddingCache())
+    bm25 = ScopedBM25(
+        lambda scope: (
+            (c.id, embed_text(c), c.source_key, c.position) for c in store.iter_chunks(scope)
+        )
+    )
+    indexer = HybridIndexer(
+        store, models, embeddings, bm25, ChunkOptions(max_chars, min_chars, 0.15)
+    )
+    return indexer, HybridRetriever(store, models, embeddings, bm25), store, bm25

@@ -1,11 +1,9 @@
 """W1–W6: the workers with a fake LLM, fake search and the step 3 RAG stubs (0 calls)."""
 
 import pytest
-from fakes import USAGE, FakeLLM, FakeWebSearch, HashingEmbedder, InMemoryVectorStore
+from fakes import USAGE, FakeLLM, FakeWebSearch, rag_stack
 
-from app.application.indexing.simple import SimpleIndexer
 from app.application.prompts import PromptLibrary, estimate_tokens, placeholders
-from app.application.retrieval.simple import SimpleRetriever
 from app.application.security import DataFence, OutputValidator, canary_for
 from app.application.tools.base import ToolContext, ToolRegistry
 from app.application.tools.documents import SearchDocumentsTool
@@ -35,9 +33,7 @@ class World:
 
     def __init__(self, sources=REQUESTABLE_SOURCES, search=None, wiki=None) -> None:
         self.run = ResearchRun.create(QUESTION, 5, False, False, sources=frozenset(sources))
-        store, embedder = InMemoryVectorStore(), HashingEmbedder()
-        self.indexer = SimpleIndexer(store, embedder, 400)
-        self.retriever = SimpleRetriever(store, embedder)
+        self.indexer, self.retriever, _, _ = rag_stack()
         self.search = search or FakeWebSearch()
         wiki_tool = SearchWikipediaTool(wiki or FakeWikipedia(), self.indexer, self.retriever)
         self.registry = ToolRegistry(

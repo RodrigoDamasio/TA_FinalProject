@@ -381,3 +381,9 @@ class UpdateLedger(Protocol):
     def seen(self, update_id: int) -> bool: ...  # atomic insert-or-ignore: True = duplicate
 
     def forget_older_than(self, cutoff_iso: str) -> int: ...
+
+
+class Reranker(Protocol):  # additive (RAG): optional cross-encoder, local evaluation only
+    name: str
+
+    def score(self, query: str, texts: list[str]) -> list[float]: ...

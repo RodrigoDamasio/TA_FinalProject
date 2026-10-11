@@ -2,11 +2,9 @@
 Replaces the step 3 W4/W5 tests of test_workers.py (REVIEWER_PLAN §9)."""
 
 import pytest
-from fakes import FakeLLM, FakeRetriever, HashingEmbedder, InMemoryVectorStore, delegate, final
+from fakes import FakeLLM, FakeRetriever, delegate, final, rag_stack
 
-from app.application.indexing.simple import SimpleIndexer
 from app.application.prompts import PromptLibrary
-from app.application.retrieval.simple import SimpleRetriever
 from app.application.security import DataFence, canary_for
 from app.application.workers.base import WorkerContext
 from app.application.workers.fact_checker import NO_DRAFT, NOTHING_TO_CHECK, FactChecker
@@ -321,8 +319,7 @@ def test_missing_claim_ids_repair_then_skipped():
 
 
 def test_a_real_retriever_finds_document_evidence_through_its_scope():
-    store, embedder = InMemoryVectorStore(), HashingEmbedder()
-    indexer, retriever = SimpleIndexer(store, embedder, 400), SimpleRetriever(store, embedder)
+    indexer, retriever, _, _ = rag_stack()
     texts = [
         SourceText(f"run:{RUN}", SourceKind.WEB, "https://a.org", "A", "RAG retrieves text."),
         SourceText("ws:abc", SourceKind.DOCUMENTS, "doc:d1", "Guide", "RAG keeps data fresh."),

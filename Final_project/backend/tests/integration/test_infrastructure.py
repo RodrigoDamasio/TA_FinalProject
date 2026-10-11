@@ -12,7 +12,7 @@ import pytest
 from fakes import FakeLLM
 from google.genai import errors, types
 
-from app.application.memory import BM25Memory, memory_from_run, summarize
+from app.application.memory import HybridMemoryStore, memory_from_run, summarize
 from app.application.service_level import ServiceLevel
 from app.application.stats import DailyCapLLMClient, Pricing, UsageMeter, percentile
 from app.domain.errors import (
@@ -78,23 +78,30 @@ def test_run_repository_saves_state_and_events_atomically(tmp_path):
     assert repo.delete_older_than(future) == [run.id] and repo.events_since(run.id, 0) == []
 
 
-def test_memory_repository_and_bm25_recall(tmp_path):
+def test_memory_repository_and_hybrid_recall(tmp_path):
+    from fakes import rag_stack
+
     repo = SqliteMemoryRepository(str(tmp_path / "m.db"))
+    indexer, retriever, store, _ = rag_stack()
+    memory = HybridMemoryStore(repo, indexer, retriever)
     old = Memory(
         "run_a", "What is SQLite?", "SQLite is embedded.", ["SQLite"], "2026-01-01T00:00:00"
     )
     new = Memory("run_b", "Explain PostgreSQL", "A server database.", ["PostgreSQL"], "2026-10-01")
     for m in (old, new):
-        repo.record(m)
+        memory.record(m)
     assert [m.run_id for m in repo.recent(10)] == ["run_b", "run_a"]
-    memory = BM25Memory(repo)
+    assert store.count("memory") == 2
     assert [m.run_id for m in memory.recall("sqlite embedded", 3, "x")] == ["run_a"]
-    assert memory.recall("sqlite", 3, "what is  SQLITE?") == []  # same task excluded
+    assert memory.recall("sqlite", 3, "what is  SQLITE?") == []  # same question excluded
     assert memory.recall("sqlite", 0, "x") == []
-    assert repo.delete_older_than("2026-06-01") == 1
+    assert memory.recall("kubernetes operators", 3, "x") == []  # relevance floor
+    assert memory.delete_older_than("2026-06-01") == 1 and store.count("memory") == 1
 
     run = ResearchRun.create("Task", 5, False, True)
-    run.final_output = "## Title\n\n**Bold** text [1] and a [link](https://x).\n\n### Sources\n1. A"
+    run.final_output = (
+        "## Title\n\n**Bold** text [E1] and a [link](https://x).\n\n### Sources\n1. A"
+    )
     assert memory_from_run(run).summary == "Title Bold text and a link."
     assert summarize("word " * 200, 20).endswith("…")
 

@@ -4,8 +4,9 @@ pythonpath = [".", "tests"]
 markers = [
     "live: calls the real Gemini API (spends quota) — run explicitly with -m live",
     "live_wiki: calls the real Wikipedia API (no Gemini quota) — run with -m live_wiki",
+    "models: loads the real ONNX model (downloads ~130 MB once, 0 API calls) — run with -m models",
 ]
-addopts = "-m 'not live and not live_wiki'"
+addopts = "-m 'not live and not live_wiki and not models'"
 
 [tool.coverage.run]
 source = ["app"]
@@ -23,4 +24,4 @@ select = ["E", "F", "I", "B", "UP", "S"]
 "eval/**" = ["S101"]
 
 [tool.ruff.lint.flake8-bugbear]
-extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Header", "fastapi.Body"]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Header", "fastapi.Body", "fastapi.File"]

@@ -34,7 +34,10 @@ class InMemoryVectorStore:
                 for cid, (c, v) in self._rows.items()
                 if c.scope in scopes and (source_keys is None or c.source_key in source_keys)
             ]
-        rows.sort(key=lambda r: (r[1], r[0]))
+        order = {
+            cid: (self._rows[cid][0].source_key, self._rows[cid][0].position) for cid, _ in rows
+        }
+        rows.sort(key=lambda r: (round(r[1], 12), order[r[0]], r[0]))
         return rows[:n]
 
     def get(self, ids: list[str]) -> list[EvidenceChunk]:

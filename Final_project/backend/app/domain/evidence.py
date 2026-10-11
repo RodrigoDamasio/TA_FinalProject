@@ -23,8 +23,8 @@ def sha256_hex(text: str) -> str:
 
 
 def content_hash(text: str) -> str:
-    """Hash of the whitespace-normalized text: the deduplication key."""
-    return sha256_hex(" ".join(text.split()))
+    """The deduplication key: case and whitespace do not matter (RAG_PLAN §3.1)."""
+    return sha256_hex(" ".join(text.casefold().split()))
 
 
 def chunk_id(scope: str, source_key: str, position: int, digest: str) -> str:

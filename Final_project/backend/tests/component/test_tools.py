@@ -1,10 +1,8 @@
 """The tool contract (BACKEND_PLAN §10.2, v1.1): ToolBox, the shared renderer, the four tools
 and the RAG stubs underneath them (0 network)."""
 
-from fakes import FakePageFetcher, FakeWebSearch, HashingEmbedder, InMemoryVectorStore
+from fakes import FakePageFetcher, FakeWebSearch, rag_stack
 
-from app.application.indexing.simple import SimpleIndexer, split_paragraphs
-from app.application.retrieval.simple import SimpleRetriever
 from app.application.security import DataFence
 from app.application.tools.base import (
     ToolContext,
@@ -31,9 +29,7 @@ FENCE = DataFence(b"s", "q")
 class Bench:
     def __init__(self, fetcher=None, wiki=None, search=None) -> None:
         self.run = ResearchRun.create("A question about RAG", 5, False, False)
-        self.store, embedder = InMemoryVectorStore(), HashingEmbedder()
-        self.indexer = SimpleIndexer(self.store, embedder, 300)
-        self.retriever = SimpleRetriever(self.store, embedder)
+        self.indexer, self.retriever, self.store, _ = rag_stack(300)
         self.ctx = ToolContext(
             self.run.id, f"run:{self.run.id}", ["ws:abc", "demo"], self.run.add_evidence,
             self.run.evidence_by_n, FENCE, REQUESTABLE_SOURCES,
@@ -160,9 +156,6 @@ def test_search_documents_copies_hits_into_the_run_scope():
 
 
 def test_indexer_and_store_maintenance():
-    assert split_paragraphs("a\n\n" + "b" * 25 + "\n\nc", 10) == [
-        "a", "b" * 10, "b" * 10, "bbbbb\n\nc",
-    ]  # fmt: skip
     b = Bench()
     b.indexer.index([SourceText("demo", SourceKind.DOCUMENTS, "doc:1", "T", "one\n\ntwo")])
     assert b.indexer.remove("demo", "doc:1") == 1 and b.store.count("demo") == 0
