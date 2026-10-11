@@ -7,3 +7,5 @@ __pycache__/
 *.db
 .coverage
 .e2e/
+eval/.chroma/
+chroma/

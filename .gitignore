@@ -25,3 +25,10 @@ node_modules/
 *.db-shm
 *.db-wal
 .e2e/
+.chroma/
+chroma/
+.next/
+.vercel/
+coverage/
+test-results/
+playwright-report/

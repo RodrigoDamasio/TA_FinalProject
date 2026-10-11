@@ -240,6 +240,7 @@ def main(argv: list[str] | None = None) -> int:
     settings = dataclasses.replace(
         base,
         database_path=str(ROOT / "llm_cache.db"),
+        chroma_path=str(ROOT / ".chroma"),  # never the live server's store (same container)
         runner_mode="inline",
         # not a credential: a fixed salt so prompts (and the cache) are stable across reruns
         prompt_secret="eval-fixed-secret",  # noqa: S106
