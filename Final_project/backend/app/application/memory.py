@@ -1,7 +1,9 @@
 """Memory: what earlier runs found, recalled for the Supervisor (hybrid search, RAG_PLAN §3.8).
 
 Memories whose question equals the current one are excluded, so re-running a question never
-changes its own prompt and the response cache stays effective (Lab 3 lesson)."""
+changes its own prompt and the response cache stays effective (Lab 3 lesson). Runs of the
+current conversation are excluded too (v1.2): the Supervisor already sees them as earlier
+turns."""
 
 import re
 
@@ -70,20 +72,27 @@ class HybridMemoryStore:
             ]
         )
 
-    def recall(self, query: str, limit: int, exclude_question: str) -> list[Memory]:
+    def recall(
+        self,
+        query: str,
+        limit: int,
+        exclude_question: str,
+        exclude_runs: frozenset[str] = frozenset(),
+    ) -> list[Memory]:
         if limit <= 0:
             return []
         by_run = {m.run_id: m for m in self._repo.recent(RECALL_WINDOW)}
+        wanted = limit + 10 + len(exclude_runs)
         explain = getattr(self._retriever, "explain", None)
         if explain is not None:
             hits = [
                 (e.hit.chunk.source_key, e.bm25_matched or (e.cosine or 0.0) >= self._min_cosine)
-                for e in explain(query, [MEMORY_SCOPE], limit + 10)
+                for e in explain(query, [MEMORY_SCOPE], wanted)
             ]
         else:
             hits = [
                 (h.chunk.source_key, True)
-                for h in self._retriever.search(query, [MEMORY_SCOPE], limit + 10)
+                for h in self._retriever.search(query, [MEMORY_SCOPE], wanted)
             ]
         excluded = _key(exclude_question)
         out: list[Memory] = []
@@ -92,7 +101,9 @@ class HybridMemoryStore:
             newest.setdefault(_key(m.question), m.run_id)
         for source_key, relevant in hits:
             m = by_run.get(source_key.removeprefix("run:"))
-            if m is None or not relevant or _key(m.question) == excluded:
+            if m is None or not relevant or m.run_id in exclude_runs:
+                continue
+            if _key(m.question) == excluded:
                 continue
             if newest.get(_key(m.question)) != m.run_id or m in out:
                 continue

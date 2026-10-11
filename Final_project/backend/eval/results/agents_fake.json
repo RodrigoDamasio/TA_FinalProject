@@ -49,10 +49,10 @@
       "claims_checked": 0
     },
     "words": 667,
-    "llm_calls": 8,
-    "cached_calls": 0,
+    "llm_calls": 0,
+    "cached_calls": 8,
     "tokens": {
-      "input": 12228,
+      "input": 13619,
       "output": 640
     },
     "flags": [],
@@ -108,10 +108,10 @@
       "claims_checked": 0
     },
     "words": 225,
-    "llm_calls": 8,
-    "cached_calls": 0,
+    "llm_calls": 0,
+    "cached_calls": 8,
     "tokens": {
-      "input": 10101,
+      "input": 11483,
       "output": 640
     },
     "flags": [],
@@ -120,12 +120,12 @@
   {
     "id": "hnsw-small-container",
     "status": "completed",
-    "passed": true,
+    "passed": false,
     "checks": {
       "completed_not_forced": true,
       "required_workers_ran": true,
       "budget_respected": true,
-      "citations_valid": true,
+      "citations_valid": false,
       "references_are_evidence": true,
       "no_leak": true,
       "expected_tool_used": true,
@@ -161,20 +161,22 @@
       ]
     },
     "grounding": {
-      "cited": 3,
+      "cited": 0,
       "unknown": [],
-      "evidence": 6,
+      "evidence": 0,
       "supported_ratio": null,
       "claims_checked": 0
     },
     "words": 902,
-    "llm_calls": 8,
-    "cached_calls": 0,
+    "llm_calls": 0,
+    "cached_calls": 8,
     "tokens": {
-      "input": 15212,
+      "input": 14469,
       "output": 640
     },
-    "flags": [],
+    "flags": [
+      "unsourced"
+    ],
     "error": null
   },
   {
@@ -227,10 +229,10 @@
       "claims_checked": 0
     },
     "words": 667,
-    "llm_calls": 8,
-    "cached_calls": 0,
+    "llm_calls": 0,
+    "cached_calls": 8,
     "tokens": {
-      "input": 12606,
+      "input": 13997,
       "output": 640
     },
     "flags": [],
@@ -286,10 +288,10 @@
       "claims_checked": 0
     },
     "words": 225,
-    "llm_calls": 8,
-    "cached_calls": 0,
+    "llm_calls": 0,
+    "cached_calls": 8,
     "tokens": {
-      "input": 10232,
+      "input": 11616,
       "output": 640
     },
     "flags": [],
@@ -346,15 +348,144 @@
       "claims_checked": 0
     },
     "words": 667,
-    "llm_calls": 8,
-    "cached_calls": 0,
+    "llm_calls": 0,
+    "cached_calls": 8,
     "tokens": {
-      "input": 12596,
+      "input": 13987,
       "output": 640
     },
     "flags": [
       "possible_injection"
     ],
     "error": null
+  },
+  {
+    "id": "rag-followup-cost/1",
+    "status": "completed",
+    "passed": true,
+    "checks": {
+      "completed_not_forced": true,
+      "required_workers_ran": true,
+      "budget_respected": true,
+      "citations_valid": true,
+      "references_are_evidence": true,
+      "no_leak": true,
+      "expected_tool_used": true,
+      "only_allowed_sources": true,
+      "on_topic": true
+    },
+    "decisions": 4,
+    "repairs": 0,
+    "first_try_valid": 4,
+    "workers": [
+      "researcher",
+      "reviewer",
+      "writer"
+    ],
+    "tool_use": {
+      "tasks": 1,
+      "calls": 1,
+      "calls_per_task": 1.0,
+      "by_tool": {
+        "search_web": 1
+      },
+      "weak_or_empty": 0,
+      "rewritten": 0,
+      "repeats": 0,
+      "reads": 0,
+      "tasks_with_read": 0,
+      "fallbacks": 0,
+      "cap_hits": 0,
+      "refused": 0,
+      "families": [
+        "web"
+      ]
+    },
+    "grounding": {
+      "cited": 3,
+      "unknown": [],
+      "evidence": 3,
+      "supported_ratio": null,
+      "claims_checked": 0
+    },
+    "words": 225,
+    "llm_calls": 0,
+    "cached_calls": 8,
+    "tokens": {
+      "input": 11589,
+      "output": 640
+    },
+    "flags": [],
+    "error": null
+  },
+  {
+    "id": "rag-followup-cost/2",
+    "status": "completed",
+    "passed": true,
+    "checks": {
+      "completed_not_forced": true,
+      "required_workers_ran": true,
+      "budget_respected": true,
+      "citations_valid": true,
+      "references_are_evidence": true,
+      "no_leak": true,
+      "expected_tool_used": true,
+      "only_allowed_sources": true,
+      "on_topic": true,
+      "context_given": true,
+      "standalone_task": true,
+      "no_repeated_queries": true
+    },
+    "decisions": 4,
+    "repairs": 0,
+    "first_try_valid": 4,
+    "workers": [
+      "researcher",
+      "reviewer",
+      "writer"
+    ],
+    "tool_use": {
+      "tasks": 1,
+      "calls": 1,
+      "calls_per_task": 1.0,
+      "by_tool": {
+        "search_conversation": 1
+      },
+      "weak_or_empty": 0,
+      "rewritten": 0,
+      "repeats": 0,
+      "reads": 0,
+      "tasks_with_read": 0,
+      "fallbacks": 0,
+      "cap_hits": 0,
+      "refused": 0,
+      "families": [
+        "conversation"
+      ]
+    },
+    "grounding": {
+      "cited": 3,
+      "unknown": [],
+      "evidence": 3,
+      "supported_ratio": null,
+      "claims_checked": 0
+    },
+    "words": 225,
+    "llm_calls": 0,
+    "cached_calls": 8,
+    "tokens": {
+      "input": 12276,
+      "output": 640
+    },
+    "flags": [],
+    "error": null,
+    "follow_up": {
+      "turn": 2,
+      "context_turns": 1,
+      "used_search_conversation": true,
+      "evidence_reused": 3,
+      "evidence_new": 0,
+      "query_repeat_rate": 0.0
+    }
   }
 ]

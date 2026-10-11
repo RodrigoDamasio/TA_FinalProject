@@ -26,6 +26,7 @@ TITLE_MAX = 200
 ERROR_MAX = 300
 MAX_REFERENCES = 5
 FINISHED_EARLY = "[Finished early: the agents hit their limit.]"
+CONTINUE_CHAT = "Reply to continue this chat, or send /new."  # v1.2
 _SENTENCE_END = re.compile(r"[.!?…](?=\s|$)")
 
 
@@ -67,12 +68,15 @@ def telegram_report_text(
     link: str,
     *,
     finished_early: bool = False,
+    footer: str | None = None,
     limit: int = TELEGRAM_LIMIT,
 ) -> str:
     """Deterministic fit (§3.4): drop references from the end, then cut the summary at the
-    last sentence end that fits (+ `…`). The title (≤ 200) and the link are always kept."""
+    last sentence end that fits (+ `…`). The title (≤ 200), the link and the footer (an app
+    constant) are always kept."""
     title = _clip(title, TITLE_MAX)
     tail = (f"{FINISHED_EARLY}\n" if finished_early else "") + f"Full report: {link}"
+    tail += f"\n{footer}" if footer else ""
     refs = list(references)
 
     def compose(body: str, refs: list[str]) -> str:
@@ -112,6 +116,7 @@ class TelegramTexts:
             "search the web, Wikipedia and a document library, then send you a short cited "
             "report.\n\n"
             "Example: What are the trade-offs between RAG and fine-tuning?\n\n"
+            "Follow-up questions continue the same chat; send /new to start a new one.\n"
             "Your questions are processed by Google Gemini. Send /help for details."
         )
 
@@ -119,11 +124,19 @@ class TelegramTexts:
         return (
             "Send a question (10–2,000 characters). I reply with a link to watch the agents "
             "live, then the report summary.\n"
+            'Your next message continues the same chat, so a short follow-up like "and the '
+            'cost?" works. Send /new to start a new chat.\n'
             "Reports here are brief. For detailed or technical reports use the web app: "
             f"{self.frontend_url}\n"
             f"Limit: {self.runs_per_day} questions per day, one at a time.\n\n"
-            "Commands: /start /help"
+            "Commands: /start /new /help"
         )
+
+    def new_chat(self) -> str:
+        return "New chat started. Ask your question."
+
+    def conversation_full(self, max_turns: int) -> str:
+        return f"This chat reached {max_turns} questions, so I started a new chat."
 
     def not_allowed(self, chat_id: str) -> str:
         return f"This bot is private. Your chat id is {chat_id}. Ask the owner to add it."
@@ -143,8 +156,8 @@ class TelegramTexts:
             f"Try again in about {hours} h."
         )
 
-    def too_short(self) -> str:
-        return "Please send a longer question (at least 10 characters)."
+    def too_short(self, minimum: int = 10) -> str:
+        return f"Please send a longer question (at least {minimum} characters)."
 
     def too_long(self, n: int) -> str:
         return f"That question is too long ({n:,} characters). The limit is 2,000."
@@ -171,8 +184,9 @@ class TelegramTexts:
         if run.report is None:  # completed without a parsed report: the final Markdown
             body = (run.final_output or "").strip() or "The research is complete."
             return telegram_report_text(
-                run.question, body, [], self.web(run.id), finished_early=early
-            )
+                run.question, body, [], self.web(run.id), finished_early=early,
+                footer=CONTINUE_CHAT,
+            )  # fmt: skip
         refs = [reference_line(r) for r in run.report.references[:MAX_REFERENCES]]
         return telegram_report_text(
             run.report.title or run.question,
@@ -180,6 +194,7 @@ class TelegramTexts:
             refs,
             self.web(run.id),
             finished_early=early,
+            footer=CONTINUE_CHAT,
         )
 
     def failed(self, run: ResearchRun) -> str:

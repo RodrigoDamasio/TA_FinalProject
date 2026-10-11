@@ -38,6 +38,7 @@ class WorkerContext:
     canary: str
     context_chars: int  # character budget for the worker's variable inputs
     history: dict[str, tuple[WorkerResult, ...]] = field(default_factory=dict)  # v1.1
+    earlier_turns: str = ""  # v1.2: the fenced "Earlier turns in this chat" block (Writer)
 
 
 @dataclass

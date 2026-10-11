@@ -90,5 +90,34 @@
       ]
     },
     "topic": "cach"
+  },
+  {
+    "id": "rag-followup-cost",
+    "title": "RAG or fine-tuning, then the cost (follow-up)",
+    "depth": "brief",
+    "sources": [
+      "web",
+      "wikipedia"
+    ],
+    "injection": null,
+    "turns": [
+      {
+        "question": "When should I use RAG instead of fine-tuning?",
+        "expected_tool": "search_web",
+        "topic": "rag"
+      },
+      {
+        "question": "And what about the cost?",
+        "expected_tool": [
+          "search_conversation",
+          "search_web"
+        ],
+        "topic": "cost",
+        "standalone_terms": [
+          "rag",
+          "fine-tun"
+        ]
+      }
+    ]
   }
 ]

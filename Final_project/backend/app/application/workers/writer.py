@@ -11,6 +11,7 @@ import logging
 from dataclasses import dataclass
 
 from app.application.citations import cited_numbers
+from app.application.context import FIRST_TURN
 from app.application.prompts import PromptLibrary
 from app.application.report import has_title, parse_report, unwrap_fence
 from app.domain.depth import PROFILES, DepthProfile
@@ -162,7 +163,9 @@ class Writer:
         each = max(1, int(total * shares.get("feedback", 0)) // max(1, present))
         review = f.wrap(trim(reviewer.content, each), "review") if reviewer else "(none)"
         fact = f.wrap(trim(checker.content, each), "fact_check") if checker else "(none)"
+        earlier = ctx.earlier_turns or FIRST_TURN  # v1.2: fenced by the Supervisor
         used = sum(len(t) for t in (findings_text, previous, review, fact) if t != "(none)")
+        used += len(earlier) if ctx.earlier_turns else 0
         refs = self._candidates(task, ctx, self._priority(ctx, findings, draft))
         evidence = self._evidence(ctx, refs, max(0, total - used))
 
@@ -171,6 +174,7 @@ class Writer:
             "writer_task",
             question=f.wrap(ctx.question, "question"),
             task=task,
+            earlier_turns=earlier,
             guidance=depth_block(ctx.depth.value, profile),
             notes=findings_text,
             evidence=evidence.text,

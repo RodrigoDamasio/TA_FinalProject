@@ -40,6 +40,7 @@ from app.application.stats import (
 from app.application.supervisor import LoopSettings, Supervisor
 from app.application.telegram import RUNS_PER_MINUTE, ChatLimiter, TelegramService
 from app.application.tools.base import ToolRegistry
+from app.application.tools.conversation import SearchConversationTool
 from app.application.tools.documents import SearchDocumentsTool
 from app.application.tools.web import ReadResultTool, SearchWebTool
 from app.application.tools.wikipedia import SearchWikipediaTool
@@ -90,6 +91,7 @@ from app.infrastructure.safe_http import (
 from app.infrastructure.samples import SampleStore
 from app.infrastructure.searxng import SearxngSearch
 from app.infrastructure.sqlite_store import (
+    SqliteChatConversations,
     SqliteMemoryRepository,
     SqliteOutboxRepository,
     SqlitePageCache,
@@ -394,6 +396,7 @@ def build_container(
                 top_k=k,
                 snippet_chars=snip,
             ),  # fmt: skip
+            SearchConversationTool(indexer, retriever, top_k=k, snippet_chars=snip),  # v1.2
         ]
     )
     registry = WorkerRegistry(
@@ -423,6 +426,7 @@ def build_container(
             memory_limit=settings.memory_recall_limit,
             budget_per_iteration=settings.llm_run_budget_per_iteration,
             budget_base=settings.llm_run_budget_base,
+            conversation_max_turns=settings.conversation_max_turns,
         ),
         memory=memory_store if settings.memory_enabled else None,
         tools=tools,
@@ -517,6 +521,7 @@ def build_container(
         allowed_chats=settings.telegram_allowed_chats,
         texts=TelegramTexts(settings.frontend_url, settings.telegram_runs_per_day),
         limiter=ChatLimiter(RUNS_PER_MINUTE, settings.telegram_runs_per_day),
+        chats=SqliteChatConversations(db),
     )
     container = Container(
         settings=settings,

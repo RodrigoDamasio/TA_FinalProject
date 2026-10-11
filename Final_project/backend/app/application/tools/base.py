@@ -39,6 +39,9 @@ class ToolContext:
     fence: DataFence
     sources: frozenset[SourceKind] = frozenset()  # v1.1: the run's allowed sources
     evidence_count: Callable[[], int] = lambda: 0  # additive: numbers issued so far
+    # v1.2: run scopes of earlier turns of THIS conversation (newest first), computed by the
+    # Supervisor from stored runs; search_conversation reads nothing else
+    conversation_scopes: tuple[str, ...] = ()
 
 
 class Tool(Protocol):

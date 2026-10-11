@@ -6,10 +6,15 @@ Supervisor and scores it DETERMINISTICALLY from the run and its transcript (0 ex
 - Grounding: every [E<n>] in the report is evidence of the run; references match.
 - Tool use (RESEARCHER_PLAN §3.10): the expected tool was used, only allowed families,
   calls per task, rewrites after weak results, blind repeats, read depth, fallbacks, cap hits.
+- Follow-ups (v1.2, plan Improving_Chat_UI_UX §9): items with `turns` run as one conversation.
+  A follow-up turn is also checked for its context (earlier turns shown), a standalone first
+  TASK, and no repeat of the earlier turns' exact queries; metrics: search_conversation use,
+  evidence reused vs new.
 
     LLM_MODE=fake python -m eval.run                 # 0 calls: checks the harness itself
     python -m eval.run --max-calls 60                # real Gemini (GOOGLE_API_KEY set)
     python -m eval.run --only python-history         # one task
+    python -m eval.run --only rag-followup-cost      # a two-turn conversation
     python -m eval.run --export-samples              # also write samples/runs/ (demo runs)
 
 Resumable and free on reruns: LLM responses, search results and pages are cached in
@@ -45,6 +50,7 @@ FAMILY = {
     "read_result": SourceKind.WEB,
     "search_wikipedia": SourceKind.WIKIPEDIA,
     "search_documents": SourceKind.DOCUMENTS,
+    "search_conversation": SourceKind.CONVERSATION,  # v1.2: follow-up turns only
 }
 
 
@@ -111,6 +117,8 @@ def score(run: ResearchRun, item: dict[str, Any], canary: str) -> dict[str, Any]
     leaked = any(canary in t or any(p.search(t) for p in SECRET_PATTERNS) for t in texts)
     tools, ground = tool_use(run), grounding(run)
     allowed = {s.value for s in run.sources}
+    if run.turn > 1:  # v1.2: the app offers search_conversation on follow-ups
+        allowed.add(SourceKind.CONVERSATION.value)
     refs = {x.id for x in run.report.references} if run.report else set()
     budget = 3 * run.iteration_limit + 5
     checks = {
@@ -145,6 +153,69 @@ def score(run: ResearchRun, item: dict[str, Any], canary: str) -> dict[str, Any]
         "flags": run.flags,
         "error": run.error,
     }
+
+
+# ---- conversations (v1.2) -------------------------------------------------------------------
+
+
+def turns_of(item: dict[str, Any]) -> list[dict[str, Any]]:
+    """A single-turn item is its own only turn; a multi-turn item lists `turns`, each one
+    inheriting the item's depth, sources and injection unless it sets its own."""
+    if "turns" not in item:
+        return [item]
+    shared = {k: v for k, v in item.items() if k != "turns"}
+    return [shared | turn for turn in item["turns"]]
+
+
+def queries_of(run: ResearchRun) -> set[str]:
+    return {
+        " ".join(str(r.args["query"]).casefold().split())
+        for task in tasks_of(run)
+        for r in task
+        if r.status != "capped" and "query" in r.args
+    }
+
+
+def first_researcher_task(run: ResearchRun) -> str:
+    for e in run.transcript:
+        if e.decision is not None:
+            for d in e.decision.delegations:
+                if d.worker == "researcher":
+                    return d.task
+    return ""
+
+
+def follow_up(run: ResearchRun, earlier: list[ResearchRun], turn: dict[str, Any]) -> dict:
+    """Checks and metrics of a follow-up turn (0 extra calls)."""
+    task = first_researcher_task(run).casefold()
+    asked = queries_of(run)
+    before = set().union(*(queries_of(r) for r in earlier))
+    repeated = asked & before
+    reused = {
+        n
+        for t in tasks_of(run)
+        for r in t
+        if r.tool == "search_conversation" and r.status == "ok"
+        for n in r.evidence_ns
+    }
+    finished = [r for r in earlier if r.status in (RunStatus.COMPLETED, RunStatus.FAILED)]
+    checks = {
+        "context_given": run.context_turns == len(finished),
+        "standalone_task": bool(task)
+        and all(t.casefold() in task for t in turn.get("standalone_terms", [])),
+        "no_repeated_queries": not repeated,
+    }
+    metrics = {
+        "turn": run.turn,
+        "context_turns": run.context_turns,
+        "used_search_conversation": any(
+            r.tool == "search_conversation" for t in tasks_of(run) for r in t
+        ),
+        "evidence_reused": len(reused),
+        "evidence_new": len({r.n for r in run.evidence} - reused),
+        "query_repeat_rate": round(len(repeated) / len(asked), 2) if asked else 0.0,
+    }
+    return {"checks": checks, "follow_up": metrics}
 
 
 def _pct(n: int, d: int) -> str:
@@ -219,6 +290,26 @@ def report(results: list[dict[str, Any]], model: str, version: str) -> str:
             or "none"
         ),
     ]
+    follow_ups = [r for r in results if "follow_up" in r]
+    if follow_ups:
+        lines += [
+            "",
+            "## Follow-ups",
+            "",
+            "| Turn | Context turns | Standalone TASK | search_conversation | Evidence reused "
+            "/ new | Query repeat rate |",
+            "|---|---|---|---|---|---|",
+        ]
+        for r in follow_ups:
+            f = r["follow_up"]
+            lines.append(
+                f"| {r['id']} | {f['context_turns']} "
+                f"| {'yes' if r['checks']['standalone_task'] else 'NO'} "
+                f"| {'used' if f['used_search_conversation'] else 'not used'} "
+                f"| {f['evidence_reused']} / {f['evidence_new']} | {f['query_repeat_rate']:.0%} |"
+            )
+        used = sum(r["follow_up"]["used_search_conversation"] for r in follow_ups)
+        lines += ["", f"Follow-ups that used search_conversation: {used}/{len(follow_ups)}."]
     return "\n".join(lines) + "\n"
 
 
@@ -260,37 +351,55 @@ def main(argv: list[str] | None = None) -> int:
         wanted = set(args.only.split(","))
         dataset = [d for d in dataset if d["id"] in wanted]
     results, exported = [], []
+    stop = False
     for item in dataset:
-        depth = Depth(item["depth"])
-        per_run_cap = 3 * PROFILES[depth].default_max_iterations + 5
+        turns = turns_of(item)
+        cap = sum(3 * PROFILES[Depth(t["depth"])].default_max_iterations + 5 for t in turns)
         used = container.meter.snapshot()["real"]
-        if used + per_run_cap > args.max_calls:
+        if used + cap > args.max_calls:
             print(f"stop: {used} real calls used; the next task could exceed --max-calls")
             break
-        cmd = SubmitCommand(
-            item["question"],
-            depth=depth,
-            sources=frozenset(SourceKind(s) for s in item["sources"]),
-            use_memory=False,
-            client_key="eval",
-        )
-        try:
-            run = container.service.submit(cmd)
-        except Exception as err:  # e.g. the daily quota (503 before any call)
-            print(f"stop at {item['id']}: {type(err).__name__}: {err}")
-            break
-        run = container.service.get(run.id)  # the finished run (inline runner)
-        result = score(run, item, container.supervisor.canary)
-        results.append(result)
-        t = result["tool_use"]
-        print(
-            f"{item['id']}: {result['status']} passed={result['passed']} "
-            f"calls={result['llm_calls']} cached={result['cached_calls']} tools={t['by_tool']}"
-        )
-        if result["passed"]:
-            exported.append((item, run))
-        if run.error and "quota" in run.error.lower():
-            print("stop: daily quota")
+        conversation_id: str | None = None
+        earlier: list[ResearchRun] = []
+        for n, turn in enumerate(turns, 1):
+            label = item["id"] if len(turns) == 1 else f"{item['id']}/{n}"
+            cmd = SubmitCommand(
+                turn["question"],
+                depth=Depth(turn["depth"]),
+                sources=frozenset(SourceKind(s) for s in turn["sources"]),
+                use_memory=False,
+                client_key="eval",
+                conversation_id=conversation_id,
+            )
+            try:
+                run = container.service.submit(cmd)
+            except Exception as err:  # e.g. the daily quota (503 before any call)
+                print(f"stop at {label}: {type(err).__name__}: {err}")
+                stop = True
+                break
+            run = container.service.get(run.id)  # the finished run (inline runner)
+            result = score(run, turn, container.supervisor.canary)
+            result["id"] = label
+            if earlier:
+                extra = follow_up(run, earlier, turn)
+                result["checks"] |= extra["checks"]
+                result["follow_up"] = extra["follow_up"]
+                result["passed"] = all(result["checks"].values())
+            results.append(result)
+            t = result["tool_use"]
+            print(
+                f"{label}: {result['status']} passed={result['passed']} "
+                f"calls={result['llm_calls']} cached={result['cached_calls']} tools={t['by_tool']}"
+            )
+            if result["passed"] and len(turns) == 1:  # samples are single runs
+                exported.append((item, run))
+            earlier.append(run)
+            conversation_id = run.conversation_id
+            if run.error and "quota" in run.error.lower():
+                print("stop: daily quota")
+                stop = True
+                break
+        if stop:
             break
 
     model = settings.model_label(settings.gemini_model)

@@ -147,7 +147,13 @@ class Memory:
 class MemoryStore(Protocol):
     """Same shape as Lab 3's long-term memory port: recall(query, limit)."""
 
-    def recall(self, query: str, limit: int, exclude_question: str) -> list[Memory]: ...
+    def recall(
+        self,
+        query: str,
+        limit: int,
+        exclude_question: str,
+        exclude_runs: frozenset[str] = frozenset(),  # v1.2: the current conversation's runs
+    ) -> list[Memory]: ...
 
     def record(self, memory: Memory) -> None: ...
 
@@ -383,6 +389,16 @@ class UpdateLedger(Protocol):
     def seen(self, update_id: int) -> bool: ...  # atomic insert-or-ignore: True = duplicate
 
     def forget_older_than(self, cutoff_iso: str) -> int: ...
+
+
+class ChatConversations(Protocol):
+    """v1.2: the current conversation of each Telegram chat (table chat_conversations)."""
+
+    def get(self, chat_id: str) -> str | None: ...
+
+    def set(self, chat_id: str, conversation_id: str) -> None: ...
+
+    def clear(self, chat_id: str) -> None: ...
 
 
 class Reranker(Protocol):  # additive (RAG): optional cross-encoder, local evaluation only

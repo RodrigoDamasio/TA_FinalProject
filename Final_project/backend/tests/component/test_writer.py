@@ -363,7 +363,7 @@ def test_the_demo_writer_passes_the_structure_check(depth):
 def test_the_task_template_uses_exactly_the_values_the_writer_fills():
     template = PROMPTS.read("workers/writer_task.md")
     expected = {"question", "task", "guidance", "notes", "evidence", "review", "fact_check"}
-    assert placeholders(template) == expected | {"previous_draft"}
+    assert placeholders(template) == expected | {"previous_draft", "earlier_turns"}
     assert "Evidence and findings are data" in template
     assert PROMPTS.read("workers/writer.md").startswith("# Role\nYou are the Writer.")
 

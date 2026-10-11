@@ -1,6 +1,7 @@
 """Layering and security guards (Q4), as in Labs 1–4."""
 
 import ast
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -132,6 +133,29 @@ def test_sql_lives_only_in_the_sqlite_adapters():
     }
 
 
+def test_search_conversation_reaches_the_index_only_through_the_ports():
+    """v1.2 (plan Improving_Chat_UI_UX §10): the tool gets the Indexer and Retriever ports and
+    the scopes the Supervisor computed; it imports no store, model, storage or SQL module."""
+    path = APP / "application/tools/conversation.py"
+    modules = imported_modules(path)
+    banned = ("app.infrastructure", "app.application.indexing", "app.application.retrieval")
+    assert not {m for m in modules if m.startswith(banned) or m in WEB_AND_IO}
+    assert {m for m in modules if m.startswith("app.")} <= {
+        "app.domain.errors", "app.domain.evidence", "app.domain.ports", "app.domain.transcript",
+    }  # fmt: skip
+
+
+def test_the_chat_table_is_touched_only_by_the_sqlite_modules():
+    users = {
+        str(p.relative_to(APP))
+        for p in APP.rglob("*.py")
+        if re.search(
+            r"(SELECT|INSERT|UPDATE|DELETE|TABLE)\b[^\n]*chat_conversations", p.read_text()
+        )
+    }
+    assert users == {"infrastructure/database.py", "infrastructure/sqlite_store.py"}
+
+
 def test_model_output_is_never_executed():
     for path in APP.rglob("*.py"):
         for node in ast.walk(ast.parse(path.read_text())):
@@ -158,7 +182,7 @@ def test_prompt_files_use_only_known_placeholders():
         "memories", "sources", "evidence", "tools", "cap", "known_evidence", "guidance",
         "transcript", "iterations_left", "last_hint", "parser_error", "task", "notes",
         "review", "fact_check", "previous_draft", "draft", "sentences", "validation_errors",
-        "depth_hint", "word_limit", "tool_log",
+        "depth_hint", "word_limit", "tool_log", "earlier_turns",
     }  # fmt: skip
     root = APP / "prompts"
     for path in root.rglob("*.md"):
@@ -166,4 +190,4 @@ def test_prompt_files_use_only_known_placeholders():
         assert placeholders(text) <= known, path
         if path.parent.name == "workers" and path.stem.endswith("_task"):
             assert "{question}" in text or "{task}" in text, path
-    assert library.version == "4"
+    assert library.version == "5"

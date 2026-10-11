@@ -56,7 +56,7 @@ def test_happy_path_research_write_review_final(harness):
     assert events[0] == "run_started" and events[-1] == "completed"
     assert events.count("agent_started") == 7 and events.count("decision") == 4
     assert events.count("tool_call") == 1 and "report_ready" in events
-    assert run.prompt_version == "4" and run.models == {"supervisor": "demo", "workers": "demo"}
+    assert run.prompt_version == "5" and run.models == {"supervisor": "demo", "workers": "demo"}
 
 
 # S2

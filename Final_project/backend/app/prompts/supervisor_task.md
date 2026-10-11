@@ -1,3 +1,6 @@
+# Earlier turns in this chat
+{earlier_turns}
+
 # Research question
 {question}
 

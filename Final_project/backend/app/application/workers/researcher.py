@@ -29,7 +29,9 @@ from app.domain.transcript import CallMeta, ToolCallRecord, WorkerResult
 
 from .base import WorkerContext, WorkerOutput, clean_citations, truncation
 
-SEARCH_TOOLS = frozenset({"search_web", "search_wikipedia", "search_documents"})
+SEARCH_TOOLS = frozenset(
+    {"search_web", "search_wikipedia", "search_documents", "search_conversation"}  # v1.2
+)
 CAPPED = "CAPPED Not run: the limit of {cap} tool calls per task is reached."
 REPEAT = (
     "REPEAT You already made this exact call in this task. Same evidence as before. "

@@ -41,8 +41,11 @@ from app.domain.transcript import CallMeta, Decision, Delegation, ToolCallRecord
 from .budget import CallBudget
 from .citations import cited_numbers, clean_citations
 from .context import (
+    FIRST_TURN,
     budget_line,
+    conversation_context,
     depth_block,
+    earlier_turns,
     evidence_block,
     last_hint,
     memory_block,
@@ -54,6 +57,7 @@ from .prompts import PromptLibrary
 from .report import parse_report, snippets_for
 from .security import DataFence, OutputValidator, canary_for
 from .tools.base import ToolContext, ToolMemo, ToolRegistry
+from .tools.conversation import MAX_SCOPES
 from .workers.base import StepCounter, WorkerContext, WorkerOutput, WorkerRegistry
 
 logger = logging.getLogger("app.supervisor")
@@ -98,6 +102,22 @@ class LoopSettings:
     memory_limit: int = 3
     budget_per_iteration: int = 3  # v1.1: budget = 3 × iterations left + 5
     budget_base: int = 5
+    conversation_max_turns: int = 30  # v1.2: how many turns of a conversation are loaded
+
+
+@dataclass(frozen=True)
+class ChatContext:
+    """v1.2: what one run knows about its conversation, built once per run from STORED runs
+    (plan Improving_Chat_UI_UX §5–6). Never from text the client sends."""
+
+    block: str = FIRST_TURN  # the fenced "Earlier turns in this chat" block
+    shown: int = 0  # earlier turns in the block → run.context_turns
+    scopes: tuple[str, ...] = ()  # run scopes of earlier turns with evidence, newest first
+    run_ids: frozenset[str] = frozenset()  # every run of the conversation (memory exclusion)
+
+    def tool_sources(self, sources: frozenset[SourceKind]) -> frozenset[SourceKind]:
+        """The run's sources, plus the internal conversation family when it has scopes."""
+        return sources | {SourceKind.CONVERSATION} if self.scopes else sources
 
 
 class Supervisor:
@@ -139,13 +159,21 @@ class Supervisor:
         run.prompt_version = self.prompts.version
         run.start()
         self._save(run, lock)
+        chat = ChatContext()
         try:
+            chat = self._chat(run, fence)
+            run.context_turns = chat.shown  # before the first decision (v1.2)
             if run.iteration == 0 and run.use_memory and self.memory and not run.memories:
                 run.use_memories(
-                    self.memory.recall(run.question, self.s.memory_limit, run.question)
+                    self.memory.recall(
+                        run.question,
+                        self.s.memory_limit,
+                        run.question,
+                        exclude_runs=chat.run_ids,
+                    )
                 )
-                self._save(run, lock)
-            self._loop(run, llm, budget, fence, lock, memo)
+            self._save(run, lock)
+            self._loop(run, llm, budget, fence, lock, memo, chat)
         except (LLMError, BudgetExceeded) as err:
             self._degrade(run, _why(err))
         except CanaryLeak as err:
@@ -160,15 +188,37 @@ class Supervisor:
         if run.status is RunStatus.COMPLETED:
             self.remember(run)
         logger.info(
-            "run=%s status=%s iterations=%d calls=%d cached=%d forced=%s flags=%s",
+            "run=%s status=%s turn=%d context_turns=%d iterations=%d calls=%d cached=%d "
+            "forced=%s flags=%s",
             run.id,
             run.status.value,
+            run.turn,
+            run.context_turns,
             run.iteration,
             run.llm_calls,
             run.cached_calls,
             run.forced,
             ",".join(run.flags),
         )
+
+    def _chat(self, run: ResearchRun, fence: DataFence) -> ChatContext:
+        """The earlier turns of the run's conversation, read from the repository. Scopes come
+        only from runs whose conversation_id equals this run's (the repository query)."""
+        if run.turn <= 1:
+            return ChatContext(run_ids=frozenset({run.id}))
+        conversation = [
+            r
+            for r in self.runs.conversation(run.conversation_id, self.s.conversation_max_turns)
+            if r.conversation_id == run.conversation_id
+        ]
+        block, shown = conversation_context(earlier_turns(conversation, run), fence)
+        earlier = sorted(
+            (r for r in conversation if r.id != run.id and r.turn < run.turn and r.evidence),
+            key=lambda r: r.turn,
+            reverse=True,
+        )
+        scopes = tuple(f"run:{r.id}" for r in earlier[:MAX_SCOPES])
+        return ChatContext(block, shown, scopes, frozenset({run.id, *(r.id for r in conversation)}))
 
     def remember(self, run: ResearchRun) -> None:
         if self.memory is not None and run.use_memory and run.final_output:
@@ -184,27 +234,29 @@ class Supervisor:
         fence: DataFence,
         lock: threading.Lock,
         memo: ToolMemo,
+        chat: ChatContext,
     ) -> None:
         while run.status is RunStatus.RUNNING:
             if run.iteration >= run.iteration_limit:
-                return self._force(run, llm, budget, fence, lock, "the iteration limit was reached")
+                why = "the iteration limit was reached"
+                return self._force(run, llm, budget, fence, lock, why, chat)
             if budget.remaining() <= RESERVE:
-                return self._force(run, llm, budget, fence, lock, "the LLM call budget was reached")
+                why = "the LLM call budget was reached"
+                return self._force(run, llm, budget, fence, lock, why, chat)
             run.agent_started("supervisor", None)
             self._save(run, lock)
-            decision, meta = self._decide(run, llm, budget, fence)
+            decision, meta = self._decide(run, llm, budget, fence, chat)
             if decision is None:
                 run.notice("The Supervisor's reply broke the protocol twice.", "protocol", meta)
-                return self._force(
-                    run, llm, budget, fence, lock, "the Supervisor's replies were invalid"
-                )
+                why = "the Supervisor's replies were invalid"
+                return self._force(run, llm, budget, fence, lock, why, chat)
             run.record_decision(decision, meta)
             self._save(run, lock)
             if decision.final is not None:
                 self._finish(run, decision.final, forced=False, degraded=False)
                 return None
             guarded = ReserveGuard(llm, budget)
-            self._run_workers(run, decision.delegations, guarded, fence, lock, memo)
+            self._run_workers(run, decision.delegations, guarded, fence, lock, memo, chat)
         return None
 
     def _system(self) -> str:
@@ -219,13 +271,19 @@ class Supervisor:
         return self.prompts.supervisor_system(self.registry.describe(), parallel, hint, self.canary)
 
     def _task_prompt(
-        self, run: ResearchRun, fence: DataFence, budget: CallBudget, forced: bool = False
+        self,
+        run: ResearchRun,
+        fence: DataFence,
+        budget: CallBudget,
+        chat: ChatContext,
+        forced: bool = False,
     ) -> str:
         left = 0 if forced else max(0, run.iteration_limit - run.iteration)
         return self.prompts.supervisor_task(
+            earlier_turns=chat.block,
             question=fence.wrap(run.question, "question"),
             guidance=depth_block(run.depth),  # placeholder names: test_architecture
-            sources=sources_block(run.sources, run.workspace_id),
+            sources=sources_block(chat.tool_sources(run.sources), run.workspace_id),
             memories=memory_block(run, fence),
             evidence=evidence_block(run),
             transcript=transcript_view(run, fence, self.s.supervisor_context_tokens),
@@ -243,11 +301,16 @@ class Supervisor:
         )
 
     def _decide(
-        self, run: ResearchRun, llm: LLMClient, budget: CallBudget, fence: DataFence
+        self,
+        run: ResearchRun,
+        llm: LLMClient,
+        budget: CallBudget,
+        fence: DataFence,
+        chat: ChatContext,
     ) -> tuple[Decision | None, CallMeta]:
         """One Supervisor call + parse; on a protocol error, ONE repair call."""
         counter = StepCounter(llm, self.output)
-        user = UserMessage(self._task_prompt(run, fence, budget))
+        user = UserMessage(self._task_prompt(run, fence, budget, chat))
         response = counter.generate(self._request([user]))
         reply = response.text or ""
         try:
@@ -309,6 +372,7 @@ class Supervisor:
         fence: DataFence,
         lock: threading.Lock,
         memo: ToolMemo,
+        chat: ChatContext,
     ) -> None:
         results = {
             name: r for name in self.registry.names if (r := run.latest_result(name)) is not None
@@ -350,7 +414,9 @@ class Supervisor:
             fence,
             sources=run.sources,
             evidence_count=evidence_count,
+            conversation_scopes=chat.scopes,
         )
+        tool_sources = chat.tool_sources(run.sources)
 
         def one(d: Delegation) -> tuple[Delegation, WorkerOutput, CallMeta, bool]:
             previous = run.previous_result(d)
@@ -361,7 +427,7 @@ class Supervisor:
                 run.agent_started(d.worker, d.task)
                 self._save_locked(run)
             tools = (
-                self.tools.box(tool_ctx, run.sources, memo) if d.worker == "researcher" else None
+                self.tools.box(tool_ctx, tool_sources, memo) if d.worker == "researcher" else None
             )
             ctx = WorkerContext(
                 run_id=run.id,
@@ -382,6 +448,7 @@ class Supervisor:
                     else self.s.worker_context_chars
                 ),
                 history={k: v for k, v in history.items() if k in worker.needs},
+                earlier_turns=chat.block,
             )
             counter = StepCounter(llm, self.output)
             try:
@@ -429,6 +496,7 @@ class Supervisor:
         fence: DataFence,
         lock: threading.Lock,
         why: str,
+        chat: ChatContext,
     ) -> None:
         """One call that may ONLY answer FINAL; anything else → the fallback chain."""
         run.notice(f"Forced completion: {why}.", "forced")
@@ -436,7 +504,7 @@ class Supervisor:
         self._save(run, lock)
         counter = StepCounter(llm, self.output)
         user = (
-            self._task_prompt(run, fence, budget, forced=True)
+            self._task_prompt(run, fence, budget, chat, forced=True)
             + "\n\n"
             + self.prompts.supervisor_forced()
         )

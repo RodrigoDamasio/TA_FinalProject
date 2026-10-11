@@ -103,6 +103,12 @@ CREATE TABLE IF NOT EXISTS telegram_updates (
     update_id     INTEGER PRIMARY KEY,
     received_at   TEXT NOT NULL
 );
+-- v1.2: the current conversation of each Telegram chat (/new resets it)
+CREATE TABLE IF NOT EXISTS chat_conversations (
+    chat_id         TEXT PRIMARY KEY,
+    conversation_id TEXT NOT NULL,
+    updated_at      TEXT NOT NULL
+);
 """
 
 

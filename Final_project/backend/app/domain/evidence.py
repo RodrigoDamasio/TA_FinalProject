@@ -13,6 +13,7 @@ class SourceKind(StrEnum):
     WIKIPEDIA = "wikipedia"
     DOCUMENTS = "documents"
     MEMORY = "memory"  # v1.1: memory chunks only; never a requestable source
+    CONVERSATION = "conversation"  # v1.2: the search_conversation tool family; internal
 
 
 REQUESTABLE_SOURCES = frozenset({SourceKind.WEB, SourceKind.WIKIPEDIA, SourceKind.DOCUMENTS})

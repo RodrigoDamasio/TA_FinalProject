@@ -10,12 +10,14 @@ built from them); if the prompt is still over budget, older results are trimmed 
 oldest first. TOOL_CALL entries are not shown one by one: they are folded into a tool-use
 summary inside the fenced block of the result they belong to."""
 
+import re
 from collections import Counter
 from collections.abc import Iterable
+from dataclasses import dataclass
 
 from app.domain.depth import PROFILES, Depth
 from app.domain.evidence import REQUESTABLE_SOURCES, SourceKind
-from app.domain.run import ResearchRun
+from app.domain.run import ResearchRun, RunStatus
 from app.domain.transcript import EntryKind, ToolCallRecord, TranscriptEntry
 
 from .budget import CallBudget
@@ -33,11 +35,17 @@ SHOWN_IN_FULL = ("writer", "reviewer", "fact_checker")  # their latest result, n
 # Notices that only repeat what the tool-use summary already says.
 TOOL_NOISE = frozenset({"tool", "tool_call", "capped", "repeat", "fallback"})
 
-SOURCE_ORDER = (SourceKind.WEB, SourceKind.WIKIPEDIA, SourceKind.DOCUMENTS)
+SOURCE_ORDER = (
+    SourceKind.WEB,
+    SourceKind.WIKIPEDIA,
+    SourceKind.DOCUMENTS,
+    SourceKind.CONVERSATION,  # v1.2: added by the app on follow-ups, never requested
+)
 SOURCE_TEXT = {
     SourceKind.WEB: "the web (search engines) and full pages of web results",
     SourceKind.WIKIPEDIA: "Wikipedia",
     SourceKind.DOCUMENTS: "the user's uploaded documents and the demo library",
+    SourceKind.CONVERSATION: "the sources gathered in earlier turns of this chat",
 }
 STATUS_ORDER = ("empty", "error", "refused")
 
@@ -273,3 +281,130 @@ def transcript_view(run: ResearchRun, fence: DataFence, budget_tokens: int) -> s
             limits[e.seq] = MIN_RESULT_CHARS
             text = render()
     return text
+
+
+# ---- earlier turns of the chat (v1.2, plan Improving_Chat_UI_UX §5.1) ----------------------
+
+COMPACT_TURNS = 5  # the latest finished turns, shown compact
+OLDER_QUESTIONS = 10  # older turns: their questions only
+CONVERSATION_CHARS = 4000  # ≈ 1.1k tokens for the whole block
+TURN_QUESTION_CHARS = 300
+TURN_SUMMARY_CHARS = 600
+TURN_TITLE_CHARS = 200
+TURN_HEADINGS = 8
+HEADING_CHARS = 80
+OLDER_QUESTION_CHARS = 150
+FIRST_TURN = "(this is the first question of the chat)"
+SHOWN_STATUSES = frozenset({RunStatus.COMPLETED, RunStatus.FAILED})
+# [E3], [e3], [E 3], [E1; E3], [E1, 3]: evidence numbers belong to their own run
+_MARKERS = re.compile(r"\s*\[\s*E\s*\d{1,4}(?:\s*[,;]\s*E?\s*\d{1,4})*\s*\]", re.IGNORECASE)
+
+
+@dataclass(frozen=True)
+class ConversationTurn:
+    """An earlier turn as the agents see it. Built from a STORED run, never from client
+    input (plan §4.1)."""
+
+    run_id: str
+    turn: int
+    question: str
+    status: str
+    title: str
+    summary: str
+    section_headings: tuple[str, ...]
+    evidence_count: int
+    created_at: str
+
+    @classmethod
+    def from_run(cls, run: ResearchRun) -> "ConversationTurn":
+        report = run.report
+        return cls(
+            run_id=run.id,
+            turn=run.turn,
+            question=run.question,
+            status=run.status.value,
+            title=report.title if report else "",
+            summary=report.summary if report else "",
+            section_headings=tuple(s.heading for s in report.sections) if report else (),
+            evidence_count=len(run.evidence),
+            created_at=run.created_at,
+        )
+
+
+def earlier_turns(conversation: list[ResearchRun], current: ResearchRun) -> list[ConversationTurn]:
+    """The finished turns before `current` (completed, or failed with a note), oldest first."""
+    return [
+        ConversationTurn.from_run(r)
+        for r in conversation
+        if r.id != current.id and r.turn < current.turn and r.status in SHOWN_STATUSES
+    ]
+
+
+def strip_markers(text: str) -> str:
+    return _MARKERS.sub("", text)
+
+
+def _clip(text: str, limit: int) -> str:
+    text = " ".join(strip_markers(text).split())
+    return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
+
+
+def _compact(t: ConversationTurn, fence: DataFence, summary_chars: int) -> str:
+    lines = [f"Question: {_clip(t.question, TURN_QUESTION_CHARS)}"]
+    if t.status == RunStatus.FAILED.value:
+        lines.append("Outcome: this turn failed; it produced no report.")
+    else:
+        if t.title:
+            lines.append(f"Report title: {_clip(t.title, TURN_TITLE_CHARS)}")
+        if t.summary and summary_chars > 0:
+            lines.append(f"Summary: {_clip(t.summary, summary_chars)}")
+        headings = [_clip(h, HEADING_CHARS) for h in t.section_headings[:TURN_HEADINGS]]
+        if headings:
+            lines.append("Sections: " + "; ".join(h for h in headings if h))
+    lines.append(f"Evidence gathered: {t.evidence_count}")
+    return fence.wrap("\n".join(lines), "earlier_turn", turn=t.turn)
+
+
+def _questions(turns: list[ConversationTurn], fence: DataFence) -> str:
+    lines = [f"Turn {t.turn}: {_clip(t.question, OLDER_QUESTION_CHARS)}" for t in turns]
+    return fence.wrap("\n".join(lines), "earlier_questions")
+
+
+def conversation_context(
+    turns: list[ConversationTurn], fence: DataFence, budget: int = CONVERSATION_CHARS
+) -> tuple[str, int]:
+    """(the "Earlier turns in this chat" block, how many earlier turns it shows).
+
+    The last COMPACT_TURNS turns compact (one fenced block each), up to OLDER_QUESTIONS older
+    ones as one line each. Over budget, it is trimmed oldest first: the oldest compact turn
+    becomes a question line, then the oldest question lines go; as a last resort the latest
+    turn's summary is shortened. Pure and deterministic (cache-friendly)."""
+    if not turns:
+        return FIRST_TURN, 0
+    turns = sorted(turns, key=lambda t: t.turn)
+    compact = turns[-COMPACT_TURNS:]
+    older = turns[:-COMPACT_TURNS][-OLDER_QUESTIONS:]
+    summary_chars = TURN_SUMMARY_CHARS
+
+    def render() -> str:
+        parts = [_questions(older, fence)] if older else []
+        parts += [_compact(t, fence, summary_chars) for t in compact]
+        return "\n\n".join(parts)
+
+    text = render()
+    while len(text) > budget:
+        if len(compact) > 1:
+            older = [*older, compact.pop(0)][-OLDER_QUESTIONS:]
+        elif older:
+            older.pop(0)
+        elif summary_chars > 0:
+            summary_chars = max(0, summary_chars - 200)
+        else:
+            break
+        text = render()
+    return text, len(older) + len(compact)
+
+
+def conversation_block(turns: list[ConversationTurn], fence: DataFence) -> str:
+    """BACKEND_PLAN §26.2: the block shown to the Supervisor and the Writer."""
+    return conversation_context(turns, fence)[0]
