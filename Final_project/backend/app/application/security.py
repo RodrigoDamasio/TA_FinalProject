@@ -83,8 +83,8 @@ class DataFence:
     """Wraps untrusted text: <data id="nonce" kind="wikipedia" n="2"> … </data id="nonce">.
     Markers inside the text are escaped, so the text cannot close its own block."""
 
-    def __init__(self, secret: bytes, task: str) -> None:
-        self.nonce = _hmac(secret, "fence:" + task)[:12]
+    def __init__(self, secret: bytes, question: str) -> None:
+        self.nonce = _hmac(secret, "fence:" + question)[:12]
 
     def wrap(self, text: str, kind: str, **attrs: object) -> str:
         escaped = re.sub(r"<(/?)data\b", r"&lt;\1data", text, flags=re.IGNORECASE)

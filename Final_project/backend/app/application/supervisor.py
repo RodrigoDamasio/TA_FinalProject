@@ -92,7 +92,7 @@ class Supervisor:
         lock = threading.Lock()
         budget = CallBudget(2 * max(run.iteration_limit - run.iteration, 1) + 3)
         llm = self._llm_for(budget)
-        fence = DataFence(self._secret, run.task)
+        fence = DataFence(self._secret, run.question)
         run.models = {
             "supervisor": self.s.supervisor_model or "",
             "workers": self.s.worker_model or "",
@@ -102,7 +102,9 @@ class Supervisor:
         self._save(run, lock)
         try:
             if run.iteration == 0 and run.use_memory and self.memory and not run.memories:
-                run.use_memories(self.memory.recall(run.task, self.s.memory_limit, run.task))
+                run.use_memories(
+                    self.memory.recall(run.question, self.s.memory_limit, run.question)
+                )
                 self._save(run, lock)
             self._loop(run, llm, budget, fence, lock)
         except (LLMError, BudgetExceeded) as err:
@@ -176,7 +178,7 @@ class Supervisor:
     def _task_prompt(self, run: ResearchRun, fence: DataFence, forced: bool = False) -> str:
         left = 0 if forced else max(0, run.iteration_limit - run.iteration)
         return self.prompts.supervisor_task(
-            user_task=fence.wrap(run.task, "user_task"),
+            question=fence.wrap(run.question, "question"),
             memories=memory_block(run, fence),
             sources=source_list(run),
             transcript=transcript_view(run, fence, self.s.supervisor_context_tokens),
@@ -259,7 +261,7 @@ class Supervisor:
                 self._save_locked(run)
             ctx = WorkerContext(
                 run.id,
-                run.task,
+                run.question,
                 {k: v for k, v in results.items() if k in worker.needs},
                 list(snapshot),
                 fence,

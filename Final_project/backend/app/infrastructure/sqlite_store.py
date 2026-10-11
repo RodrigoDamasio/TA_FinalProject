@@ -32,7 +32,7 @@ _DURATIONS = (
     "ORDER BY updated_at DESC LIMIT ?"
 )
 _PUT_MEMORY = (
-    "INSERT OR REPLACE INTO memories (run_id, task, summary, source_titles_json, created_at) "
+    "INSERT OR REPLACE INTO memories (run_id, question, summary, source_titles_json, created_at) "
     "VALUES (?, ?, ?, ?, ?)"
 )
 _RECENT_MEMORIES = "SELECT * FROM memories ORDER BY created_at DESC, rowid DESC LIMIT ?"
@@ -126,7 +126,7 @@ class SqliteMemoryRepository(_Store):
                 _PUT_MEMORY,
                 (
                     memory.run_id,
-                    memory.task,
+                    memory.question,
                     memory.summary,
                     json.dumps(memory.source_titles),
                     memory.created_at,
@@ -139,7 +139,7 @@ class SqliteMemoryRepository(_Store):
         return [
             Memory(
                 r["run_id"],
-                r["task"],
+                r["question"],
                 r["summary"],
                 json.loads(r["source_titles_json"]),
                 r["created_at"],

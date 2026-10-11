@@ -45,7 +45,7 @@ class Reviewer:
         f, budget = ctx.fence, ctx.context_chars // 2
         user = self._prompts.worker_task(
             "reviewer_task",
-            user_task=f.wrap(ctx.user_task, "user_task"),
+            question=f.wrap(ctx.question, "question"),
             task=task,
             notes=f.wrap(trim(notes.content, budget), "research_notes") if notes else "(none)",
             draft=f.wrap(trim(draft.content, budget), "draft"),

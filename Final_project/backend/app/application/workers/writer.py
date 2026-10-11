@@ -29,7 +29,7 @@ class Writer:
 
         user = self._prompts.worker_task(
             "writer_task",
-            user_task=f.wrap(ctx.user_task, "user_task"),
+            question=f.wrap(ctx.question, "question"),
             task=task,
             notes=block("researcher", "research_notes"),
             review=block("reviewer", "review"),

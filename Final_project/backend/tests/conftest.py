@@ -66,8 +66,8 @@ class Api:
     def __init__(self, client, container: Container, llm: FakeLLM) -> None:
         self.client, self.container, self.llm = client, container, llm
 
-    def run(self, task: str = "When should I use RAG instead of fine-tuning?", **extra):
-        return self.client.post("/run", json={"task": task, **extra})
+    def run(self, question: str = "When should I use RAG instead of fine-tuning?", **extra):
+        return self.client.post("/research", json={"question": question, **extra})
 
 
 @pytest.fixture

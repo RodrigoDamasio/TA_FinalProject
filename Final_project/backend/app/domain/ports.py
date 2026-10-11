@@ -130,7 +130,7 @@ class KnowledgeSource(Protocol):
 @dataclass(frozen=True)
 class Memory:
     run_id: str
-    task: str
+    question: str
     summary: str
     source_titles: list[str]
     created_at: str
@@ -139,7 +139,7 @@ class Memory:
 class MemoryStore(Protocol):
     """Same shape as Lab 3's long-term memory port: recall(query, limit)."""
 
-    def recall(self, query: str, limit: int, exclude_task: str) -> list[Memory]: ...
+    def recall(self, query: str, limit: int, exclude_question: str) -> list[Memory]: ...
 
     def record(self, memory: Memory) -> None: ...
 

@@ -109,8 +109,8 @@ class Container:
                 "limit": s.llm_daily_request_limit,
             },
             "limits": {
-                "task_min_chars": s.task_min_chars,
-                "task_max_chars": s.task_max_chars,
+                "question_min_chars": s.question_min_chars,
+                "question_max_chars": s.question_max_chars,
                 "default_max_iterations": s.default_max_iterations,
                 "max_iterations_limit": s.max_iterations_limit,
                 "max_parallel_delegations": s.max_parallel_delegations,
@@ -229,8 +229,8 @@ def build_container(
         RunLimits(
             settings.default_max_iterations,
             settings.max_iterations_limit,
-            settings.task_min_chars,
-            settings.task_max_chars,
+            settings.question_min_chars,
+            settings.question_max_chars,
             settings.revision_iterations,
             settings.run_retention_days,
             settings.memory_enabled,

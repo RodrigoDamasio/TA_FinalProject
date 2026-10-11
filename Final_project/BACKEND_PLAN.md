@@ -878,4 +878,8 @@ The M5 rules are kept. New ones:
 
 ## 23. Deviations
 
-*None yet.*
+| Step | Plan | Implementation | Why |
+|---|---|---|---|
+| 1′ (2026-10-11) | Copy the M4 RAG files in the foundation step | Copied **later**: at step 3 (adapted to `EvidenceChunk`) or by the RAG implementation (step 4) | The M4 files depend on M4's own domain (`Chunk` with `codebase`, `Language`, `ModelsLoading`). Copied unadapted, they would break the tests and the architecture rules. Their dependencies (`chromadb`, `fastembed`, `numpy`) are already pinned and installed |
+| 1′ | Keep the M5 sample runs | **Removed**, along with `eval/results.json`, `eval/report.md` and `DEPLOY.md`. `samples/runs/index.json` is `[]` | They are Module 5's outputs in Module 5's response shape. This project records its own samples in step 6 |
+| 1′ | — | Settings `TASK_MIN_CHARS` / `TASK_MAX_CHARS` renamed `QUESTION_MIN_CHARS` / `QUESTION_MAX_CHARS`. The fence label and prompt placeholder `user_task` became `question`. Prompt prose is otherwise unchanged (the agent plans rewrite it) | Part of the `task` → `question` rename. The worker **TASK** (`Delegation.task`, `TranscriptEntry.task`) keeps its name |

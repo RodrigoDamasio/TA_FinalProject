@@ -29,7 +29,7 @@ def memory_block(run: ResearchRun, fence: DataFence) -> str:
     if not run.memories:
         return "(none)"
     return "\n\n".join(
-        fence.wrap(f"Task: {m['task']}\nSummary: {m['summary']}", "memory", run=m["run_id"])
+        fence.wrap(f"Question: {m['question']}\nSummary: {m['summary']}", "memory", run=m["run_id"])
         for m in run.memories
     )
 

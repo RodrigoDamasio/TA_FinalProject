@@ -281,7 +281,9 @@ def test_runners():
 def test_sample_store(tmp_path):
     store = SampleStore(tmp_path)
     assert store.catalog() == []
-    (tmp_path / "index.json").write_text(json.dumps([{"id": "rag", "title": "RAG", "task": "t"}]))
+    (tmp_path / "index.json").write_text(
+        json.dumps([{"id": "rag", "title": "RAG", "question": "t"}])
+    )
     (tmp_path / "rag.json").write_text(json.dumps({"run_id": "run_1", "sample": False}))
     assert store.get("rag") == {"run_id": "run_1", "sample": True}
     for bad in ("missing", "../rag", "RAG"):

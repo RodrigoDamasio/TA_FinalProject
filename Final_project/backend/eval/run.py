@@ -136,7 +136,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"stop: {used} real calls used; the next task could exceed --max-calls")
             break
         try:
-            run = container.service.submit(item["task"], None, False, False)
+            run = container.service.submit(item["question"], None, False, False)
         except Exception as err:  # e.g. the daily quota (503 before any call)
             print(f"stop at {item['id']}: {type(err).__name__}: {err}")
             break
@@ -161,7 +161,7 @@ def main(argv: list[str] | None = None) -> int:
         for item, run in exported:
             view = run_view(run, container.pricing, demo=settings.fake, sample=True)
             (SAMPLES / f"{item['id']}.json").write_text(json.dumps(view, indent=2) + "\n")
-            index.append({"id": item["id"], "title": item["title"], "task": item["task"]})
+            index.append({"id": item["id"], "title": item["title"], "question": item["question"]})
         (SAMPLES / "index.json").write_text(json.dumps(index, indent=2) + "\n")
         print(f"exported {len(index)} sample runs")
     print((ROOT / "report.md").read_text())

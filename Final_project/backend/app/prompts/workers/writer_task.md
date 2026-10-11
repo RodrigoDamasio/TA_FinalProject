@@ -1,5 +1,5 @@
-# User task
-{user_task}
+# User question
+{question}
 
 # Your assignment from the Supervisor
 {task}

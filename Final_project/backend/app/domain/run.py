@@ -1,8 +1,8 @@
-"""ResearchRun: one task worked on by the Supervisor and its workers.
+"""ResearchRun: one research question worked on by the Supervisor and its workers.
 
 Every mutation goes through a method that validates it and appends a RunEvent; the
 repository saves the state and its new events in ONE transaction (Lab 3), so the SSE
-stream and GET /runs/{id} can never disagree."""
+stream and GET /research/{id} can never disagree."""
 
 import secrets
 from dataclasses import dataclass, field
@@ -58,7 +58,7 @@ class RunEvent:
 @dataclass
 class ResearchRun:
     id: str
-    task: str
+    question: str
     max_iterations: int
     require_approval: bool
     use_memory: bool
@@ -90,7 +90,7 @@ class ResearchRun:
     @classmethod
     def create(
         cls,
-        task: str,
+        question: str,
         max_iterations: int,
         require_approval: bool,
         use_memory: bool,
@@ -98,7 +98,7 @@ class ResearchRun:
     ) -> "ResearchRun":
         return cls(
             id="run_" + secrets.token_hex(6),
-            task=task,
+            question=question,
             max_iterations=max_iterations,
             require_approval=require_approval,
             use_memory=use_memory,
@@ -150,7 +150,7 @@ class ResearchRun:
 
     def use_memories(self, memories: list[Memory]) -> None:
         self.memories = [
-            {"run_id": m.run_id, "task": m.task, "summary": m.summary} for m in memories
+            {"run_id": m.run_id, "question": m.question, "summary": m.summary} for m in memories
         ]
         if memories:
             self.notice(f"Used {len(memories)} memories from earlier tasks.", "memory")
@@ -283,7 +283,7 @@ class ResearchRun:
 def run_to_dict(run: ResearchRun) -> dict[str, Any]:
     return {
         "id": run.id,
-        "task": run.task,
+        "question": run.question,
         "max_iterations": run.max_iterations,
         "require_approval": run.require_approval,
         "use_memory": run.use_memory,
@@ -323,7 +323,7 @@ def run_from_dict(d: dict[str, Any]) -> ResearchRun:
     t = d["tokens"]
     return ResearchRun(
         id=d["id"],
-        task=d["task"],
+        question=d["question"],
         max_iterations=d["max_iterations"],
         require_approval=d["require_approval"],
         use_memory=d["use_memory"],

@@ -107,10 +107,10 @@ class Researcher:
                     merged.setdefault(hits[rank].page_id, hits[rank])
         return list(merged.values())[: self._max_pages]
 
-    def _find(self, task: str, user_task: str) -> tuple[list[SourceDraft], str, str | None]:
+    def _find(self, task: str, question: str) -> tuple[list[SourceDraft], str, str | None]:
         """(drafts, query, notice) — never raises: no source means unsourced notes.
         Order: the Supervisor's topics; then keywords from the TASK (8, then 4 terms) and
-        from the user's task, keeping only hits whose title matches the keywords."""
+        from the user's question, keeping only hits whose title matches the keywords."""
         topics = topics_of(task)
         keyword_task = _TOPICS.sub("", task)
         queries = list(
@@ -119,7 +119,7 @@ class Researcher:
                 for q in (
                     build_query(keyword_task),
                     build_query(keyword_task, 4),
-                    build_query(user_task),
+                    build_query(question),
                 )
                 if q
             )
@@ -142,9 +142,9 @@ class Researcher:
         return drafts, query, None
 
     def run(self, task: str, ctx: WorkerContext, llm: LLMClient) -> WorkerOutput:
-        drafts, query, notice = self._find(task, ctx.user_task)
+        drafts, query, notice = self._find(task, ctx.question)
         sources = ctx.register_sources(drafts) if drafts else []
-        user_task = ctx.fence.wrap(ctx.user_task, "user_task")
+        question = ctx.fence.wrap(ctx.question, "question")
         if sources:
             per_source = max(1500, ctx.context_chars // len(sources))
             blocks = "\n\n".join(
@@ -152,10 +152,10 @@ class Researcher:
                 for s in sources
             )
             user = self._prompts.worker_task(
-                "researcher_task", user_task=user_task, task=task, sources=blocks
+                "researcher_task", question=question, task=task, sources=blocks
             )
         else:
-            user = self._prompts.worker_task("researcher_unsourced", user_task=user_task, task=task)
+            user = self._prompts.worker_task("researcher_unsourced", question=question, task=task)
         response = llm.generate(
             LLMRequest(
                 system=self._prompts.worker_system(self.name, ctx.canary),

@@ -31,7 +31,7 @@ class WorkerContext:
     this one needs, the run's sources, and the tools to fence untrusted text."""
 
     run_id: str
-    user_task: str
+    question: str
     results: dict[str, WorkerResult]
     sources: list[Source]
     fence: DataFence

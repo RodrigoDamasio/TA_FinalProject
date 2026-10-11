@@ -3,3 +3,11 @@ uvicorn>=0.53
 pydantic>=2.13
 google-genai>=2.25
 httpx>=0.28
+# RAG (Module 4 pins)
+chromadb==1.5.9
+fastembed==0.8.1
+numpy>=2
+# Uploads
+python-multipart==0.0.32
+pypdf==6.19.0
+# The HTML-to-text extractor is chosen in plans/tools/SEARXNG_TOOL_PLAN.md

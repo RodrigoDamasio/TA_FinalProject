@@ -24,9 +24,9 @@ def _section(prompt: str, heading: str) -> str:
     return part[1].split("\n# ", 1)[0] if len(part) == 2 else ""
 
 
-def _user_task(prompt: str) -> str:
-    block = _section(prompt, "User task")
-    inner = re.search(r'kind="user_task">\n(.*?)\n</data', block, re.DOTALL)
+def _question(prompt: str) -> str:
+    block = _section(prompt, "User question")
+    inner = re.search(r'kind="question">\n(.*?)\n</data', block, re.DOTALL)
     return " ".join((inner.group(1) if inner else block).split())[:120]
 
 
@@ -71,7 +71,7 @@ class DemoLLMClient:
         for worker in ORDER:
             if worker not in done:
                 task = {
-                    "researcher": f"Topics: {_user_task(prompt)}\n"
+                    "researcher": f"Topics: {_question(prompt)}\n"
                     "Find the key facts for the user task.",
                     "writer": "Write a clear answer to the user task from the research notes.",
                     "reviewer": "Review the latest draft against the task and the notes.",
@@ -84,7 +84,7 @@ class DemoLLMClient:
         cites = " ".join(f"[{n}]" for n, _, _ in sources[:2])
         listing = "\n".join(f"{n}. {title} — {url}" for n, title, url in sources[:2])
         body = (
-            f"## {_user_task(prompt) or 'Answer'}\n\n"
+            f"## {_question(prompt) or 'Answer'}\n\n"
             f"Demo mode (LLM_MODE=fake, no Gemini call): this answer was produced by the "
             f"scripted Supervisor after its workers ran {cites}.".rstrip()
         )
@@ -107,7 +107,7 @@ class DemoLLMClient:
         cites = sorted({int(n) for n in _CITE.findall(notes)})[:3]
         marks = " ".join(f"[{n}]" for n in cites)
         return (
-            f"## {_user_task(prompt) or 'Answer'}\n\n"
+            f"## {_question(prompt) or 'Answer'}\n\n"
             f"Demo draft: the research notes cover the main points of this task {marks}.".strip()
             + "\n\nThis text was written by the demo Writer (no Gemini call)."
         )

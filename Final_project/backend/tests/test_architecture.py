@@ -92,7 +92,7 @@ def test_ruff_flags_sql_built_from_strings(tmp_path):
 def test_prompt_files_use_only_known_placeholders():
     library = PromptLibrary()
     known = {
-        "persona", "canary", "worker_list", "parallel_rule", "fact_check_hint", "user_task",
+        "persona", "canary", "worker_list", "parallel_rule", "fact_check_hint", "question",
         "memories", "sources", "transcript", "iterations_left", "last_hint", "parser_error",
         "task", "notes", "review", "fact_check", "previous_draft", "draft", "sentences",
         "validation_errors",
@@ -102,5 +102,5 @@ def test_prompt_files_use_only_known_placeholders():
         text = library.read(str(path.relative_to(root)))
         assert placeholders(text) <= known, path
         if path.parent.name == "workers" and path.stem.endswith("_task"):
-            assert "{user_task}" in text or "{task}" in text, path
+            assert "{question}" in text or "{task}" in text, path
     assert library.version == "2"

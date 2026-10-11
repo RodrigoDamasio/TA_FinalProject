@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS events (
 CREATE INDEX IF NOT EXISTS events_by_run ON events (run_id, id);
 CREATE TABLE IF NOT EXISTS memories (
     run_id      TEXT PRIMARY KEY,
-    task        TEXT NOT NULL,
+    question    TEXT NOT NULL,
     summary     TEXT NOT NULL,
     source_titles_json TEXT NOT NULL,
     created_at  TEXT NOT NULL

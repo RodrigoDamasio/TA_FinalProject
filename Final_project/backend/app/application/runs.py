@@ -1,4 +1,4 @@
-"""RunService: the use cases behind the HTTP API — submit a task, read it, approve or reject
+"""RunService: the use cases behind the HTTP API — submit a question, read it, approve or reject
 its answer, and the housekeeping (approval expiry, retention, restart recovery).
 Every check that can reject a request for free runs before anything is queued."""
 
@@ -22,8 +22,8 @@ logger = logging.getLogger("app.runs")
 class RunLimits:
     default_max_iterations: int = 5
     max_iterations_limit: int = 8
-    task_min_chars: int = 10
-    task_max_chars: int = 2000
+    question_min_chars: int = 10
+    question_max_chars: int = 2000
     revision_iterations: int = 2
     retention_days: int = 30
     memory_enabled: bool = True
@@ -46,16 +46,18 @@ class RunService:
 
     # ---- submit ----------------------------------------------------------------------------
 
-    def check_input(self, task: str, max_iterations: int | None) -> tuple[str, int, list[str]]:
-        """Free checks: (sanitized task, iterations, injection pattern names)."""
-        clean = self._input.sanitize(task)
-        if len(clean) > self.limits.task_max_chars:
+    def check_input(self, question: str, max_iterations: int | None) -> tuple[str, int, list[str]]:
+        """Free checks: (sanitized question, iterations, injection pattern names)."""
+        clean = self._input.sanitize(question)
+        if len(clean) > self.limits.question_max_chars:
             raise InputTooLarge(
-                f"The task has {len(clean)} characters; the limit is {self.limits.task_max_chars}."
+                f"The question has {len(clean)} characters; the limit is "
+                f"{self.limits.question_max_chars}."
             )
-        if len(clean) < self.limits.task_min_chars:
+        if len(clean) < self.limits.question_min_chars:
             raise InvalidField(
-                f"Describe the task in at least {self.limits.task_min_chars} characters.", "#/task"
+                f"Write the question in at least {self.limits.question_min_chars} characters.",
+                "#/question",
             )
         iterations = max_iterations or self.limits.default_max_iterations
         if not 1 <= iterations <= self.limits.max_iterations_limit:
@@ -65,9 +67,9 @@ class RunService:
         return clean, iterations, self._input.check(clean)
 
     def submit(
-        self, task: str, max_iterations: int | None, require_approval: bool, use_memory: bool
+        self, question: str, max_iterations: int | None, require_approval: bool, use_memory: bool
     ) -> ResearchRun:
-        clean, iterations, patterns = self.check_input(task, max_iterations)
+        clean, iterations, patterns = self.check_input(question, max_iterations)
         self._ensure_llm()
         if not self.runner.has_capacity():
             raise QueueFull()
@@ -76,14 +78,14 @@ class RunService:
         )
         if patterns:
             run.notice(
-                "The task contains phrases often used in prompt-injection attempts "
+                "The question contains phrases often used in prompt-injection attempts "
                 f"({', '.join(patterns)}); they are treated as data, not instructions.",
                 "possible_injection",
             )
             logger.warning("run=%s possible_injection patterns=%s", run.id, ",".join(patterns))
         self.runs.create(run)
         self._queue(run)
-        # Never log the task text: ids, sizes and flags only.
+        # Never log the question text: ids, sizes and flags only.
         logger.info(
             "run=%s submitted chars=%d iterations=%d approval=%s memory=%s",
             run.id,
@@ -145,7 +147,7 @@ class RunService:
         """Runs left queued or running by a restart cannot resume: mark them failed."""
         stuck = self.runs.runs_in({RunStatus.QUEUED, RunStatus.RUNNING})
         for run in stuck:
-            run.fail("Interrupted by a server restart; please submit the task again.")
+            run.fail("Interrupted by a server restart; please submit the question again.")
             self.runs.save(run)
         return len(stuck)
 

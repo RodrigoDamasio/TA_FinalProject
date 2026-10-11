@@ -27,8 +27,8 @@ class Settings:
     database_path: str
     default_max_iterations: int
     max_iterations_limit: int
-    task_min_chars: int
-    task_max_chars: int
+    question_min_chars: int
+    question_max_chars: int
     delegation_task_max_chars: int
     max_parallel_delegations: int
     revision_iterations: int
@@ -80,8 +80,8 @@ def get_settings() -> Settings:
         database_path=os.getenv("DATABASE_PATH", "research.db"),
         default_max_iterations=_int("DEFAULT_MAX_ITERATIONS", 5),
         max_iterations_limit=_int("MAX_ITERATIONS_LIMIT", 8),
-        task_min_chars=_int("TASK_MIN_CHARS", 10),
-        task_max_chars=_int("TASK_MAX_CHARS", 2000),
+        question_min_chars=_int("QUESTION_MIN_CHARS", 10),
+        question_max_chars=_int("QUESTION_MAX_CHARS", 2000),
         delegation_task_max_chars=_int("DELEGATION_TASK_MAX_CHARS", 1000),
         max_parallel_delegations=_int("MAX_PARALLEL_DELEGATIONS", 2),
         revision_iterations=_int("REVISION_ITERATIONS", 2),

@@ -14,7 +14,7 @@ from app.domain.run import ResearchRun
 
 from .dependencies import Container, get_container
 from .problems import PROBLEM_RESPONSE, WaitTimeout
-from .schemas import Accepted, RejectRequest, RunRequest, run_view
+from .schemas import Accepted, RejectRequest, ResearchRequest, run_view
 
 router = APIRouter()
 logger = logging.getLogger("app.api")
@@ -76,27 +76,29 @@ def _field_error(pointer: str, detail: str) -> RequestValidationError:
 
 
 @router.post(
-    "/run",
+    "/research",
     status_code=202,
     responses={200: {"description": "Finished run (with ?wait=true)"}}
     | _problems(400, 413, 422, 429, 503, 504),
-    tags=["runs"],
+    tags=["research"],
 )
-def start_run(
-    body: RunRequest,
+def start_research(
+    body: ResearchRequest,
     request: Request,
     response: Response,
     wait: bool = Query(False, description="Block until the run ends (needs no approval)."),
     c: Container = Depends(get_container),
 ) -> Accepted | dict[str, Any]:
-    """Start a research run. Async by default (202 + Location + SSE events); with
+    """Start research on a question. Async by default (202 + Location + SSE events); with
     `?wait=true` the finished run is returned (200)."""
     if wait and body.require_approval:
         raise _field_error("#/require_approval", "Must be false when wait=true.")
-    c.service.check_input(body.task, body.max_iterations)  # free checks first
+    c.service.check_input(body.question, body.max_iterations)  # free checks first
     c.limiter.check(_client(request))  # only requests that would start a run count
-    run = c.service.submit(body.task, body.max_iterations, body.require_approval, body.use_memory)
-    status_url = f"/runs/{run.id}"
+    run = c.service.submit(
+        body.question, body.max_iterations, body.require_approval, body.use_memory
+    )
+    status_url = f"/research/{run.id}"
     response.headers["Location"] = status_url
     if wait:
         run = c.service.wait(run.id, c.settings.sync_wait_timeout_s)
@@ -112,7 +114,7 @@ def start_run(
     )
 
 
-@router.get("/runs/{run_id}", responses=_problems(404), tags=["runs"])
+@router.get("/research/{run_id}", responses=_problems(404), tags=["research"])
 def get_run(run_id: str, c: Container = Depends(get_container)) -> dict[str, Any]:
     return _view(c, c.service.get(run_id))
 
@@ -123,10 +125,10 @@ def _existing_run(run_id: str, c: Container = Depends(get_container)) -> str:
 
 
 @router.get(
-    "/runs/{run_id}/events",
+    "/research/{run_id}/events",
     response_class=EventSourceResponse,
     responses=_problems(404),
-    tags=["runs"],
+    tags=["research"],
 )
 async def run_events(
     request: Request,
@@ -156,12 +158,14 @@ async def run_events(
         await asyncio.sleep(SSE_POLL_S)
 
 
-@router.post("/runs/{run_id}/approve", responses=_problems(404, 409), tags=["runs"])
+@router.post("/research/{run_id}/approve", responses=_problems(404, 409), tags=["research"])
 def approve(run_id: str, c: Container = Depends(get_container)) -> dict[str, Any]:
     return _view(c, c.service.approve(run_id))
 
 
-@router.post("/runs/{run_id}/reject", responses=_problems(404, 409, 422, 503), tags=["runs"])
+@router.post(
+    "/research/{run_id}/reject", responses=_problems(404, 409, 422, 503), tags=["research"]
+)
 def reject(
     run_id: str, body: RejectRequest | None = None, c: Container = Depends(get_container)
 ) -> dict[str, Any]:

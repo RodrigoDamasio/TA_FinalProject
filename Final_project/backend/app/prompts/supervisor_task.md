@@ -1,5 +1,5 @@
-# User task
-{user_task}
+# User question
+{question}
 
 # Earlier research by this assistant (may be outdated)
 {memories}

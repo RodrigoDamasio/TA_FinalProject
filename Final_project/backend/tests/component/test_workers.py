@@ -66,7 +66,7 @@ def test_every_prompt_has_its_persona_rules_and_no_leftover_placeholder():
         assert placeholders(system) == set() and placeholders(user) == set()
         assert estimate_tokens(system) < 1500
     researcher_prompt = llm.prompts("researcher")[0]
-    assert f'kind="user_task">\n{TASK}' in researcher_prompt and 'kind="wikipedia" n="1"' in (
+    assert f'kind="question">\n{TASK}' in researcher_prompt and 'kind="wikipedia" n="1"' in (
         researcher_prompt
     )
     # each worker sees only what it needs: the researcher gets no other results

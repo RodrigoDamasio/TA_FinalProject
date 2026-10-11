@@ -8,22 +8,24 @@ from app.application.stats import Pricing
 from app.domain.run import ResearchRun
 from app.domain.transcript import entry_to_dict
 
-MAX_TASK_FIELD_CHARS = 20_000  # hard cap before sanitizing; the real limit is TASK_MAX_CHARS
+MAX_QUESTION_FIELD_CHARS = (
+    20_000  # hard cap before sanitizing; the real limit is QUESTION_MAX_CHARS
+)
 
 
-class RunRequest(BaseModel):
+class ResearchRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    task: str = Field(
+    question: str = Field(
         min_length=1,
-        max_length=MAX_TASK_FIELD_CHARS,
-        description="The research task, 10–2,000 characters.",
+        max_length=MAX_QUESTION_FIELD_CHARS,
+        description="The research question, 10–2,000 characters.",
     )
     max_iterations: int | None = Field(
         None, description="Supervisor decisions before forced completion (1–8, default 5)."
     )
     require_approval: bool = Field(False, description="Pause for human approval before FINAL.")
-    use_memory: bool = Field(True, description="Let the Supervisor recall earlier tasks.")
+    use_memory: bool = Field(True, description="Let the Supervisor recall earlier reports.")
 
 
 class RejectRequest(BaseModel):
@@ -46,7 +48,7 @@ def run_view(
     return {
         "run_id": run.id,
         "status": run.status.value,
-        "task": run.task,
+        "question": run.question,
         "max_iterations": run.max_iterations,
         "iteration": run.iteration,
         "iteration_limit": run.iteration_limit,
@@ -62,7 +64,7 @@ def run_view(
             "expires_at": run.approval_expires_at,
             "revisions": run.revisions,
         },
-        "memory_used": [{"run_id": m["run_id"], "task": m["task"]} for m in run.memories],
+        "memory_used": [{"run_id": m["run_id"], "question": m["question"]} for m in run.memories],
         "error": run.error,
         "meta": {
             "generated_by": "demo mode (no LLM)" if demo else "AI (Gemini)",

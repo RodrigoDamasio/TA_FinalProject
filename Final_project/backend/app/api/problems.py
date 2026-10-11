@@ -260,7 +260,7 @@ async def _invalid_field_handler(request: Request, exc: Exception) -> Response:
 async def _wait_timeout_handler(request: Request, exc: Exception) -> Response:
     assert isinstance(exc, WaitTimeout)  # noqa: S101 — narrows the type
     return problem_response(
-        request, WAIT_TIMEOUT, detail=str(exc), headers={"Location": f"/runs/{exc.run_id}"}
+        request, WAIT_TIMEOUT, detail=str(exc), headers={"Location": f"/research/{exc.run_id}"}
     )
 
 
