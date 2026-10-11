@@ -1,6 +1,7 @@
 """Layering and security guards (Q4), as in Labs 1–4."""
 
 import ast
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -130,6 +131,29 @@ def test_sql_lives_only_in_the_sqlite_adapters():
         "infrastructure/document_store.py",  # RAG (BACKEND_PLAN §4)
         "infrastructure/embedding_cache.py",  # RAG
     }
+
+
+def test_search_conversation_reaches_the_index_only_through_the_ports():
+    """v1.2 (plan Improving_Chat_UI_UX §10): the tool gets the Indexer and Retriever ports and
+    the scopes the Supervisor computed; it imports no store, model, storage or SQL module."""
+    path = APP / "application/tools/conversation.py"
+    modules = imported_modules(path)
+    banned = ("app.infrastructure", "app.application.indexing", "app.application.retrieval")
+    assert not {m for m in modules if m.startswith(banned) or m in WEB_AND_IO}
+    assert {m for m in modules if m.startswith("app.")} <= {
+        "app.domain.errors", "app.domain.evidence", "app.domain.ports", "app.domain.transcript",
+    }  # fmt: skip
+
+
+def test_the_chat_table_is_touched_only_by_the_sqlite_modules():
+    users = {
+        str(p.relative_to(APP))
+        for p in APP.rglob("*.py")
+        if re.search(
+            r"(SELECT|INSERT|UPDATE|DELETE|TABLE)\b[^\n]*chat_conversations", p.read_text()
+        )
+    }
+    assert users == {"infrastructure/database.py", "infrastructure/sqlite_store.py"}
 
 
 def test_model_output_is_never_executed():
