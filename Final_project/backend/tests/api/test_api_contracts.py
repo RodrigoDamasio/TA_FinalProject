@@ -83,7 +83,7 @@ def test_telegram_webhook_is_off_by_default_and_checks_its_secret(api):
         "/webhooks/telegram", json={"update_id": 1},
         headers={"X-Telegram-Bot-Api-Secret-Token": "s3cret"},
     )  # fmt: skip
-    assert right.status_code == 501  # TelegramService is a stub until WEBHOOKS lands
+    assert right.status_code == 200 and right.json() == {}  # authenticated: always 200
 
 
 def test_tools_and_health(api):
@@ -95,5 +95,7 @@ def test_tools_and_health(api):
     assert {t["family"] for t in tools} == {"web", "wikipedia", "documents"}
     health = a.client.get("/health").json()
     assert health["search"] == {"mode": "fake", "available": True}
-    assert health["outbox"]["pending"] == 0 and health["telegram"] == "off"
+    assert health["outbox"]["pending"] == 0 and health["telegram"] == {
+        "mode": "off", "configured": False, "secret_fingerprint": None,
+    }  # fmt: skip
     assert a.client.get("/research/run_nope/deliveries").status_code == 404

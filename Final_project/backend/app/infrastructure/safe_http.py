@@ -263,8 +263,11 @@ class SafeHttpClient:
         content: bytes | None = None,
         headers: Mapping[str, str] | None = None,
         follow_redirects: bool = False,
+        discard_body: bool = False,
     ) -> SafeResponse:
-        """Raises FetchRefused (a rule) or FetchFailed (timeout, too many redirects, …)."""
+        """Raises FetchRefused (a rule) or FetchFailed (timeout, too many redirects, …).
+        `discard_body` (webhooks): a large declared body is not an error; at most max_bytes
+        are read and the rest is dropped."""
         deadline = self._clock() + self._timeout
         current, hops = url, 0
         sent = {"user-agent": USER_AGENT, "accept-encoding": "gzip, deflate", **(headers or {})}
@@ -290,15 +293,15 @@ class SafeHttpClient:
                             method, content = "GET", None
                         current = nxt
                         continue
-                    return self._read(resp, deadline)
+                    return self._read(resp, deadline, discard_body)
             except httpx.TimeoutException as err:
                 raise FetchFailed("timeout") from err
             except httpx.TransportError as err:
                 raise FetchFailed("connection failed") from err
 
-    def _read(self, resp: httpx.Response, deadline: float) -> SafeResponse:
+    def _read(self, resp: httpx.Response, deadline: float, discard: bool = False) -> SafeResponse:
         declared = resp.headers.get("content-length", "")
-        if declared.isdigit() and int(declared) > self._max_bytes:
+        if not discard and declared.isdigit() and int(declared) > self._max_bytes:
             raise FetchFailed("too large")
         body = bytearray()
         truncated = False

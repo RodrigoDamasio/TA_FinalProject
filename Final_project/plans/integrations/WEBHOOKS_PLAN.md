@@ -422,3 +422,39 @@ Each step ends with its tests green and Ruff clean.
 9. `api/webhooks.py` + wiring requests to Shared files (`dependencies.py` lifespan order, `/health` fields, `/research` URL check).
 10. `samples/webhooks/receiver.py` + E2E fake test (callback verified, Telegram order).
 11. `DEPLOY.md` inputs: the `setWebhook` block (§3.3), the demo steps (Q2), the secret-rotation note.
+
+## 13. Deviations (implementation, branch `claude/impl-webhooks-47mi7p`)
+
+| Plan | Implementation | Why |
+|---|---|---|
+| §1: `infrastructure/outbox_store.py` holds `SqliteOutboxStore` and `SqliteUpdateLedger` | They stay in the Shared `sqlite_store.py` (`SqliteOutboxRepository`, `SqliteUpdateLedger`, written at step 3); WEBHOOKS adds their tests (`tests/integration/test_outbox_store.py`). No `outbox_store.py` | The architecture test confines all SQL to `database.py` and `sqlite_store.py`, and the step-3 code already implements every method this plan needs |
+| §3.1: the route gets a wired `TelegramService` and the `UpdateLedger` from the container | `api/webhooks.py` builds both **once per app** from the container's parts (`c.service`, `c.outbox`, settings) when the container holds the step-3 placeholder (`TelegramService()`, `wired == False`). It uses the container's own as soon as the Shared wiring provides them | `dependencies.py` is Shared. Wiring request in the PR |
+| §3.2: M5 `RateLimiter` as-is for the per-chat limit | `ChatLimiter` in `application/telegram.py`: same windows (2/min, `TELEGRAM_RUNS_PER_DAY`/day), but **check** and **record** are separate | `application` must not import `api/guards.py`, and "only accepted runs use the allowance" needs a check that doesn't record |
+| §3.4: `RATE_LIMITED` = "…limit of {N} questions per day. Try again in about {hours} h." | Kept for the daily limit. The per-minute limit (wait ≤ 2 min) answers "You're sending questions too fast. Please wait a minute and try again." | "about 1 h" for a 60-second wait was wrong |
+| §3.4: completed text without a parsed report | Title = the question, body = the final Markdown, then the same fit algorithm | Step 3 deviation kept ("start of the final Markdown") |
+| §3.7: `OutboxDispatcher(outbox, runs, telegram, sender, renderer, secrets, clock, poll_s, max_attempts, batch)` | The step-3 constructor is kept (`view` callable + `server_key`, `base_url`, `frontend_url`, `max_attempts`, `clock`), plus optional `batch`, `poll_s`, `ledger`. `process_due()` stays as an alias of `tick()` | `dependencies.py` (Shared) builds it with that signature |
+| §3.7: rows in `due` order | Within one pass, rows with the same `next_attempt_at` and `created_at` send `research.accepted` first | Timestamps have 1-second precision and ids are random: a fast run's report could otherwise supersede its own "working on it" |
+| §3.7: superseded `accepted` rows | `mark_dead(id, attempts, "superseded")` keeps the row's attempt count | The view should show the attempts really made |
+| §3.5 / §7: the callback POST connects to the vetted IP through `safe_http` | `HttpWebhookSender` re-runs `safe_http.check_url` before **every** send, never follows redirects, reads ≤ 64 KB; the connection is a plain `httpx.Client` (injectable) | SEARXNG's `SafeHttpClient` doesn't exist yet. Until it lands, a DNS answer that changes between the check and the connect (rebinding) is not caught. Swap the client when it does |
+| §3.5: `callback_url.py` rules are applied before `submit` | `callback_url_check(allow_private, resolve)` returns the `url_check` callable `RunService` takes; `dependencies.py` still passes `safe_http.check_url` directly (ports 80/443, fragments not refused) | Shared wiring; request in the PR |
+| §3.5: callback body `timestamp` | `run.finished_at` rendered as `YYYY-MM-DDTHH:MM:SSZ`; `data.error` only for failed runs | §13.3 example format |
+| §3.4: link previews off | `link_preview_options: {"is_disabled": true}` | The current Bot API field (`disable_web_page_preview` is deprecated) |
+
+**Not wired yet (Shared files, requested in the PR):** `OutboxDispatcher.sweep()` in the M5 sweeper; the `/health` `telegram` object with `configured` and the secret's 12-character fingerprint; `GET /research/{id}/deliveries` through `application/outbox/deliveries.py` (`target_host` = `api.telegram.org`, `bot.reply` rows hidden).
+
+### DEPLOY.md inputs (step 11)
+
+- **Telegram registration:** the `setWebhook` block of §3.3, unchanged.
+- **Callback demo:** `backend/samples/webhooks/README.md` (local receiver, `CALLBACK_ALLOW_PRIVATE=true` locally, `ngrok http 8001` against the deployed backend).
+- **Secret rotation:** rotating `PROMPT_SECRET` changes every derived callback secret. Rotate only when `/health` shows `outbox.pending == 0`, otherwise pending callbacks are signed with secrets their clients don't hold.
+- **Checks after deploy:** `/health` → `telegram` is `live`; `getWebhookInfo` → no `last_error_message`; one question from an allowed chat → "Working on it" then the report; `GET /research/{id}/deliveries` → both `delivered`.
+
+**Resolved at merge (2026-10-11).**
+- `HttpWebhookSender` now sends through SEARXNG's `SafeHttpClient` (`callback_policy`, `discard_body=True`), so the connection goes to the vetted IP. The plain-httpx deviation above is closed.
+- The outcome mapping is unchanged: redirect not followed, 429 with `Retry-After`, `http <status>`, `timeout`/`connect`.
+- The shared wiring requested in the PR is done:
+  - a wired `TelegramService` and the `SqliteUpdateLedger` in the container
+  - the ledger passed to the dispatcher, and `dispatcher.sweep()` in the M5 sweeper
+  - `url_check = callback_url_check(...)` over the guard's address check
+  - the `/health` `telegram` object, and `/deliveries` from `deliveries()`
+- The route's fallback wiring is now unused and can be removed.

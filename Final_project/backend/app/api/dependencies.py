@@ -6,6 +6,7 @@ LLM chain for one run, outermost first:
     → ConcurrencyLimited(1) → Paced → Gemini
 Cache hits never reach the budget or the daily cap: re-runs cost 0 and never stop early."""
 
+import hashlib
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -20,7 +21,9 @@ from app.application.embedding import CachedEmbeddings, Models, StaticModels
 from app.application.indexing.chunkers import ChunkOptions, embed_text
 from app.application.indexing.indexer import HybridIndexer
 from app.application.memory import HybridMemoryStore
+from app.application.outbox.callback_url import callback_url_check
 from app.application.outbox.dispatcher import OutboxDispatcher
+from app.application.outbox.payloads import TelegramTexts
 from app.application.outbox.signing import callback_secret
 from app.application.prompts import PromptLibrary
 from app.application.retrieval.bm25 import ScopedBM25
@@ -35,7 +38,7 @@ from app.application.stats import (
     UsageMeter,
 )
 from app.application.supervisor import LoopSettings, Supervisor
-from app.application.telegram import TelegramService
+from app.application.telegram import RUNS_PER_MINUTE, ChatLimiter, TelegramService
 from app.application.tools.base import ToolRegistry
 from app.application.tools.documents import SearchDocumentsTool
 from app.application.tools.web import ReadResultTool, SearchWebTool
@@ -94,6 +97,7 @@ from app.infrastructure.sqlite_store import (
     SqliteRunRepository,
     SqliteSearchCache,
     SqliteSettings,
+    SqliteUpdateLedger,
     SqliteWikiCache,
 )
 from app.infrastructure.telegram_client import TelegramClient
@@ -156,6 +160,7 @@ class Container:
     upload_limiter: HourlyRateLimiter
     models: Models
     indexing_runner: InlineRunner | ThreadRunner
+    telegram_ledger: SqliteUpdateLedger | None = None
 
     def start(self) -> None:
         interrupted = self.service.recover()
@@ -197,7 +202,15 @@ class Container:
             "wikipedia": s.wiki_mode,
             "search": {"mode": s.search_mode, "available": self.search.available()},
             "embedder": {"mode": s.embed_mode, "status": self.models.status()},
-            "telegram": s.telegram_mode,
+            "telegram": {
+                "mode": s.telegram_mode,
+                "configured": bool(s.telegram_bot_token and s.telegram_webhook_secret),
+                "secret_fingerprint": hashlib.sha256(
+                    (s.telegram_webhook_secret or "").encode()
+                ).hexdigest()[:12]
+                if s.telegram_webhook_secret
+                else None,
+            },
             "outbox": self.outbox.counts(),
             "models": {
                 "supervisor": s.model_label(s.model_supervisor),
@@ -424,14 +437,18 @@ def build_container(
             return err.retry_after_s
         return None
 
-    sweep_target: dict[str, RunService] = {}
+    sweep_target: dict[str, Any] = {}
     runner: InlineRunner | ThreadRunner = (
         InlineRunner(supervisor.run)
         if settings.runner_mode == "inline"
         else ThreadRunner(
             supervisor.run,
             settings.max_queued_jobs,
-            sweep=lambda: (sweep_target["service"].sweep(), documents.purge()),
+            sweep=lambda: (
+                sweep_target["service"].sweep(),
+                documents.purge(),
+                sweep_target["dispatcher"].sweep(),
+            ),
             sweep_every_s=settings.sweep_every_s,
         )
     )
@@ -450,7 +467,10 @@ def build_container(
         ),
         ensure_llm_available,
         memory_store,
-        url_check=lambda url: _check_callback(url, settings.callback_allow_private),
+        # WEBHOOKS §3.5 rules (https, port 443, no fragment), then every resolved address
+        url_check=callback_url_check(
+            settings.callback_allow_private, resolve=lambda url: _check_callback(url, False)
+        ),
         indexer=indexer,
     )
     sweep_target["service"] = service
@@ -472,6 +492,7 @@ def build_container(
     def view(run: Any) -> dict[str, Any]:
         return research_view(run, pricing, demo=settings.fake)
 
+    ledger = SqliteUpdateLedger(db)
     dispatcher = OutboxDispatcher(
         outbox,
         runs,
@@ -482,6 +503,15 @@ def build_container(
         base_url=settings.base_url,
         frontend_url=settings.frontend_url,
         max_attempts=settings.outbox_max_attempts,
+        ledger=ledger,
+    )
+    sweep_target["dispatcher"] = dispatcher
+    telegram_service = TelegramService(
+        service,
+        outbox,
+        allowed_chats=settings.telegram_allowed_chats,
+        texts=TelegramTexts(settings.frontend_url, settings.telegram_runs_per_day),
+        limiter=ChatLimiter(RUNS_PER_MINUTE, settings.telegram_runs_per_day),
     )
     container = Container(
         settings=settings,
@@ -501,13 +531,14 @@ def build_container(
         tools=tools,
         outbox=outbox,
         dispatcher=dispatcher,
-        telegram_service=TelegramService(),
+        telegram_service=telegram_service,
         callback_secret=lambda run_id: callback_secret(secret, run_id),
         search=search,
         documents=documents,
         upload_limiter=HourlyRateLimiter(settings.rate_limit_uploads_per_hour),
         models=models,
         indexing_runner=indexing_runner,
+        telegram_ledger=ledger,
     )
     container.stats = StatsService(runs, meter, pricing, container.health)
     return container

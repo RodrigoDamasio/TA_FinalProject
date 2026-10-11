@@ -86,7 +86,7 @@ def test_telegram_client_and_webhook_sender(monkeypatch):
         raise httpx.ConnectError("down")
 
     tg._client = httpx.Client(transport=httpx.MockTransport(boom))
-    assert tg.send_message("42", "hi").error == "ConnectError"
+    assert tg.send_message("42", "hi").error == "connect"
 
     class Guarded:
         def __init__(self, outcome):

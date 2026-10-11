@@ -4,13 +4,13 @@ import asyncio
 import logging
 from collections.abc import AsyncIterable
 from typing import Any
-from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, Header, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from starlette.concurrency import run_in_threadpool
 
+from app.application.outbox.deliveries import deliveries as outbox_deliveries
 from app.application.runs import SubmitCommand
 from app.application.views import research_view
 from app.domain.documents import valid_workspace_id
@@ -200,21 +200,7 @@ def reject(
 def deliveries(run_id: str, c: Container = Depends(get_container)) -> list[dict[str, Any]]:
     """Webhook delivery attempts (no payloads, no secrets, host only)."""
     c.service.get(run_id)  # 404 for unknown runs
-    return [
-        {
-            "id": m.id,
-            "kind": m.kind,
-            "event": m.event,
-            "target_host": urlsplit(m.target).hostname if m.kind == "callback" else "telegram",
-            "status": m.status.value,
-            "attempts": m.attempts,
-            "last_status": m.last_status,
-            "last_error": m.last_error,
-            "next_attempt_at": m.next_attempt_at if m.status.value == "pending" else None,
-            "delivered_at": m.delivered_at,
-        }
-        for m in c.outbox.for_run(run_id)
-    ]
+    return outbox_deliveries(c.outbox, run_id)
 
 
 @router.get("/tools", tags=["agents"])

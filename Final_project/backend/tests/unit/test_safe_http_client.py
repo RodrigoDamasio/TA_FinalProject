@@ -210,3 +210,10 @@ def test_fetcher_types_charsets_and_cache():
     with pytest.raises(FetchFailed, match="http 404"):
         fetcher.fetch("http://a.org/404")
     assert len(cache.rows) == 3  # failures are never cached
+
+
+def test_discard_body_drains_a_large_answer_without_failing():
+    routes = {"/hook": http(200, b"z" * 50, content_length="999999")}
+    c, _ = client(routes, max_bytes=16)
+    resp = c.request("POST", "http://a.org/hook", PAGE_POLICY, content=b"{}", discard_body=True)
+    assert resp.status == 200 and len(resp.body) <= 16
