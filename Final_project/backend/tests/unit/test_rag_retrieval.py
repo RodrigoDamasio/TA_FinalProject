@@ -50,7 +50,8 @@ def test_bm25_filters_removal_and_lazy_build():
 
 
 def test_hybrid_search_caps_sources_and_respects_filters():
-    indexer, retriever, store, _ = rag_stack(200, 50)
+    indexer, retriever, store, bm25 = rag_stack(200, 50)
+    retriever = HybridRetriever(store, retriever._models, retriever._embeddings, bm25, per_source=3)
     long = "\n\n".join(f"Section {i} about vector databases and HNSW indexes." for i in range(12))
     indexer.index([doc("demo", "doc:1", long), doc("demo", "doc:2", "HNSW in another doc.")])
     hits = retriever.search("HNSW vector databases", ["demo"], 6)

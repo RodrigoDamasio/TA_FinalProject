@@ -1,10 +1,11 @@
 """HybridRetriever (RAG_PLAN §3.4): vector + BM25, fused with weighted RRF.
 
 Two RRF stages: each scope's BM25 list is ranked with that scope's own statistics and fused
-first (equal weights), then fused with the vector list (0.7 vector · 0.3 BM25). Scores from
+first (equal weights), then fused with the vector list (equal weights, see WEIGHTS). Scores from
 different scopes are never compared or summed, which fixes M4's cross-codebase leak.
-Optional cross-encoder rerank (local evaluation only), then at most 3 chunks per source when
-no source filter is given. Every sort breaks ties by chunk id, so results are deterministic
+Optional cross-encoder rerank (local evaluation only). An optional per-source cap exists but is
+OFF by default: the evaluation showed it costs recall with only 6 evidence slots. Ties break
+on (source_key, position), never on the run-scoped chunk id, so identical runs rank alike
 (stable LLM cache keys). Owner: RAG."""
 
 from dataclasses import dataclass
@@ -16,8 +17,12 @@ from ..embedding import CachedEmbeddings, Models
 from .bm25 import ScopedBM25
 from .fusion import rrf
 
-WEIGHTS = {"vector": 0.7, "bm25": 0.3}
-PER_SOURCE = 3
+# Equal weights (standard RRF), not M4's 0.7/0.3: with 0.7/0.3 a passage that BM25 ranks
+# first but the vector list misses scores below the 20th vector hit, so exact identifiers
+# (header names, error codes, markers) could never surface. Deviation from RAG_PLAN §3.4,
+# to be confirmed by the retrieval evaluation grid.
+WEIGHTS = {"vector": 1.0, "bm25": 1.0}
+PER_SOURCE: int | None = None  # RAG_PLAN said 3; the evaluation grid showed it hurts (§Deviations)
 RERANK_TOP = 20
 
 
@@ -39,9 +44,10 @@ class HybridRetriever:
         bm25: ScopedBM25,
         *,
         mode: str = "hybrid",  # vector | bm25 | hybrid | hybrid_rerank (evaluation grid)
+        per_source: int | None = PER_SOURCE,
     ) -> None:
         self._store, self._models, self._embeddings, self._bm25 = store, models, embeddings, bm25
-        self.mode = mode
+        self.mode, self.per_source = mode, per_source
 
     def search(
         self, query: str, scopes: list[str], k: int, source_keys: list[str] | None = None
@@ -78,8 +84,8 @@ class HybridRetriever:
         out: list[Explained] = []
         per_source: dict[str, int] = {}
         for c, score in ranked:
-            if source_keys is None:
-                if per_source.get(c.source_key, 0) >= PER_SOURCE:
+            if source_keys is None and self.per_source is not None:
+                if per_source.get(c.source_key, 0) >= self.per_source:
                     continue
                 per_source[c.source_key] = per_source.get(c.source_key, 0) + 1
             out.append(Explained(RetrievedChunk(c, score), c.id in keyword_ids, cosine.get(c.id)))
