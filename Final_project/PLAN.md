@@ -468,7 +468,7 @@ Each detailed plan is one **cloud-session task**, run once `BACKEND_PLAN.md` has
 | 8 | Frontend | 0 | Cloud + local E2E |
 | 9 | Deploy backend + Vercel, Telegram webhook registration, post-deploy checks, production E2E | 0–12 | Local |
 
-Phases 2–5 run **in parallel** in cloud sessions, each on its own branch with its own folders.
+Phases 2–5 run **in parallel** in cloud sessions, each on its own branch with its own folders. The detailed plans (§15) are written **before** the contracts are coded (phase 1); the exact order is in [BACKEND_PLAN.md §20](BACKEND_PLAN.md#20-implementation-order).
 
 ## 17. External tasks (you)
 

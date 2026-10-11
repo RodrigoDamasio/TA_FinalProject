@@ -835,15 +835,18 @@ The M5 rules are kept. New ones:
 
 ## 20. Implementation order
 
+**The detailed plans come before the contracts are coded.** Gaps they reveal are fixed in this document while that's still cheap. Step 0 (a plain copy) runs at the same time, because it doesn't depend on them.
+
 | Step | Content | Where | Real calls |
 |---|---|---|---|
-| **0** | **Foundation:** copy M5 `backend/` → `Final_project/backend/`. Copy the M4 RAG files. Rename `task` → `question` and `/run` → `/research`. Drop M4 code chunkers. Pin deps. All copied tests green | Local | 0 |
-| **1** | **Contracts as code:** every 🔒 section implemented (types, ports, config, DDL, schemas, `ResearchView`, SSE events, `ToolBox`, `citations.py`, `tests/fakes.py`) + **stub implementations** wired in `LLM_MODE=fake`, so a full fake run works end to end. Architecture tests updated. Tag `contracts-v1` | Local | 0 |
-| 2a–2g | Detailed plans: Supervisor, Researcher, Writer, Reviewer, SearXNG tool, RAG, Webhooks | **Cloud, parallel** (one PR each) | 0 |
-| 3a–3g | Implementation of each detailed plan on its own branch, owning only its files (§4) | **Cloud, parallel** | 0 |
-| 4 | Merge order: RAG → SearXNG → Researcher → Writer → Reviewer → Supervisor → Webhooks. Integration fixes. Full suite green | Local | 0 |
-| 5 | Real Gemini: cassettes, first real runs, prompt fixes (expect a v2 as in M5), evaluation, sample runs | Local (user) | ~3 + ~40 |
-| 6 | Deploy the backend. Post-deploy checks. `DEPLOY.md` | Local | 0–12 |
+| **1** | **Detailed plans** 2a–2g (Supervisor, Researcher, Writer, Reviewer, SearXNG tool, RAG, Webhooks), following [`plans/README.md`](plans/README.md). One PR each, each listing its **contract gaps** | **Cloud, parallel** | 0 |
+| **1′** | **Foundation**, at the same time: copy M5 `backend/` → `Final_project/backend/`. Copy the M4 RAG files. Rename `task` → `question` and `/run` → `/research`. Drop the M4 code chunkers. Pin deps. All copied tests green | Local | 0 |
+| **2** | **Review** the plans with the user, render-check their diagrams, merge them. Fold the accepted contract gaps into this plan (§23) | Local | 0 |
+| **3** | **Contracts as code:** every 🔒 section implemented (types, ports, config, DDL, schemas, `ResearchView`, SSE events, `ToolBox`, `citations.py`, `tests/fakes.py`) + **stub implementations** wired in `LLM_MODE=fake`, so a full fake run works end to end. Architecture tests updated. Tag **`contracts-v1`** | Local | 0 |
+| **4** | **Implementation** of each detailed plan on its own branch, owning only its files (§4) | **Cloud, parallel** | 0 |
+| **5** | Merge order: RAG → SearXNG → Researcher → Writer → Reviewer → Supervisor → Webhooks. Integration fixes. Full suite green | Local | 0 |
+| **6** | Real Gemini: cassettes, first real runs, prompt fixes (expect a v2 as in M5), evaluation, sample runs | Local (user) | ~3 + ~40 |
+| **7** | Deploy the backend. Post-deploy checks. `DEPLOY.md` | Local | 0–12 |
 
 ## 21. Definition of done
 
