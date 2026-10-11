@@ -6,6 +6,8 @@ interface Props {
   maxChars: number;
   disabledReason: string | null;
   busy: boolean;
+  placeholder?: string;
+  note?: string | null; // e.g. "This chat is read-only: your question starts a new chat."
   onChange: (value: string) => void;
   onSubmit: () => void;
   children?: React.ReactNode; // run settings, under the box
@@ -39,10 +41,11 @@ const Composer = forwardRef<HTMLTextAreaElement, Props>(function Composer(p, ref
             if (!disabled) p.onSubmit();
           }
         }}
-        placeholder="e.g. When should I use RAG instead of fine-tuning?"
+        placeholder={p.placeholder ?? "e.g. When should I use RAG instead of fine-tuning?"}
         className="w-full resize-y rounded-md border border-zinc-400 bg-white p-2 text-sm dark:border-zinc-600 dark:bg-zinc-900"
         aria-describedby="composer-hint"
       />
+      {p.note && <p className="text-xs text-zinc-700 dark:text-zinc-300">{p.note}</p>}
       {p.children}
       <div className="flex flex-wrap items-center gap-3">
         <button

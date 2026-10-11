@@ -1,0 +1,23 @@
+{
+  "conversation-not-found": {
+    "type": "http://localhost:8000/problems/conversation-not-found",
+    "title": "Conversation not found.",
+    "status": 404,
+    "detail": "No conversation with id 'conv_0000000000000000'.",
+    "instance": "/research"
+  },
+  "conversation-full": {
+    "type": "http://localhost:8000/problems/conversation-full",
+    "title": "This chat is full.",
+    "status": 409,
+    "detail": "This chat has reached 1 questions. Start a new chat.",
+    "instance": "/research"
+  },
+  "conversation-busy": {
+    "type": "http://localhost:8000/problems/conversation-busy",
+    "title": "This chat is still answering.",
+    "status": 409,
+    "detail": "This chat is still answering. Wait for the current answer.",
+    "instance": "/research"
+  }
+}

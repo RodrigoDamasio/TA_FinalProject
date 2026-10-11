@@ -35,13 +35,13 @@ BASE_URL=https://<vercel-domain> npm run test:e2e   # production smoke (a real r
 
 | Folder | What |
 |---|---|
-| `lib/` | `api.ts` (fetch + Zod + `ApiError` from RFC 9457 slugs, `Retry-After`), `schemas.ts`, `events.ts` (SSE), `agents.ts` (board reducer), `tools.ts` (tool-card rules, rewrite marker), `citations.ts`, `report.ts`, `workspace.ts`, `thread.ts`, `replay.ts` |
-| `hooks/` | `useRun` (SSE + reconcile + replay), `useHealth`, `useThread`, `useWorkspace`, `useApiError`, `useCountdown`, `useNow` |
+| `lib/` | `api.ts` (fetch + Zod + `ApiError` from RFC 9457 slugs, `Retry-After`), `schemas.ts`, `events.ts` (SSE), `agents.ts` (board reducer), `tools.ts` (tool-card rules, rewrite marker), `citations.ts`, `report.ts`, `workspace.ts`, `chats.ts` (storage v3, v2 import), `collapse.ts` (expanded turns), `replay.ts` |
+| `hooks/` | `useRun` (SSE + reconcile + replay), `useHealth`, `useChats` (chats + collapse stores), `useMediaQuery`, `useWorkspace`, `useApiError`, `useCountdown`, `useNow` |
 | `components/activity` | `AgentBoard`, `ActivityFeed`, `ToolCallCard` |
 | `components/report` | `Report`, `Markdown` (sanitized), `CitationChip` |
 | `components/run` | `RunDetails`, `MetaBar`, `PerAgentTable`, `Deliveries` |
 | `components/library` | `LibraryApp` |
-| `components/chat` | `Composer`, `RunSettings`, `History`, `Suggestions`, `Turn` |
+| `components/chat` | `Composer`, `RunSettings`, `ChatList` (sidebar), `Suggestions`, `Turn` (collapsible) |
 
 ## Security
 

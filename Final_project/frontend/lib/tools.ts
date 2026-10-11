@@ -2,9 +2,15 @@
  * "rewrote the query" marker (the backend's `rewrites_after_weak` rule, RESEARCHER §3.10). */
 import type { Entry, ToolCallEntry } from "./schemas";
 
-export const SEARCH_TOOLS: ReadonlySet<string> = new Set(["search_web", "search_wikipedia", "search_documents"]);
+export const SEARCH_TOOLS: ReadonlySet<string> = new Set([
+  "search_web",
+  "search_wikipedia",
+  "search_documents",
+  "search_conversation",
+]);
 
 const TOOL_INFO: Record<string, { icon: string; label: string }> = {
+  search_conversation: { icon: "💬", label: "earlier turns" }, // v1.2, phase C
   search_web: { icon: "🌐", label: "Web search" },
   search_wikipedia: { icon: "📚", label: "Wikipedia search" },
   search_documents: { icon: "📄", label: "Document search" },

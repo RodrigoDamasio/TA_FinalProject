@@ -5,7 +5,10 @@
  * deliveries, a fact check) are built on top of the real shapes. */
 import { z } from "zod";
 import accepted from "./fixtures/accepted.json";
+import acceptedFollowupJson from "./fixtures/accepted-followup.json";
 import agentsJson from "./fixtures/agents.json";
+import conversationJson from "./fixtures/conversation.json";
+import conversationRunningJson from "./fixtures/conversation-running.json";
 import documentsJson from "./fixtures/documents.json";
 import documentsUploadJson from "./fixtures/documents-upload.json";
 import eventsJson from "./fixtures/events.json";
@@ -13,9 +16,14 @@ import healthJson from "./fixtures/health.json";
 import approvalJson from "./fixtures/run-approval.json";
 import completedJson from "./fixtures/run-completed.json";
 import documentsRunJson from "./fixtures/run-documents.json";
+import followupJson from "./fixtures/run-followup.json";
+import turn1Json from "./fixtures/run-turn1.json";
+import problemsJson from "./fixtures/problems-conversation.json";
 import {
   AcceptedSchema,
   AgentSchema,
+  type Conversation,
+  ConversationSchema,
   type Delivery,
   DocumentListSchema,
   type DocumentView,
@@ -41,7 +49,43 @@ export const raw = {
   approval: approvalJson,
   completed: completedJson,
   documentsRun: documentsRunJson,
+  acceptedFollowup: acceptedFollowupJson,
+  conversation: conversationJson,
+  conversationRunning: conversationRunningJson,
+  turn1: turn1Json,
+  followup: followupJson,
+  problems: problemsJson,
 };
+
+// ---- v1.2 conversations: a 2-turn chat recorded from the fake-mode backend ------------------
+export const turn1Run: ResearchView = ResearchViewSchema.parse(turn1Json);
+export const followupRun: ResearchView = ResearchViewSchema.parse(followupJson);
+export const acceptedFollowup = AcceptedSchema.parse(acceptedFollowupJson);
+export const conversation: Conversation = ConversationSchema.parse(conversationJson);
+export const conversationRunning: Conversation = ConversationSchema.parse(conversationRunningJson);
+export const CONV = conversation.conversation_id;
+
+/** The follow-up as the parallel backend session will send it (phase C): context from the
+ * earlier turn and a search_conversation call. Built on the real follow-up's shapes. */
+export function followupWithContext(): ResearchView {
+  const call = followupRun.conversation_history.find((e) => e.action === "TOOL_CALL") as ToolCallEntry;
+  const reuse: ToolCallEntry = {
+    ...call,
+    tool: "search_conversation",
+    provider: "conversation",
+    args: { query: "rag fine-tuning cost" },
+    results: 2,
+    evidence: ["E1", "E2"],
+  };
+  const history = followupRun.conversation_history
+    .flatMap((e) => (e === call ? [reuse, call] : [e]))
+    .map((e, i) => ({ ...e, seq: i + 1 }));
+  return {
+    ...followupRun,
+    metadata: { ...followupRun.metadata, context_turns: 1, tool_calls: 2 },
+    conversation_history: history,
+  };
+}
 
 export const completedRun: ResearchView = ResearchViewSchema.parse(completedJson);
 export const documentsRun: ResearchView = ResearchViewSchema.parse(documentsRunJson);

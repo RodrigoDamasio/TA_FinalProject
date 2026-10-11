@@ -77,6 +77,39 @@ describe("requests", () => {
     expect((await api.sample("s1")).sample).toBe(true);
   });
 
+  it("v1.2: a follow-up sends conversation_id; GET /conversations/{id}; GET /tools", async () => {
+    let fetchMock = respond(202, raw.acceptedFollowup);
+    const input = {
+      question: "and cost?",
+      depth: "brief" as const,
+      sources: ["web" as const],
+      require_approval: false,
+      use_memory: true,
+      conversation_id: raw.acceptedFollowup.conversation_id,
+    };
+    expect(await api.startResearch(input, WS)).toMatchObject({ turn: 2, conversation_id: input.conversation_id });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).conversation_id).toBe(input.conversation_id);
+    fetchMock = respond(200, raw.conversation);
+    const conv = await api.conversation(raw.conversation.conversation_id);
+    expect(conv.turns).toHaveLength(2);
+    expect(fetchMock.mock.calls[0][0]).toBe(`http://localhost:8000/conversations/${raw.conversation.conversation_id}`);
+    respond(200, [{ name: "search_conversation", family: "conversation", description: "d", parameters: {} }]);
+    expect((await api.tools())[0].family).toBe("conversation");
+  });
+
+  it("v1.2 problems recorded from the server keep their messages", async () => {
+    const p = raw.problems;
+    respond(409, p["conversation-full"]);
+    expect((await errorOf(api.getResearch("run_1"))).message).toBe("This chat has reached 1 questions. Start a new chat.");
+    respond(409, p["conversation-busy"]);
+    expect((await errorOf(api.getResearch("run_1"))).message).toMatch(/Wait for the current answer/);
+    respond(404, p["conversation-not-found"]);
+    expect((await errorOf(api.getResearch("run_1"))).message).toMatch(/Start a new chat/);
+    respond(409, { ...p["conversation-full"], detail: null });
+    expect((await errorOf(api.getResearch("run_1"))).message).toBe("This chat is full. Start a new chat.");
+    expect(fieldLabel("#/conversation_id")).toBe("Chat");
+  });
+
   it("documents: list, get and delete with the workspace header", async () => {
     let fetchMock = respond(200, raw.documents);
     const list = await api.listDocuments(WS);
@@ -108,6 +141,9 @@ describe("errors (RFC 9457)", () => {
     ["llm-quota-exhausted", 503, "quota"],
     ["llm-unavailable", 503, "busy"],
     ["wait-timeout", 504, "timeout"],
+    ["conversation-not-found", 404, "conversation_not_found"],
+    ["conversation-full", 409, "conversation_full"],
+    ["conversation-busy", 409, "conversation_busy"],
   ];
   it.each(cases)("%s → %s", async (slug, status, kind) => {
     respond(status, problem(slug, status), { "Content-Type": "application/problem+json", "Retry-After": "29" });

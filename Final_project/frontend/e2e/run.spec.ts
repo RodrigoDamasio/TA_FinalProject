@@ -25,6 +25,10 @@ test("a full run: live board and tool-call card, then the cited report and run d
   await chip.focus();
   await expect(page.getByRole("tooltip")).toContainText("example.org");
   await expect(r.getByRole("region", { name: "References" }).getByRole("listitem")).toHaveCount(3);
+  // "How the agents worked" collapses when the run completes, leaving its summary
+  const activity = page.getByText(/^How the agents worked/);
+  await expect(activity).toContainText(/1 tool call · 3 evidence · \d+ decisions/);
+  await activity.click();
   for (const agent of ["Supervisor", "Researcher", "Writer", "Reviewer"]) {
     await expect(page.getByRole("listitem", { name: `${agent}: done` })).toBeVisible();
   }
@@ -32,13 +36,13 @@ test("a full run: live board and tool-call card, then the cited report and run d
   await expect(page.getByLabel("Run metadata")).toContainText("demo mode (no LLM)");
   await expect(page.getByRole("region", { name: "Per-agent usage" })).toContainText("Researcher");
   await expect(page.getByRole("list", { name: "Transcript" }).getByText(/^Supervisor · decision \d of 5$/)).toHaveCount(4);
-  await expect(page).toHaveURL(/\?run=run_[a-f0-9]+$/);
+  await expect(page).toHaveURL(/\?chat=conv_[a-f0-9]{16}$/);
   await expectAccessible(page);
 
-  // reload: the history and the run come back from ?run= and storage
+  // reload: the chat and the run come back from ?chat= and storage
   await page.reload();
   await expect(report(page)).toBeVisible();
-  await expect(page.getByText("History (1)")).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Chats" }).getByText("Chats (1)")).toBeVisible();
 });
 
 test("documents only: the Researcher calls search_documents and cites the demo library", async ({ page }) => {
@@ -88,6 +92,8 @@ test("approval: reject with feedback → revision → approve", async ({ page })
   await page.getByLabel("Feedback for a revision (optional)").fill("Add one practical example.");
   await page.getByRole("button", { name: "Reject" }).click();
   await expect(page.getByText("No revisions left: rejecting cancels the run.")).toBeVisible();
+  // the activity is collapsed while the run waits (it is not live): open it
+  await page.getByText(/^How the agents worked/).last().click();
   await expect(page.getByRole("list", { name: "Activity feed" }).last()).toContainText("Add one practical example.");
   await page.getByRole("button", { name: "Approve" }).click();
   await expect(report(page)).toBeVisible();

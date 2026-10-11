@@ -1,0 +1,24 @@
+{
+  "conversation_id": "conv_bdac08dfa18ee962",
+  "max_turns": 30,
+  "turns": [
+    {
+      "run_id": "run_0fb55a39f967",
+      "turn": 1,
+      "question": "When should I use RAG instead of fine-tuning?",
+      "status": "completed",
+      "title": "When should I use RAG instead of fine-tuning?",
+      "depth": "brief",
+      "created_at": "2026-10-11T15:06:02+00:00"
+    },
+    {
+      "run_id": "run_e0d0d9325358",
+      "turn": 2,
+      "question": "and cost?",
+      "status": "completed",
+      "title": "and cost?",
+      "depth": "brief",
+      "created_at": "2026-10-11T15:06:23+00:00"
+    }
+  ]
+}
