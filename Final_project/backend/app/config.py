@@ -14,6 +14,10 @@ def _bool(name: str, default: bool) -> bool:
     return os.getenv(name, str(default)).strip().lower() in ("1", "true", "yes", "on")
 
 
+def _list(name: str, default: str = "") -> list[str]:
+    return [x.strip() for x in os.getenv(name, default).split(",") if x.strip()]
+
+
 @dataclass(frozen=True)
 class Settings:
     google_api_key: str | None
@@ -56,6 +60,54 @@ class Settings:
     sweep_every_s: float
     base_url: str
     frontend_origins: list[str]
+    # ---- final project (BACKEND_PLAN §6, v1.1 §24) ----
+    default_depth: str
+    llm_run_budget_per_iteration: int
+    llm_run_budget_base: int
+    writer_context_tokens: int
+    researcher_max_tool_calls: int
+    evidence_top_k: int
+    evidence_snippet_chars: int
+    # RAG
+    chroma_path: str
+    models_path: str
+    embed_mode: str  # onnx | fake
+    embed_model: str
+    rerank_model: str  # "" = off
+    onnx_threads: int
+    embed_batch_size: int
+    chunk_max_chars: int
+    chunk_min_chars: int
+    chunk_overlap: float
+    # search and fetching
+    search_mode: str  # live | fake
+    searxng_url: str
+    search_max_results: int
+    search_timeout_s: float
+    search_cache_ttl_h: int
+    fetch_timeout_s: float
+    fetch_max_bytes: int
+    fetch_max_redirects: int
+    read_max_chars: int
+    # documents
+    upload_max_bytes: int
+    pdf_max_pages: int
+    workspace_max_docs: int
+    workspace_max_bytes: int
+    workspace_ttl_h: int
+    demo_library_path: str
+    rate_limit_uploads_per_hour: int
+    # webhooks and Telegram
+    telegram_mode: str  # live | fake | off
+    telegram_bot_token: str | None
+    telegram_webhook_secret: str | None
+    telegram_allowed_chats: list[str]
+    telegram_runs_per_day: int
+    frontend_url: str
+    outbox_poll_s: float
+    outbox_max_attempts: int
+    webhook_timeout_s: float
+    callback_allow_private: bool
 
     @property
     def fake(self) -> bool:
@@ -113,4 +165,47 @@ def get_settings() -> Settings:
             for origin in os.getenv("FRONTEND_ORIGIN", "http://localhost:3000").split(",")
             if origin.strip()
         ],
+        default_depth=os.getenv("DEFAULT_DEPTH", "detailed"),
+        llm_run_budget_per_iteration=_int("LLM_RUN_BUDGET_PER_ITERATION", 3),
+        llm_run_budget_base=_int("LLM_RUN_BUDGET_BASE", 5),
+        writer_context_tokens=_int("WRITER_CONTEXT_TOKENS", 12000),
+        researcher_max_tool_calls=_int("RESEARCHER_MAX_TOOL_CALLS", 3),
+        evidence_top_k=_int("EVIDENCE_TOP_K", 6),
+        evidence_snippet_chars=_int("EVIDENCE_SNIPPET_CHARS", 900),
+        chroma_path=os.getenv("CHROMA_PATH", "chroma"),
+        models_path=os.getenv("MODELS_PATH", "models"),
+        embed_mode=os.getenv("EMBED_MODE", "fake" if llm_mode == "fake" else "onnx"),
+        embed_model=os.getenv("EMBED_MODEL", "BAAI/bge-small-en-v1.5"),
+        rerank_model=os.getenv("RERANK_MODEL", ""),
+        onnx_threads=_int("ONNX_THREADS", 2),
+        embed_batch_size=_int("EMBED_BATCH_SIZE", 4),
+        chunk_max_chars=_int("CHUNK_MAX_CHARS", 1400),
+        chunk_min_chars=_int("CHUNK_MIN_CHARS", 400),
+        chunk_overlap=_float("CHUNK_OVERLAP", 0.15),
+        search_mode=os.getenv("SEARCH_MODE", "fake" if llm_mode == "fake" else "live"),
+        searxng_url=os.getenv("SEARXNG_URL", "http://searxng.railway.internal:8080").rstrip("/"),
+        search_max_results=_int("SEARCH_MAX_RESULTS", 8),
+        search_timeout_s=_float("SEARCH_TIMEOUT_S", 8),
+        search_cache_ttl_h=_int("SEARCH_CACHE_TTL_H", 24),
+        fetch_timeout_s=_float("FETCH_TIMEOUT_S", 10),
+        fetch_max_bytes=_int("FETCH_MAX_BYTES", 2_000_000),
+        fetch_max_redirects=_int("FETCH_MAX_REDIRECTS", 3),
+        read_max_chars=_int("READ_MAX_CHARS", 60_000),
+        upload_max_bytes=_int("UPLOAD_MAX_BYTES", 5 * 1024 * 1024),
+        pdf_max_pages=_int("PDF_MAX_PAGES", 150),
+        workspace_max_docs=_int("WORKSPACE_MAX_DOCS", 10),
+        workspace_max_bytes=_int("WORKSPACE_MAX_BYTES", 20 * 1024 * 1024),
+        workspace_ttl_h=_int("WORKSPACE_TTL_H", 24),
+        demo_library_path=os.getenv("DEMO_LIBRARY_PATH", "samples/library"),
+        rate_limit_uploads_per_hour=_int("RATE_LIMIT_UPLOADS_PER_HOUR", 10),
+        telegram_mode=os.getenv("TELEGRAM_MODE", "off"),
+        telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN") or None,
+        telegram_webhook_secret=os.getenv("TELEGRAM_WEBHOOK_SECRET") or None,
+        telegram_allowed_chats=_list("TELEGRAM_ALLOWED_CHATS"),
+        telegram_runs_per_day=_int("TELEGRAM_RUNS_PER_DAY", 10),
+        frontend_url=os.getenv("FRONTEND_URL", "http://localhost:3000").rstrip("/"),
+        outbox_poll_s=_float("OUTBOX_POLL_S", 1),
+        outbox_max_attempts=_int("OUTBOX_MAX_ATTEMPTS", 6),
+        webhook_timeout_s=_float("WEBHOOK_TIMEOUT_S", 10),
+        callback_allow_private=_bool("CALLBACK_ALLOW_PRIVATE", False),
     )

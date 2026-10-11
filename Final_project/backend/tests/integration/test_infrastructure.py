@@ -75,7 +75,7 @@ def test_run_repository_saves_state_and_events_atomically(tmp_path):
     with pytest.raises(RunNotFound):
         repo.get("run_missing")
     future = (datetime.now(UTC) + timedelta(days=1)).isoformat()
-    assert repo.delete_older_than(future) == 1 and repo.events_since(run.id, 0) == []
+    assert repo.delete_older_than(future) == [run.id] and repo.events_since(run.id, 0) == []
 
 
 def test_memory_repository_and_bm25_recall(tmp_path):

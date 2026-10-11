@@ -160,7 +160,7 @@ class RunService:
                 self.runs.save(run)
                 expired += 1
         cutoff = (now - timedelta(days=self.limits.retention_days)).isoformat(timespec="seconds")
-        deleted = self.runs.delete_older_than(cutoff)
+        deleted = len(self.runs.delete_older_than(cutoff))
         forgotten = self._memories.delete_older_than(cutoff) if self._memories else 0
         if expired or deleted or forgotten:
             logger.info("sweep expired=%d deleted=%d forgotten=%d", expired, deleted, forgotten)

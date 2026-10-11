@@ -1,9 +1,17 @@
-"""Provider-neutral abstractions (LLM types from Labs 2-4) and the ports of this lab."""
+"""Provider-neutral abstractions (LLM types from Labs 2-4) and the ports of the final project
+(BACKEND_PLAN §7-§8, contracts v1.1 §24)."""
 
+import builtins
+from collections.abc import Iterator
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, Literal, Protocol
 
 from pydantic import BaseModel
+
+from .documents import Document, DocumentStatus, Workspace
+from .evidence import EvidenceChunk, SourceKind
+from .outbox import OutboxMessage
 
 if TYPE_CHECKING:
     from .run import ResearchRun, RunEvent, RunStatus
@@ -132,7 +140,7 @@ class Memory:
     run_id: str
     question: str
     summary: str
-    source_titles: list[str]
+    reference_titles: list[str]  # v1.1 (was source_titles)
     created_at: str
 
 
@@ -166,7 +174,7 @@ class RunRepository(Protocol):
 
     def runs_in(self, statuses: set["RunStatus"]) -> list["ResearchRun"]: ...
 
-    def delete_older_than(self, cutoff_iso: str) -> int: ...
+    def delete_older_than(self, cutoff_iso: str) -> list[str]: ...  # v1.1: the deleted ids
 
     def status_counts(self) -> dict[str, int]: ...
 
@@ -177,3 +185,199 @@ class JobRunner(Protocol):
     def submit(self, job_id: str) -> None: ...
 
     def has_capacity(self) -> bool: ...
+
+
+# ---- web search and page fetching (SEARXNG) ------------------------------------------------
+
+
+@dataclass(frozen=True)
+class WebResult:
+    title: str
+    url: str
+    snippet: str
+    engines: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class FetchedPage:
+    url: str  # final URL after redirects
+    status: int
+    media_type: str
+    text: str  # decoded body, ≤ FETCH_MAX_BYTES
+
+
+class WebSearch(Protocol):
+    def search(self, query: str, limit: int) -> list[WebResult]: ...  # raises SearchUnavailable
+
+    def available(self) -> bool: ...
+
+
+class PageFetcher(Protocol):
+    def fetch(self, url: str) -> FetchedPage: ...  # raises FetchRefused / FetchFailed
+
+
+class HtmlExtractor(Protocol):  # v1.1: split from TextExtractor (SEARXNG)
+    def html_to_markdown(self, html: str, url: str) -> str: ...
+
+
+class PdfExtractor(Protocol):  # v1.1: split from TextExtractor (RAG)
+    def pdf_to_text(self, data: bytes) -> tuple[str, tuple[tuple[int, int], ...]]: ...
+
+
+# ---- RAG (BACKEND_PLAN §7) ------------------------------------------------------------------
+
+
+class Embedder(Protocol):
+    name: str
+    dim: int
+    max_tokens: int
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]: ...
+
+    def embed_query(self, text: str) -> list[float]: ...
+
+
+class VectorStore(Protocol):
+    def upsert(self, chunks: list[EvidenceChunk], vectors: list[list[float]]) -> None: ...
+
+    def query(
+        self,
+        vector: list[float],
+        scopes: list[str],
+        n: int,
+        source_keys: list[str] | None = None,  # v1.1
+    ) -> list[tuple[str, float]]:
+        """(chunk id, cosine distance), nearest first."""
+        ...
+
+    def get(self, ids: list[str]) -> list[EvidenceChunk]: ...
+
+    def iter_chunks(self, scope: str) -> Iterator[EvidenceChunk]: ...
+
+    def delete_scope(self, scope: str) -> int: ...
+
+    def delete_source(self, scope: str, source_key: str) -> int: ...
+
+    def count(self, scope: str | None = None) -> int: ...
+
+
+class EmbeddingCache(Protocol):
+    def get_many(self, model: str, keys: list[str]) -> dict[str, list[float]]: ...
+
+    def put_many(self, model: str, items: dict[str, list[float]]) -> None: ...
+
+    def stats(self) -> dict[str, int]: ...
+
+
+@dataclass(frozen=True)
+class SourceText:
+    """Input to indexing: one fetched or extracted source."""
+
+    scope: str
+    source_kind: SourceKind
+    source_key: str
+    title: str
+    text: str  # Markdown or plain text
+    url: str | None = None
+    document_id: str | None = None
+    document_name: str | None = None
+    pages: tuple[tuple[int, int], ...] = ()  # (page number, start offset) for PDFs
+
+
+class Indexer(Protocol):
+    def index(self, sources: list[SourceText]) -> list[EvidenceChunk]: ...
+
+    def adopt(self, chunks: list[EvidenceChunk], scope: str) -> list[EvidenceChunk]: ...  # v1.1
+
+    def remove(self, scope: str, source_key: str | None = None) -> int: ...  # v1.1
+
+
+@dataclass(frozen=True)
+class RetrievedChunk:
+    chunk: EvidenceChunk
+    score: float  # for ordering only
+
+
+class Retriever(Protocol):
+    def search(
+        self, query: str, scopes: list[str], k: int, source_keys: list[str] | None = None
+    ) -> list[RetrievedChunk]: ...
+
+    def get(self, chunk_ids: list[str]) -> list[EvidenceChunk]: ...
+
+
+# ---- documents (RAG) --------------------------------------------------------------------------
+
+
+class DocumentRepository(Protocol):
+    def save(self, document: Document) -> None: ...
+
+    def get(self, document_id: str) -> Document | None: ...
+
+    def list(self, workspace_id: str) -> builtins.list[Document]: ...
+
+    def by_hash(self, workspace_id: str, sha256: str) -> Document | None: ...
+
+    def delete(self, document_id: str) -> None: ...
+
+    def with_status(self, status: DocumentStatus) -> builtins.list[Document]: ...
+
+    def get_workspace(self, workspace_id: str) -> Workspace | None: ...
+
+    def upsert_workspace(self, workspace: Workspace) -> None: ...
+
+    def delete_workspace(self, workspace_id: str) -> None: ...
+
+    def expired(self, now: datetime) -> builtins.list[Workspace]: ...
+
+
+# ---- webhooks and Telegram (WEBHOOKS) ----------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class SendResult:
+    ok: bool
+    status: int | None = None
+    retry_after_s: float | None = None  # Telegram 429 / Retry-After
+    error: str | None = None  # short, never a secret
+
+
+class OutboxRepository(Protocol):
+    def add(self, message: OutboxMessage) -> None: ...  # v1.1: standalone bot replies
+
+    def due(self, now: datetime, limit: int) -> list[OutboxMessage]: ...
+
+    def mark_delivered(self, message_id: str, at: datetime, status: int | None = None) -> None: ...
+
+    def mark_retry(
+        self,
+        message_id: str,
+        attempts: int,
+        next_at: str,
+        error: str,
+        status: int | None = None,
+    ) -> None: ...
+
+    def mark_dead(
+        self, message_id: str, attempts: int, error: str, status: int | None = None
+    ) -> None: ...
+
+    def for_run(self, run_id: str) -> list[OutboxMessage]: ...
+
+    def delete_older_than(self, cutoff_iso: str) -> int: ...
+
+    def counts(self) -> dict[str, float]: ...  # pending, dead, oldest_pending_s
+
+
+class TelegramGateway(Protocol):
+    def send_message(self, chat_id: str, text: str) -> SendResult: ...
+
+
+class WebhookSender(Protocol):
+    def post(self, url: str, body: bytes, headers: dict[str, str]) -> SendResult: ...
+
+
+class UpdateLedger(Protocol):
+    def seen(self, update_id: int) -> bool: ...  # atomic insert-or-ignore: True = duplicate
+
+    def forget_older_than(self, cutoff_iso: str) -> int: ...

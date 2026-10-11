@@ -42,6 +42,67 @@ CREATE TABLE IF NOT EXISTS settings (
     name        TEXT PRIMARY KEY,
     value       TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS search_cache (
+    key           TEXT PRIMARY KEY,
+    response_json TEXT NOT NULL,
+    fetched_at    REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS page_cache (
+    url_hash      TEXT PRIMARY KEY,
+    url           TEXT NOT NULL,
+    text          TEXT NOT NULL,
+    media_type    TEXT NOT NULL,
+    fetched_at    REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS embedding_cache (
+    model         TEXT NOT NULL,
+    key           TEXT NOT NULL,
+    vector        BLOB NOT NULL,
+    PRIMARY KEY (model, key)
+);
+CREATE TABLE IF NOT EXISTS workspaces (
+    id            TEXT PRIMARY KEY,
+    created_at    TEXT NOT NULL,
+    expires_at    TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS documents (
+    id            TEXT PRIMARY KEY,
+    workspace_id  TEXT NOT NULL,
+    name          TEXT NOT NULL,
+    media_type    TEXT NOT NULL,
+    size_bytes    INTEGER NOT NULL,
+    sha256        TEXT NOT NULL,
+    status        TEXT NOT NULL,
+    pages         INTEGER,
+    chunks        INTEGER NOT NULL DEFAULT 0,
+    error         TEXT,
+    created_at    TEXT NOT NULL,
+    expires_at    TEXT
+);
+CREATE INDEX IF NOT EXISTS documents_by_ws ON documents (workspace_id);
+CREATE UNIQUE INDEX IF NOT EXISTS documents_ws_hash ON documents (workspace_id, sha256);
+CREATE TABLE IF NOT EXISTS outbox (
+    id              TEXT PRIMARY KEY,
+    run_id          TEXT NOT NULL,
+    kind            TEXT NOT NULL,
+    event           TEXT NOT NULL,
+    target          TEXT NOT NULL,
+    secret          TEXT,  -- v1.1: always NULL (callback secrets are derived)
+    payload_json    TEXT NOT NULL,
+    status          TEXT NOT NULL,
+    attempts        INTEGER NOT NULL DEFAULT 0,
+    next_attempt_at TEXT NOT NULL,
+    last_status     INTEGER,
+    last_error      TEXT,
+    created_at      TEXT NOT NULL,
+    delivered_at    TEXT
+);
+CREATE INDEX IF NOT EXISTS outbox_due ON outbox (status, next_attempt_at);
+CREATE INDEX IF NOT EXISTS outbox_by_run ON outbox (run_id);
+CREATE TABLE IF NOT EXISTS telegram_updates (
+    update_id     INTEGER PRIMARY KEY,
+    received_at   TEXT NOT NULL
+);
 """
 
 

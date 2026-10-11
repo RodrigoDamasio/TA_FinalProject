@@ -105,3 +105,99 @@ class LLMRequestRejected(LLMError):
 
 class LLMBadResponse(LLMError):
     """The model's answer could not be turned into a valid result."""
+
+
+# ---- tools: search and fetching (v1.1) ---------------------------------------------------
+
+
+class SearchUnavailable(DomainError):
+    """Web search failed (timeout, bad response, every engine blocked)."""
+
+
+class FetchRefused(DomainError):
+    """The SSRF guard refused a URL. `reason` names the rule, never a resolved address."""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
+
+
+class FetchFailed(DomainError):
+    """A permitted fetch failed (timeout, http 404, too large, unsupported type…)."""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
+
+
+# ---- RAG and documents (v1.1) -------------------------------------------------------------
+
+
+class ModelsLoading(DomainError):
+    def __init__(self) -> None:
+        super().__init__("The search models are still loading; try again in a moment.")
+
+
+class ExtractionError(DomainError):
+    """Text could not be extracted from a document. The message is user-safe."""
+
+
+class InvalidWorkspace(DomainError):
+    def __init__(self) -> None:
+        super().__init__("Send a valid X-Workspace-Id header (a lowercase UUIDv4).")
+
+
+class DocumentNotFound(DomainError):
+    def __init__(self, document_id: str) -> None:
+        super().__init__(f"No document with id '{document_id}' in this workspace.")
+        self.document_id = document_id
+
+
+class DemoReadOnly(DomainError):
+    def __init__(self) -> None:
+        super().__init__("Demo library documents cannot be deleted.")
+
+
+class UnsupportedMediaType(DomainError):
+    def __init__(self) -> None:
+        super().__init__("Only .md, .txt and .pdf files are accepted (checked by content).")
+
+
+class FileTooLarge(DomainError):
+    def __init__(self, limit_bytes: int) -> None:
+        super().__init__(f"The file is larger than {limit_bytes // (1024 * 1024)} MB.")
+        self.limit_bytes = limit_bytes
+
+
+class WorkspaceQuotaExceeded(DomainError):
+    pass
+
+
+class IndexingBusy(DomainError):
+    def __init__(self) -> None:
+        super().__init__("Too many documents are being indexed; try again shortly.")
+
+
+# ---- webhooks (v1.1) ------------------------------------------------------------------------
+
+
+class InvalidCallbackUrl(DomainError):
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"callback_url is not allowed: {reason}.")
+        self.reason = reason
+
+
+class WebhookUnauthorized(DomainError):
+    def __init__(self) -> None:
+        super().__init__("Missing or wrong webhook secret.")
+
+
+# ---- step 3 stubs ---------------------------------------------------------------------------
+
+
+class FeatureNotReady(DomainError):
+    """Raised by contract stubs until their owner implements them (501). Remove its uses."""
+
+    def __init__(self, feature: str) -> None:
+        super().__init__(f"{feature} is not implemented yet.")
+        self.feature = feature

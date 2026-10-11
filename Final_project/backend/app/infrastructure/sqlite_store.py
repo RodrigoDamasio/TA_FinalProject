@@ -99,15 +99,16 @@ class SqliteRunRepository(_Store):
             ]
         return [run_from_dict(json.loads(r["state_json"])) for r in rows]
 
-    def delete_older_than(self, cutoff_iso: str) -> int:
-        """Retention: finished runs (and their events) not updated since the cutoff."""
+    def delete_older_than(self, cutoff_iso: str) -> list[str]:
+        """Retention: finished runs (and their events) not updated since the cutoff.
+        Returns the deleted ids, so their evidence scopes can be removed too (v1.1)."""
         done = (RunStatus.COMPLETED.value, RunStatus.FAILED.value, RunStatus.CANCELLED.value)
         with self._lock, self._conn() as conn:
             ids = [r["id"] for r in conn.execute(_OLD_RUNS, (cutoff_iso, *done))]
             for run_id in ids:
                 conn.execute(_DELETE_EVENTS, (run_id,))
                 conn.execute(_DELETE_RUN, (run_id,))
-        return len(ids)
+        return ids
 
     def status_counts(self) -> dict[str, int]:
         with self._conn() as conn:
@@ -128,7 +129,7 @@ class SqliteMemoryRepository(_Store):
                     memory.run_id,
                     memory.question,
                     memory.summary,
-                    json.dumps(memory.source_titles),
+                    json.dumps(memory.reference_titles),
                     memory.created_at,
                 ),
             )
