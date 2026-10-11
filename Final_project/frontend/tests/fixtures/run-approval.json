@@ -1,0 +1,327 @@
+{
+ "run_id": "run_a4c1a1eb9bf5",
+ "status": "awaiting_approval",
+ "question": "Compare SQLite and PostgreSQL for small apps",
+ "depth": "technical",
+ "sources": [
+  "wikipedia"
+ ],
+ "channel": "web",
+ "report": null,
+ "metadata": {
+  "iterations": 4,
+  "iteration_limit": 6,
+  "max_iterations": 6,
+  "agents_used": [
+   "Researcher",
+   "Writer",
+   "Reviewer"
+  ],
+  "duration_seconds": null,
+  "forced": false,
+  "degraded": false,
+  "llm_calls": 8,
+  "cached_calls": 0,
+  "tool_calls": 1,
+  "evidence": 3,
+  "tokens": {
+   "input": 13152,
+   "output": 640
+  },
+  "est_cost_usd": 0.001571,
+  "per_agent": {
+   "Supervisor": {
+    "calls": 4,
+    "tokens": 8845,
+    "duration_ms": 5
+   },
+   "Researcher": {
+    "calls": 2,
+    "tokens": 1630,
+    "duration_ms": 10
+   },
+   "Writer": {
+    "calls": 1,
+    "tokens": 1036,
+    "duration_ms": 2
+   },
+   "Reviewer": {
+    "calls": 1,
+    "tokens": 2281,
+    "duration_ms": 12
+   }
+  },
+  "grounding": null,
+  "models": {
+   "supervisor": "demo",
+   "workers": "demo"
+  },
+  "prompt_version": "3",
+  "generated_by": "demo mode (no LLM)",
+  "created_at": "2026-10-11T13:08:51+00:00",
+  "started_at": "2026-10-11T13:08:51+00:00",
+  "finished_at": null
+ },
+ "conversation_history": [
+  {
+   "seq": 1,
+   "iteration": 1,
+   "agent": "Supervisor",
+   "model": "demo",
+   "llm_calls": 1,
+   "cached": false,
+   "duration_ms": 1,
+   "tokens": {
+    "input": 1298,
+    "output": 80,
+    "thinking": 0
+   },
+   "action": "DELEGATE",
+   "target_agent": "Researcher",
+   "task": "Find the key facts about: Compare SQLite and PostgreSQL for small apps",
+   "delegations": [
+    {
+     "target_agent": "Researcher",
+     "task": "Find the key facts about: Compare SQLite and PostgreSQL for small apps"
+    }
+   ],
+   "reason": "Next step is the researcher.",
+   "repaired": false
+  },
+  {
+   "seq": 2,
+   "iteration": 1,
+   "agent": "Researcher",
+   "model": "demo",
+   "llm_calls": 1,
+   "cached": false,
+   "duration_ms": 4,
+   "tokens": {
+    "input": 735,
+    "output": 80,
+    "thinking": 0
+   },
+   "action": "TOOL_CALL",
+   "tool": "search_wikipedia",
+   "args": {
+    "query": "compare sqlite and postgresql for small apps"
+   },
+   "status": "ok",
+   "provider": "wikipedia",
+   "fallback": null,
+   "results": 3,
+   "evidence": [
+    "E1",
+    "E2",
+    "E3"
+   ],
+   "error": null,
+   "weak": false,
+   "repeat": false
+  },
+  {
+   "seq": 3,
+   "iteration": 1,
+   "agent": "Researcher",
+   "model": "demo",
+   "llm_calls": 2,
+   "cached": false,
+   "duration_ms": 10,
+   "tokens": {
+    "input": 1470,
+    "output": 160,
+    "thinking": 0
+   },
+   "action": "RESULT",
+   "task": "Find the key facts about: Compare SQLite and PostgreSQL for small apps",
+   "content": "### Findings\n- A relevant fact from the evidence [E1].\n- A relevant fact from the evidence [E2].\n- A relevant fact from the evidence [E3].\n\nGaps: none (demo mode).",
+   "evidence": [
+    "E1",
+    "E2",
+    "E3"
+   ],
+   "data": {
+    "tool_calls": 1,
+    "capped": false,
+    "tools": {
+     "search_wikipedia": 1
+    },
+    "queries": [
+     "compare sqlite and postgresql for small apps"
+    ],
+    "fallbacks": 0,
+    "repeats": 0,
+    "rewrites": 0,
+    "evidence_seen": [
+     1,
+     2,
+     3
+    ],
+    "evidence_cited": [
+     1,
+     2,
+     3
+    ],
+    "summary": "researcher used search_wikipedia \u00d71 \u00b7 3 evidence, 3 cited"
+   },
+   "failed": false,
+   "unsourced": false
+  },
+  {
+   "seq": 4,
+   "iteration": 2,
+   "agent": "Supervisor",
+   "model": "demo",
+   "llm_calls": 1,
+   "cached": false,
+   "duration_ms": 1,
+   "tokens": {
+    "input": 1431,
+    "output": 80,
+    "thinking": 0
+   },
+   "action": "DELEGATE",
+   "target_agent": "Writer",
+   "task": "Write the report from the research findings and evidence.",
+   "delegations": [
+    {
+     "target_agent": "Writer",
+     "task": "Write the report from the research findings and evidence."
+    }
+   ],
+   "reason": "Next step is the writer.",
+   "repaired": false
+  },
+  {
+   "seq": 5,
+   "iteration": 2,
+   "agent": "Writer",
+   "model": "demo",
+   "llm_calls": 1,
+   "cached": false,
+   "duration_ms": 2,
+   "tokens": {
+    "input": 956,
+    "output": 80,
+    "thinking": 0
+   },
+   "action": "RESULT",
+   "task": "Write the report from the research findings and evidence.",
+   "content": "# Compare SQLite and PostgreSQL for small apps\n\nDemo summary: the evidence covers the main points of this question [E1].\n\n## Overview\n\nDemo draft written from the research findings [E1][E2][E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3].\n\n## Notes\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1].\n\n## Trade-offs\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2].\n\n## Practical implications\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3].\n\n## Open questions\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1].",
+   "evidence": [
+    "E1",
+    "E2",
+    "E3"
+   ],
+   "data": {
+    "words": 902,
+    "sections": 5
+   },
+   "failed": false,
+   "unsourced": false
+  },
+  {
+   "seq": 6,
+   "iteration": 3,
+   "agent": "Supervisor",
+   "model": "demo",
+   "llm_calls": 1,
+   "cached": false,
+   "duration_ms": 1,
+   "tokens": {
+    "input": 2844,
+    "output": 80,
+    "thinking": 0
+   },
+   "action": "DELEGATE",
+   "target_agent": "Reviewer",
+   "task": "Review the latest draft against the question and the findings.",
+   "delegations": [
+    {
+     "target_agent": "Reviewer",
+     "task": "Review the latest draft against the question and the findings."
+    }
+   ],
+   "reason": "Next step is the reviewer.",
+   "repaired": false
+  },
+  {
+   "seq": 7,
+   "iteration": 3,
+   "agent": "Reviewer",
+   "model": "demo",
+   "llm_calls": 1,
+   "cached": false,
+   "duration_ms": 12,
+   "tokens": {
+    "input": 2201,
+    "output": 80,
+    "thinking": 0
+   },
+   "action": "RESULT",
+   "task": "Review the latest draft against the question and the findings.",
+   "content": "Verdict: APPROVE\nIssues:\n- (low, task_fit) Demo review: a short example would help.\nBalance: none\nChecks: 902 words (800\u20131400) \u00b7 5 sections (5\u20137) \u00b7 0 of 5 paragraphs uncited \u00b7 0 unknown citations",
+   "evidence": [],
+   "data": {
+    "verdict": "approve",
+    "issues": [
+     {
+      "severity": "low",
+      "category": "task_fit",
+      "section": null,
+      "text": "Demo review: a short example would help.",
+      "origin": "model"
+     }
+    ],
+    "balance_flags": [],
+    "checks": {
+     "words": 902,
+     "word_range": [
+      800,
+      1400
+     ],
+     "sections": 5,
+     "section_range": [
+      5,
+      7
+     ],
+     "has_title": true,
+     "unknown": [],
+     "uncited_paragraphs": 0,
+     "paragraphs": 5
+    },
+    "verdict_overridden": false
+   },
+   "failed": false,
+   "unsourced": false
+  },
+  {
+   "seq": 8,
+   "iteration": 4,
+   "agent": "Supervisor",
+   "model": "demo",
+   "llm_calls": 1,
+   "cached": false,
+   "duration_ms": 2,
+   "tokens": {
+    "input": 2952,
+    "output": 80,
+    "thinking": 0
+   },
+   "action": "FINAL",
+   "reason": "The draft was reviewed and approved.",
+   "forced": false
+  }
+ ],
+ "final_output": null,
+ "flags": [],
+ "memory_used": [],
+ "error": null,
+ "approval": {
+  "required": true,
+  "draft": "# Compare SQLite and PostgreSQL for small apps\n\nDemo summary: the evidence covers the main points of this question [E1].\n\n## Overview\n\nDemo draft written from the research findings [E1][E2][E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3].\n\n## Notes\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1].\n\n## Trade-offs\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2].\n\n## Practical implications\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3].\n\n## Open questions\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1].",
+  "expires_at": "2026-10-11T13:38:51+00:00",
+  "revisions": 0
+ },
+ "sample": false
+}

@@ -1,0 +1,134 @@
+{
+ "workspace": {
+  "id": "2330a82c-698e-4186-9140-a978f59490d2",
+  "created_at": "2026-10-11T13:31:24+00:00",
+  "expires_at": "2026-10-12T13:31:24+00:00",
+  "bytes_used": 179,
+  "documents": 1,
+  "limits": {
+   "max_documents": 10,
+   "max_bytes": 20971520
+  }
+ },
+ "documents": [
+  {
+   "id": "doc_a9b7adc3df08",
+   "name": "quokka-notes.md",
+   "media_type": "text/markdown",
+   "size_bytes": 179,
+   "status": "ready",
+   "pages": null,
+   "chunks": 1,
+   "error": null,
+   "created_at": "2026-10-11T13:31:24+00:00",
+   "expires_at": "2026-10-12T13:31:24+00:00",
+   "demo": false
+  }
+ ],
+ "demo": [
+  {
+   "id": "doc_29f48d67a4ff",
+   "name": "agentic-rag.md",
+   "media_type": "text/markdown",
+   "size_bytes": 15994,
+   "status": "ready",
+   "pages": null,
+   "chunks": 20,
+   "error": null,
+   "created_at": "2026-10-11T13:31:05+00:00",
+   "expires_at": null,
+   "demo": true
+  },
+  {
+   "id": "doc_4d7974a3a619",
+   "name": "nist-ai-rmf-1.0.pdf",
+   "media_type": "application/pdf",
+   "size_bytes": 1946127,
+   "status": "ready",
+   "pages": 48,
+   "chunks": 108,
+   "error": null,
+   "created_at": "2026-10-11T13:31:05+00:00",
+   "expires_at": null,
+   "demo": true
+  },
+  {
+   "id": "doc_77728bfd2700",
+   "name": "securing-ai-applications.md",
+   "media_type": "text/markdown",
+   "size_bytes": 18601,
+   "status": "ready",
+   "pages": null,
+   "chunks": 24,
+   "error": null,
+   "created_at": "2026-10-11T13:31:05+00:00",
+   "expires_at": null,
+   "demo": true
+  },
+  {
+   "id": "doc_7b23463371fb",
+   "name": "standard-webhooks-spec.md",
+   "media_type": "text/markdown",
+   "size_bytes": 28287,
+   "status": "ready",
+   "pages": null,
+   "chunks": 35,
+   "error": null,
+   "created_at": "2026-10-11T13:31:05+00:00",
+   "expires_at": null,
+   "demo": true
+  },
+  {
+   "id": "doc_97e51eef719b",
+   "name": "vector-store-operations-notes.txt",
+   "media_type": "text/plain",
+   "size_bytes": 3449,
+   "status": "ready",
+   "pages": null,
+   "chunks": 3,
+   "error": null,
+   "created_at": "2026-10-11T13:31:05+00:00",
+   "expires_at": null,
+   "demo": true
+  },
+  {
+   "id": "doc_a71a0e7b8cd0",
+   "name": "rag-and-vector-databases.md",
+   "media_type": "text/markdown",
+   "size_bytes": 14003,
+   "status": "ready",
+   "pages": null,
+   "chunks": 20,
+   "error": null,
+   "created_at": "2026-10-11T13:31:05+00:00",
+   "expires_at": null,
+   "demo": true
+  },
+  {
+   "id": "doc_d1fbfddc0ea9",
+   "name": "tool-use-design-pattern.md",
+   "media_type": "text/markdown",
+   "size_bytes": 20802,
+   "status": "ready",
+   "pages": null,
+   "chunks": 25,
+   "error": null,
+   "created_at": "2026-10-11T13:31:05+00:00",
+   "expires_at": null,
+   "demo": true
+  },
+  {
+   "id": "doc_f3742fefd8d5",
+   "name": "multi-agent-design.md",
+   "media_type": "text/markdown",
+   "size_bytes": 16646,
+   "status": "ready",
+   "pages": null,
+   "chunks": 20,
+   "error": null,
+   "created_at": "2026-10-11T13:31:05+00:00",
+   "expires_at": null,
+   "demo": true
+  }
+ ]
+}

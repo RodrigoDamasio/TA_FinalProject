@@ -1,0 +1,44 @@
+{
+ "status": "ok",
+ "service_level": "full",
+ "service_reason": null,
+ "retry_after_s": null,
+ "llm_mode": "fake",
+ "wikipedia": "fake",
+ "search": {
+  "mode": "fake",
+  "available": true
+ },
+ "embedder": {
+  "mode": "fake",
+  "status": "ready"
+ },
+ "telegram": {
+  "mode": "off",
+  "configured": false,
+  "secret_fingerprint": null
+ },
+ "outbox": {
+  "pending": 0.0,
+  "dead": 0.0,
+  "oldest_pending_s": 0.0
+ },
+ "models": {
+  "supervisor": "demo",
+  "workers": "demo"
+ },
+ "prompt_version": "3",
+ "usage_today": {
+  "calls": 0,
+  "limit": 900
+ },
+ "limits": {
+  "question_min_chars": 10,
+  "question_max_chars": 2000,
+  "default_max_iterations": 5,
+  "max_iterations_limit": 8,
+  "max_parallel_delegations": 2,
+  "approval_timeout_min": 30,
+  "feedback_max_chars": 1000
+ }
+}
