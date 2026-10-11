@@ -7,6 +7,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
+    testTimeout: 20_000, // userEvent typing is slow under coverage
     include: ["tests/**/*.test.{ts,tsx}"],
     coverage: {
       include: ["lib/**", "components/**", "hooks/**"],

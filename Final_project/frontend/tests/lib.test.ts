@@ -10,7 +10,29 @@ import {
   resultNote,
   working,
 } from "@/lib/agents";
-import { citedIds, linkCitations, safeUrl } from "@/lib/citations";
+import {
+  addTurn,
+  CHATS_KEY,
+  chatFromView,
+  chatOfRun,
+  currentChat,
+  EMPTY,
+  importLegacy,
+  isConversationId,
+  isRunId,
+  LEGACY_THREAD_KEY,
+  legacyConversationId,
+  loadChats,
+  markReadOnly,
+  MAX_CHATS,
+  mergeConversation,
+  removeChat,
+  saveChats,
+  setCurrent,
+  upsertChat,
+} from "@/lib/chats";
+import { citedIds, linkCitations, plainPreview, safeUrl } from "@/lib/citations";
+import { COLLAPSE_KEY, isExpanded, loadOverrides, resetRuns, saveOverrides, setAll } from "@/lib/collapse";
 import { parseEvent, subscribe } from "@/lib/events";
 import {
   domain,
@@ -20,25 +42,34 @@ import {
   formatDate,
   formatDuration,
   formatMs,
+  formatRelative,
   plural,
   shorten,
 } from "@/lib/format";
 import { replayFrames } from "@/lib/replay";
 import { orderedSources, reportToMarkdown, sourceLocation } from "@/lib/report";
 import {
+  AcceptedSchema,
+  ConversationSchema,
   DocumentListSchema,
   EntrySchema,
   HealthSchema,
   ResearchViewSchema,
   type ResultEntry,
   type RunEvent,
+  ToolSpecSchema,
 } from "@/lib/schemas";
-import { addToThread, isRunId, loadThread, MAX_THREAD, removeFromThread, saveThread, THREAD_KEY } from "@/lib/thread";
 import { evidenceRange, rewriteMarkers, toolInfo, toolInput } from "@/lib/tools";
 import { getWorkspaceId, isWorkspaceId, newWorkspaceId, resetWorkspaceMemory, WORKSPACE_KEY } from "@/lib/workspace";
 import {
+  acceptedFollowup,
   approvalRun,
+  CONV,
   completedRun,
+  conversation,
+  conversationRunning,
+  followupRun,
+  followupWithContext,
   documentsRun,
   liveEvents,
   notice,
@@ -47,6 +78,7 @@ import {
   runView,
   toolCall,
   toolStory,
+  turn1Run,
 } from "./fixtures";
 
 const ev = (e: Omit<RunEvent, "id">, id = 1) => ({ ...e, id }) as RunEvent;
@@ -73,6 +105,43 @@ describe("schemas parse every real fixture", () => {
       conversation_history: [...raw.completed.conversation_history, { ...base, seq: 99, action: "NEW_THING" }],
     });
     expect(parsed.conversation_history.at(-1)?.action).toBe("NEW_THING");
+  });
+});
+
+describe("v1.2 conversations: schemas", () => {
+  it("parse the recorded 2-turn chat, its 202s and GET /conversations", () => {
+    expect(turn1Run).toMatchObject({ conversation_id: CONV, turn: 1 });
+    expect(turn1Run.metadata.context_turns).toBe(0);
+    expect(followupRun).toMatchObject({ conversation_id: CONV, turn: 2, question: "and cost?" });
+    expect(acceptedFollowup).toMatchObject({ conversation_id: CONV, turn: 2 });
+    expect(conversation.max_turns).toBe(30);
+    expect(conversation.turns.map((t) => [t.turn, t.status])).toEqual([
+      [1, "completed"],
+      [2, "completed"],
+    ]);
+    expect(conversationRunning.turns[1]).toMatchObject({ status: "running", title: null });
+    expect(ConversationSchema.safeParse({ conversation_id: CONV, turns: [] }).success).toBe(false);
+  });
+
+  it("older views and 202s (no conversation fields) still parse", () => {
+    expect(completedRun.conversation_id).toBeUndefined();
+    expect(completedRun.metadata.context_turns).toBe(0);
+    expect(AcceptedSchema.parse(raw.accepted).turn).toBeUndefined();
+  });
+
+  it("context_turns and a search_conversation call (phase C) parse", () => {
+    const v = ResearchViewSchema.parse(followupWithContext());
+    expect(v.metadata.context_turns).toBe(1);
+    const tools = v.conversation_history.filter((e) => e.action === "TOOL_CALL").map((e) => (e as { tool: string }).tool);
+    expect(tools).toEqual(["search_conversation", "search_web"]);
+    expect(v.conversation_history.map((e) => e.seq)).toEqual(v.conversation_history.map((_, i) => i + 1));
+  });
+
+  it("tool families: conversation and unknown future ones are accepted", () => {
+    const spec = { name: "search_conversation", family: "conversation", description: "Search earlier turns." };
+    expect(ToolSpecSchema.parse(spec).family).toBe("conversation");
+    expect(ToolSpecSchema.parse({ ...spec, name: "search_maps", family: "maps", parameters: {} }).family).toBe("maps");
+    expect(ToolSpecSchema.safeParse({ name: "x", description: "y" }).success).toBe(false);
   });
 });
 
@@ -198,6 +267,7 @@ describe("tool calls", () => {
   it("labels, inputs and evidence ranges", () => {
     expect(toolInfo("search_web").label).toBe("Web search");
     expect(toolInfo("mystery_tool").label).toBe("mystery tool");
+    expect(toolInfo("search_conversation")).toEqual({ icon: "💬", label: "earlier turns" });
     expect(toolInput(toolCall({ args: { query: "rag" } }))).toBe("rag");
     expect(toolInput(toolCall({ args: { evidence_id: "E3" } }))).toBe("E3");
     expect(toolInput(toolCall({ args: { other: "x" } }))).toBe("x");
@@ -229,6 +299,7 @@ describe("citations, report and safe links", () => {
     expect(linkCitations("`[E1]` and [E1][E3]", known)).toBe("`[E1]` and [E1](#cite-E1)[E3](#cite-E3)");
     expect(linkCitations("```\n[E1]\n```\n[E1](https://x)", known)).toBe("```\n[E1]\n```\n[E1](https://x)");
     expect(citedIds("x [E3] y [E1, E2] [E3]")).toEqual(["E3", "E1", "E2"]);
+    expect(plainPreview("RAG is **cheap** [E1]. It [E2, E3] works  well [E4].")).toBe("RAG is cheap. It works well.");
   });
 
   it("keeps only http(s) and anchors", () => {
@@ -256,33 +327,122 @@ describe("citations, report and safe links", () => {
   });
 });
 
-describe("thread storage (v2)", () => {
-  const item = (n: number) => ({ run_id: `run_${n.toString(16).padStart(4, "0")}`, question: `q${n}`, created_at: "t" });
+describe("chat storage (v3)", () => {
+  const T = (n: number, at = `2026-10-11T10:0${n}:00Z`) => ({
+    run_id: `run_${n.toString(16).padStart(4, "0")}`,
+    turn: n,
+    question: `q${n}`,
+    created_at: at,
+  });
+  const cid = (n: number) => `conv_${n.toString(16).padStart(16, "0")}`;
   afterEach(() => {
     window.localStorage.clear();
     vi.restoreAllMocks();
   });
 
-  it("adds, moves to the end, caps and removes", () => {
-    let items = [item(1), item(2)];
-    items = addToThread(items, item(1));
-    expect(items.map((i) => i.question)).toEqual(["q2", "q1"]);
-    for (let n = 3; n < 30; n++) items = addToThread(items, item(n));
-    expect(items).toHaveLength(MAX_THREAD);
-    expect(removeFromThread(items, items[0].run_id)).toHaveLength(MAX_THREAD - 1);
+  it("ids: runs, conversations and the backend's legacy rule", () => {
     expect(isRunId("run_abc")).toBe(true);
     expect(isRunId("run_XYZ")).toBe(false);
+    expect(isConversationId(CONV)).toBe(true);
+    expect(isConversationId("conv_XYZ")).toBe(false);
+    expect(legacyConversationId("run_abcdef012345")).toBe("conv_abcdef0123450000"); // backend test value
   });
 
-  it("round-trips, ignores v1 entries and bad items", () => {
-    saveThread([item(1)]);
-    expect(loadThread()).toEqual([item(1)]);
-    window.localStorage.setItem(THREAD_KEY, JSON.stringify([{ run_id: "run_ab", task: "v1 shape" }, item(2)]));
-    expect(loadThread()).toEqual([item(2)]);
-    window.localStorage.setItem(THREAD_KEY, "{broken");
-    expect(loadThread()).toEqual([]);
-    window.localStorage.setItem(THREAD_KEY, JSON.stringify({ not: "a list" }));
-    expect(loadThread()).toEqual([]);
+  it("adds turns (a new chat becomes current), follow-ups keep the title, newest chat first", () => {
+    let s = addTurn(EMPTY, cid(1), T(1));
+    expect(s.current).toBe(cid(1));
+    s = addTurn(s, cid(1), { ...T(2), question: "and cost?" });
+    expect(currentChat(s)?.title).toBe("q1");
+    expect(currentChat(s)?.turns.map((t) => t.turn)).toEqual([1, 2]);
+    s = addTurn(s, cid(2), T(3));
+    expect(s.chats.map((c) => c.conversation_id)).toEqual([cid(2), cid(1)]);
+    expect(chatOfRun(s, T(2).run_id)?.conversation_id).toBe(cid(1));
+    expect(chatOfRun(s, "run_ffff")).toBeNull();
+    s = setCurrent(s, cid(1));
+    s = removeChat(s, cid(1));
+    expect(s.current).toBeNull();
+    expect(s.chats).toHaveLength(1);
+    expect(removeChat(addTurn(s, cid(5), T(5)), cid(2)).current).toBe(cid(5));
+  });
+
+  it("keeps the newest MAX_CHATS, never the current one dropped", () => {
+    let s = addTurn(EMPTY, cid(0), T(1, "2000-01-01T00:00:00Z"));
+    for (let n = 1; n <= MAX_CHATS + 2; n++) {
+      const other = addTurn(EMPTY, cid(n), T(1, `2026-10-11T10:${String(n).padStart(2, "0")}:00Z`)).chats[0];
+      s = upsertChat(s, other); // the current chat (cid 0) is the oldest
+    }
+    expect(s.chats).toHaveLength(MAX_CHATS);
+    expect(s.chats.some((c) => c.conversation_id === cid(0))).toBe(true);
+  });
+
+  it("merges the server's turns, keeping local sources and turns still in flight", () => {
+    let s = addTurn(EMPTY, CONV, { ...T(1), run_id: conversation.turns[0].run_id, sources: ["web"] });
+    s = addTurn(s, CONV, { ...T(3), run_id: "run_0003aa", turn: 3 });
+    s = mergeConversation(s, conversation);
+    const chat = currentChat(s)!;
+    expect(chat.turns.map((t) => t.run_id)).toEqual([...conversation.turns.map((t) => t.run_id), "run_0003aa"]);
+    expect(chat.turns[0].sources).toEqual(["web"]);
+    expect(chat.turns[1].question).toBe("and cost?");
+    // an unknown chat is created from the server's turns; an empty one changes nothing
+    const fresh = mergeConversation(EMPTY, conversationRunning);
+    expect(fresh.chats[0].title).toBe(conversation.turns[0].question);
+    expect(fresh.current).toBeNull();
+    expect(mergeConversation(EMPTY, { ...conversation, turns: [] })).toBe(EMPTY);
+  });
+
+  it("read-only chats: from a view without a conversation, or gone from the server", () => {
+    const own = chatFromView({ ...completedRun, conversation_id: undefined, turn: undefined }, "2026-10-11T00:00:00Z");
+    expect(own.conversation_id).toBe(legacyConversationId(completedRun.run_id));
+    expect(own.read_only).toBe(true);
+    expect(chatFromView(turn1Run, "x").conversation_id).toBe(CONV);
+    const s = addTurn(EMPTY, cid(1), T(1));
+    expect(currentChat(markReadOnly(s, cid(1)))?.read_only).toBe(true);
+    expect(markReadOnly(s, cid(9))).toBe(s);
+  });
+
+  it("round-trips, drops bad chats and turns, forgets an unknown current chat", () => {
+    const s = addTurn(EMPTY, cid(1), T(1));
+    saveChats(s);
+    expect(loadChats()).toEqual(s);
+    window.localStorage.setItem(
+      CHATS_KEY,
+      JSON.stringify({
+        current: cid(7),
+        chats: [
+          { ...s.chats[0], turns: [T(1), { run_id: "bad" }] },
+          { conversation_id: "nope", title: "x", created_at: "t", updated_at: "t", turns: [] },
+          "junk",
+        ],
+      }),
+    );
+    expect(loadChats()).toEqual({ current: null, chats: s.chats });
+    window.localStorage.setItem(CHATS_KEY, "{broken");
+    expect(loadChats()).toEqual(EMPTY);
+    window.localStorage.setItem(CHATS_KEY, JSON.stringify({ not: "chats" }));
+    expect(loadChats()).toEqual(EMPTY);
+  });
+
+  it("imports v2 items once: one read-only chat per run", () => {
+    const v2 = [
+      { run_id: "run_00aa", question: "Older", created_at: "2026-10-10T10:00:00Z", depth: "brief", sources: ["web"] },
+      { run_id: "run_ab", task: "v1 shape" },
+      { run_id: "run_00bb", question: "Newer", created_at: "2026-10-11T10:00:00Z" },
+    ];
+    window.localStorage.setItem(LEGACY_THREAD_KEY, JSON.stringify(v2));
+    const s = loadChats();
+    expect(s.current).toBeNull();
+    expect(s.chats.map((c) => [c.title, c.read_only, c.turns.length])).toEqual([
+      ["Newer", true, 1],
+      ["Older", true, 1],
+    ]);
+    expect(s.chats[1].conversation_id).toBe(legacyConversationId("run_00aa"));
+    expect(s.chats[1].turns[0]).toMatchObject({ depth: "brief", sources: ["web"], turn: 1 });
+    expect(window.localStorage.getItem(LEGACY_THREAD_KEY)).toBeNull();
+    expect(JSON.parse(window.localStorage.getItem(CHATS_KEY)!).chats).toHaveLength(2);
+    expect(importLegacy("{broken")).toEqual([]);
+    expect(importLegacy(JSON.stringify({ not: "a list" }))).toEqual([]);
+    expect(importLegacy(null)).toEqual([]);
+    expect(loadChats()).toEqual(s); // from v3 now
   });
 
   it("survives blocked storage", () => {
@@ -292,8 +452,34 @@ describe("thread storage (v2)", () => {
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new Error("blocked");
     });
-    expect(loadThread()).toEqual([]);
-    expect(() => saveThread([item(1)])).not.toThrow();
+    expect(loadChats()).toEqual(EMPTY);
+    expect(() => saveChats(EMPTY)).not.toThrow();
+    expect(loadOverrides()).toEqual({});
+    expect(() => saveOverrides({ a: true })).not.toThrow();
+  });
+});
+
+describe("collapsed turns", () => {
+  afterEach(() => window.sessionStorage.clear());
+
+  it("only the latest is expanded by default; choices override; a new question resets", () => {
+    expect(isExpanded({}, "run_1", true)).toBe(true);
+    expect(isExpanded({}, "run_1", false)).toBe(false);
+    let o = setAll({}, ["run_1", "run_2"], true);
+    expect(isExpanded(o, "run_1", false)).toBe(true);
+    o = setAll(o, ["run_2"], false);
+    expect(isExpanded(o, "run_2", true)).toBe(false);
+    o = resetRuns(o, ["run_1", "run_2"]);
+    expect(o).toEqual({});
+  });
+
+  it("is kept in sessionStorage; bad data is ignored", () => {
+    saveOverrides({ run_1: false });
+    expect(loadOverrides()).toEqual({ run_1: false });
+    window.sessionStorage.setItem(COLLAPSE_KEY, JSON.stringify({ run_1: "yes" }));
+    expect(loadOverrides()).toEqual({});
+    window.sessionStorage.setItem(COLLAPSE_KEY, "{broken");
+    expect(loadOverrides()).toEqual({});
   });
 });
 
@@ -355,6 +541,17 @@ describe("format", () => {
     expect(plural(2, "call")).toBe("2 calls");
     expect(flagLabel("cap_reached")).toBe("tool-call cap reached");
     expect(flagLabel("new_flag")).toBe("new flag");
+  });
+
+  it("relative times for the chat list", () => {
+    const now = Date.parse("2026-10-11T12:00:00Z");
+    expect(formatRelative("2026-10-11T11:59:30Z", now)).toBe("just now");
+    expect(formatRelative("2026-10-11T11:55:00Z", now)).toBe("5 min ago");
+    expect(formatRelative("2026-10-11T09:00:00Z", now)).toBe("3 h ago");
+    expect(formatRelative("2026-10-09T12:00:00Z", now)).toBe("2 d ago");
+    expect(formatRelative("2026-09-01T12:00:00Z", now)).toMatch(/Sep 1/);
+    expect(formatRelative("nope", now)).toBe("");
+    expect(formatRelative("2026-10-11T11:00:00Z", null)).toBe("");
   });
 });
 

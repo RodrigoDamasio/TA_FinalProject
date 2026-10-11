@@ -9,13 +9,13 @@ import ResearchApp from "@/components/ResearchApp";
 import RunDetails from "@/components/run/RunDetails";
 import ServiceBanner from "@/components/ServiceBanner";
 import Transcript from "@/components/transcript/Transcript";
-import { threadStore } from "@/hooks/useThread";
+import { chatStore, collapseStore } from "@/hooks/useChats";
 import * as api from "@/lib/api";
 import { ApiError } from "@/lib/api";
 import type { EventHandlers } from "@/lib/events";
 import { subscribe } from "@/lib/events";
 import type { Entry, ResearchView, RunEvent } from "@/lib/schemas";
-import { THREAD_KEY } from "@/lib/thread";
+import { CHATS_KEY, legacyConversationId } from "@/lib/chats";
 import { WORKSPACE_KEY } from "@/lib/workspace";
 import {
   acceptedView,
@@ -47,6 +47,7 @@ vi.mock("@/lib/api", async (importOriginal) => {
     samples: vi.fn(),
     sample: vi.fn(),
     startResearch: vi.fn(),
+    conversation: vi.fn(),
     getResearch: vi.fn(),
     approve: vi.fn(),
     reject: vi.fn(),
@@ -68,8 +69,24 @@ function emit(event: RunEvent) {
   act(() => streams[streams.length - 1].onEvent(event));
 }
 
-function accept(id = RUN) {
-  mocked.startResearch.mockResolvedValue({ ...acceptedView, run_id: id });
+const CHAT = "conv_00000000000000aa";
+
+function accept(id = RUN, conversation_id = CHAT, turn = 1) {
+  mocked.startResearch.mockResolvedValue({ ...acceptedView, run_id: id, conversation_id, turn });
+}
+
+/** Storage v3 with one current chat holding these runs as turns 1..n. */
+function seedChat(items: { run_id: string; question: string }[], conversation_id = CHAT, readOnly = false) {
+  const turns = items.map((t, i) => ({ ...t, turn: i + 1, created_at: `2026-10-11T1${i}:00:00Z` }));
+  const chat = {
+    conversation_id,
+    title: items[0].question,
+    created_at: turns[0].created_at,
+    updated_at: turns.at(-1)!.created_at,
+    turns,
+    ...(readOnly ? { read_only: true } : {}),
+  };
+  window.localStorage.setItem(CHATS_KEY, JSON.stringify({ current: conversation_id, chats: [chat] }));
 }
 
 async function ask(text = "What is retrieval augmented generation and when should I use it?") {
@@ -92,7 +109,9 @@ function openDetails(summaryText: string | RegExp) {
 beforeEach(() => {
   window.localStorage.clear();
   window.localStorage.setItem(WORKSPACE_KEY, WS);
-  threadStore.reset();
+  window.sessionStorage.clear();
+  chatStore.reset();
+  collapseStore.reset();
   window.history.replaceState(null, "", "/");
   streams = [];
   runs = { [RUN]: partial(0, { status: "queued" }) };
@@ -108,6 +127,8 @@ beforeEach(() => {
     return runs[id];
   });
   mocked.startResearch.mockReset();
+  mocked.conversation.mockReset();
+  mocked.conversation.mockRejectedValue(new ApiError("network", "Can't reach the research service."));
   mocked.approve.mockReset();
   mocked.reject.mockReset();
   mocked.deliveries.mockResolvedValue([delivery]);
@@ -150,12 +171,13 @@ describe("ResearchApp", () => {
       },
       WS,
     );
-    expect(window.location.search).toBe(`?run=${RUN}`);
+    expect(window.location.search).toBe(`?chat=${CHAT}`);
     expect(await screen.findByText(/Waiting in the queue/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Research" })).toBeDisabled();
-    expect(screen.getByText(/Wait for the current run to finish/)).toBeInTheDocument();
-    const saved = JSON.parse(window.localStorage.getItem(THREAD_KEY) ?? "[]");
-    expect(saved[0]).toMatchObject({ run_id: RUN, depth: "brief", sources: ["documents"] });
+    expect(screen.getByText(/Wait for the current answer to finish/)).toBeInTheDocument();
+    const saved = JSON.parse(window.localStorage.getItem(CHATS_KEY) ?? "{}");
+    expect(saved.current).toBe(CHAT);
+    expect(saved.chats[0].turns[0]).toMatchObject({ run_id: RUN, turn: 1, depth: "brief", sources: ["documents"] });
   });
 
   it("needs at least one source; max decisions default is omitted", async () => {
@@ -219,9 +241,10 @@ describe("ResearchApp", () => {
 
   it("approval: approve, reject with feedback, conflict", async () => {
     runs = { [RUN]: approvalRun };
-    window.localStorage.setItem(THREAD_KEY, JSON.stringify([{ run_id: RUN, question: approvalRun.question, created_at: "x" }]));
+    seedChat([{ run_id: RUN, question: approvalRun.question }]);
     render(<ResearchApp initialRunId={null} />);
     expect(await screen.findByRole("heading", { name: "Your approval is needed" })).toBeInTheDocument();
+    expect(screen.getByText(/Approve or reject the draft before asking a follow-up\./)).toBeInTheDocument();
     const user = userEvent.setup();
     mocked.reject.mockResolvedValue(partial(8, { status: "queued" }));
     await user.type(screen.getByLabelText("Feedback for a revision (optional)"), "Add an example");
@@ -267,11 +290,10 @@ describe("ResearchApp", () => {
     await ask();
     expect(await screen.findByText("The research service is busy right now.")).toBeInTheDocument();
     await waitFor(() => expect(mocked.health.mock.calls.length).toBeGreaterThanOrEqual(3));
-    second.unmount();
 
+    second.unmount();
     render(<ResearchApp initialRunId="run_dead" />);
     expect(await screen.findByText(/This run is no longer available/)).toBeInTheDocument();
-    await userEvent.setup().click(screen.getByRole("button", { name: "Remove from the history" }));
     expect(screen.getByText("Ask a research question.")).toBeInTheDocument();
   });
 
@@ -314,44 +336,45 @@ describe("ResearchApp", () => {
     expect(await screen.findByText("Unexpected update from the server.")).toBeInTheDocument();
   });
 
-  it("restores the history from storage; only the last run is followed; remove one", async () => {
+  it("restores the chat from storage; only the last turn is followed and expanded", async () => {
     const older = runView({ run_id: "run_01d", question: "Older question" });
     runs = { run_01d: older, [RUN]: partial(2) };
-    window.localStorage.setItem(
-      THREAD_KEY,
-      JSON.stringify([
-        { run_id: "run_01d", question: "Older question", created_at: "2026-10-11T10:00:00Z" },
-        { run_id: RUN, question: completedRun.question, created_at: "2026-10-11T11:00:00Z" },
-      ]),
-    );
+    seedChat([
+      { run_id: "run_01d", question: "Older question" },
+      { run_id: RUN, question: completedRun.question },
+    ]);
+    mocked.conversation.mockRejectedValue(new ApiError("network", "offline"));
     render(<ResearchApp initialRunId={null} />);
-    expect(await screen.findByText("History (2)")).toBeInTheDocument();
-    expect(screen.getAllByText("Older question").length).toBeGreaterThan(0);
+    expect(await screen.findByText("Chats (1)")).toBeInTheDocument();
     await waitFor(() => expect(streams).toHaveLength(1));
-    expect(await screen.findAllByRole("article", { name: "Report" })).toHaveLength(1);
-    const nav = screen.getByRole("navigation", { name: "History" });
-    expect(within(nav).getByRole("link", { name: /Older question/ })).toHaveAttribute("href", "#turn-run_01d");
-    await userEvent.setup().click(within(nav).getByRole("button", { name: "Remove from history: Older question" }));
-    expect(screen.getByText("History (1)")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^Turn 1: Older question/ })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("button", { name: /^Follow-up · turn 2:/ })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.queryAllByRole("article", { name: "Report" })).toHaveLength(0); // the collapsed turn renders none
+    const first = document.getElementById("turn-run_01d")!;
+    expect(await within(first).findByText(completedRun.report!.title)).toBeInTheDocument(); // its title, as text
   });
 
-  it("?run= joins the history", async () => {
+  it("?run= of a run without a chat (an older backend) opens it as a read-only chat", async () => {
     runs = { [RUN]: completedRun };
     render(<ResearchApp initialRunId={RUN} />);
     expect(await screen.findByRole("article", { name: "Report" })).toBeInTheDocument();
-    expect(JSON.parse(window.localStorage.getItem(THREAD_KEY) ?? "[]")[0].run_id).toBe(RUN);
+    const saved = JSON.parse(window.localStorage.getItem(CHATS_KEY) ?? "{}");
+    expect(saved.current).toBe(legacyConversationId(RUN));
+    expect(saved.chats[0]).toMatchObject({ read_only: true, turns: [{ run_id: RUN }] });
+    expect(screen.getByText(/your question starts a new chat/)).toBeInTheDocument();
+    expect(mocked.conversation).not.toHaveBeenCalled();
   });
 
   it("failed and cancelled runs, flags, memory and injection notes", async () => {
     runs = {
       [RUN]: runView({ status: "failed", report: null, error: "LLM quota exhausted", flags: ["possible_injection"] }),
     };
-    window.localStorage.setItem(THREAD_KEY, JSON.stringify([{ run_id: RUN, question: "q", created_at: "x" }]));
+    seedChat([{ run_id: RUN, question: "q" }]);
     const { unmount } = render(<ResearchApp initialRunId={null} />);
     expect(await screen.findByText("The run failed: LLM quota exhausted")).toBeInTheDocument();
     expect(screen.getByText(/prompt-injection attempts were found/)).toBeInTheDocument();
     unmount();
-    threadStore.reset();
+    chatStore.reset();
     runs = {
       [RUN]: runView({ status: "cancelled", report: null, memory_used: [{ run_id: "run_0", question: "Earlier one" }] }),
     };
