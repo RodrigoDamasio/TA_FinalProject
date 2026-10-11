@@ -77,6 +77,7 @@ def test_claim_verdict_normalizes_and_validates():
         {"evidence_ids": ["E1", "E2", "E3", "E4", "E5"]},
         {"evidence_ids": ["page 3"]},
         {"note": "n" * 301},
+        {"evidence_ids": "E1"},
     ):
         with pytest.raises(ValidationError):
             ClaimVerdict.model_validate({"claim": "C1", "status": "supported"} | bad)
