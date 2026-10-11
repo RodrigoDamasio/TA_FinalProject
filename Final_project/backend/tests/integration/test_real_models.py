@@ -53,9 +53,7 @@ def test_real_library_fits_the_embedder_window_and_retrieves(tmp_path):
     assert len(docs) == 8 and all(d.status is DocumentStatus.READY for d in docs)
     embedder = models.embedder()
     longest = max(embedder.count_tokens(embed_text(c)) for c in store.iter_chunks(DEMO_WORKSPACE))
-    print(
-        f"\nchunks={store.count(DEMO_WORKSPACE)} seed_s={seconds:.1f} longest={longest} tokens"
-    )
+    print(f"\nchunks={store.count(DEMO_WORKSPACE)} seed_s={seconds:.1f} longest={longest} tokens")
     assert longest <= embedder.max_tokens  # nothing is silently truncated (M4 lesson)
     hits = retriever.search(
         "How should a receiver verify a webhook signature?", [DEMO_WORKSPACE], 6
