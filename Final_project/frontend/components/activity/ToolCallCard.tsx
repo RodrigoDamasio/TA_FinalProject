@@ -36,6 +36,7 @@ export default function ToolCallCard({ entry, rewrote }: { entry: ToolCallEntry;
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <span aria-hidden>{info.icon}</span>
         <span className="font-mono text-xs font-semibold">{entry.tool}</span>
+        {entry.tool === "search_conversation" && <Badge tone="accent">{info.label}</Badge>}
         <Badge tone={STATUS_TONE[entry.status] ?? "neutral"}>{entry.status}</Badge>
         {entry.weak && (
           <Badge tone="warn" title="The results matched the query poorly">
