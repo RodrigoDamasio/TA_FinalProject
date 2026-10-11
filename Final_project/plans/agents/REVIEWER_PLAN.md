@@ -405,3 +405,21 @@ No 🔒 type, port, field or name is redefined. The run scopes for documents evi
 6. `reviewer.py`: `review_checks` over `parse_report` + `clean_citations`. Unit tests.
 7. `reviewer.py`: the call, merge, verdict rule, `render_review`. Component tests.
 8. Request the `DemoLLMClient` update (§10); run the fake end-to-end test; full suite, coverage ≥ 90 %, `ruff check` + `ruff format --check`.
+
+## 13. Deviations
+
+Implementation of this plan (branch `impl/reviewer`, from tag `contracts-v1`).
+
+| Plan | Implementation | Why |
+|---|---|---|
+| §3.5 placeholders `{depth}`, `{depth_guidance}`, `{words}`, `{sections}`, `{evidence_list}`, `{findings}`, `{checks}`, `{claims}` | The code renders them into placeholders the Shared allowlist already knows: depth + guidance + targets → `{guidance}`, evidence list → `{known_evidence}`, findings → `{notes}`, automatic checks → `{review}`, claim lines → `{sentences}` | `test_prompt_files_use_only_known_placeholders` (Shared) pins the placeholder set. The prompt text and headings are as drafted |
+| §12.2 prompt `VERSION` bump | Not bumped (still `2`) | `test_architecture.py` (Shared) pins `"2"`. Requested in the PR |
+| §3.2 coverage check "per section" | Only `##`/`###` sections are checked for a missing citation; the summary before the first section counts toward the paragraph totals only | The summary is often one short sentence |
+| §3.2 fencing | The automatic checks are fenced too (kind `review_checks`) | They quote section headings from the draft (untrusted) |
+| §3.3 stats `checked` | `checked` = claims with a verdict (code or model); `skipped` = selected − checked; `supported_ratio` = supported / checked, rounded to 3 decimals | Keeps `data["claims"]` and `stats` consistent, so `views._grounding` (Shared, counts `claims`) and `stats` agree |
+| §3.3 `miscited` | `supported` with a **non-empty** `evidence_ids` that shares no id with the cited ones | A bare `supported` with no ids is not evidence of a miscitation |
+| §3.3 claim data | Each claim in `data["claims"]` also carries `section`, `sentence`, `cited`, `unknown`, `miscited`, `origin` | The renderer, the Writer's revision and the evaluation need them; the strict `ClaimVerdict` fields are a subset |
+| §3.3 `EVIDENCE_SNIPPET_CHARS` | Module constant `SNIPPET_CHARS = 900` (the config default), overridable by a constructor argument | Workers receive no settings and `dependencies.py` (Shared) builds `FactChecker(prompts)` |
+| §6 "No Writer result yet" | A `failed` Writer result is treated the same way (no draft, 0 calls) | Its content is an error message, not a report |
+| §9 tests | The step 3 W4/W5 tests in `tests/component/test_workers.py` were removed (they asserted the M5 shapes this plan replaces); their cases live in `test_reviewer_workers.py` | Replacing the stubs breaks them by design |
+| §10 gap `DemoLLMClient` | Done in `infrastructure/demo/reviewer.py` (owned by REVIEWER since v1.1); the router is unchanged | v1.1 split of the fake LLM |

@@ -1,7 +1,7 @@
 """W1–W6: the workers with a fake LLM, fake search and the step 3 RAG stubs (0 calls)."""
 
 import pytest
-from fakes import USAGE, FakeLLM, FakeWebSearch, rag_stack, review
+from fakes import USAGE, FakeLLM, FakeWebSearch, rag_stack
 
 from app.application.prompts import PromptLibrary, estimate_tokens, placeholders
 from app.application.security import DataFence, OutputValidator, canary_for
@@ -10,12 +10,12 @@ from app.application.tools.documents import SearchDocumentsTool
 from app.application.tools.web import SearchWebTool
 from app.application.tools.wikipedia import SearchWikipediaTool
 from app.application.workers.base import StepCounter, WorkerContext
-from app.application.workers.fact_checker import FactChecker, cited_sentences
+from app.application.workers.fact_checker import FactChecker
 from app.application.workers.researcher import Researcher
 from app.application.workers.reviewer import Reviewer
 from app.application.workers.writer import Writer
 from app.domain.depth import Depth
-from app.domain.errors import CanaryLeak, LLMBadResponse
+from app.domain.errors import CanaryLeak
 from app.domain.evidence import REQUESTABLE_SOURCES, SourceKind
 from app.domain.ports import LLMRequest, LLMResponse, SourceText, ToolCall
 from app.domain.run import ResearchRun
@@ -203,58 +203,7 @@ def test_writer_cites_evidence_and_sees_review_and_previous_draft():
     assert out.notices[0][1] == "unknown_citation"
 
 
-# W4
-def test_reviewer_valid_repair_and_failure():
-    w = World()
-    draft = WorkerResult("writer", "# Draft [E1]")
-    issue = {"severity": "high", "text": "Missing costs."}
-    llm = FakeLLM(script={"reviewer": ["not json", review("revise", [issue], ["loaded word"])]})
-    out = Reviewer(PROMPTS).run("Review.", w.context({"writer": draft}), llm)
-    assert llm.calls("reviewer") == 2  # one repair
-    assert out.result.data["verdict"] == "revise" and "(high) Missing costs." in out.result.content
-    assert "Balance: loaded word" in out.result.content
-
-    bad = FakeLLM(script={"reviewer": [{"verdict": "maybe"}, {"verdict": "unsure"}]})
-    with pytest.raises(LLMBadResponse):
-        Reviewer(PROMPTS).run("Review.", w.context({"writer": draft}), bad)
-
-    nothing = FakeLLM()
-    out = Reviewer(PROMPTS).run("Review.", w.context(), nothing)
-    assert out.result.failed and nothing.calls() == 0  # no draft: no call
-
-
-# W5
-def test_fact_checker_sees_only_cited_evidence():
-    w = World()
-    w.seed(
-        [
-            ("https://a.org", "RAG text."),
-            ("https://b.org", "Fine-tuning text."),
-            ("https://c.org", "UNCITED"),
-        ]
-    )
-    draft = WorkerResult(
-        "writer",
-        "# T\n\nRAG retrieves documents at query time [E1]. Short [E2].\n- Tuning "
-        "changes the weights of the model [E2].",
-    )
-    claims = [
-        {"sentence": "RAG retrieves", "status": "supported", "source_n": 1, "note": ""},
-        {"sentence": "Tuning changes", "status": "unsupported", "source_n": 2, "note": "vague"},
-    ]
-    llm = FakeLLM(script={"fact_checker": [{"claims": claims}]})
-    out = FactChecker(PROMPTS).run("Check.", w.context({"writer": draft}), llm)
-    prompt = llm.prompts("fact_checker")[0]
-    assert "RAG text." in prompt and "Fine-tuning text." in prompt and "UNCITED" not in prompt
-    assert "1. [cites 1] RAG retrieves documents at query time [E1]." in prompt
-    assert "Short [E2]" not in prompt  # too short to be a claim
-    assert out.result.content.startswith("Fact check: 1 supported, 1 unsupported, 0 contradicted")
-    assert out.result.evidence_ns == (1, 2)
-
-    nothing = FakeLLM()
-    assert FactChecker(PROMPTS).run("Check.", w.context(), nothing).result.failed
-    assert nothing.calls() == 0
-    assert cited_sentences("No citations here at all.") == []
+# W4, W5: the Reviewer and the Fact-Checker moved to test_reviewer_workers.py (REVIEWER).
 
 
 # W6
