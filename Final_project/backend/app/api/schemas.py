@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
 from app.domain.depth import Depth
 from app.domain.evidence import SourceKind
+from app.domain.run import CONVERSATION_ID
 
 MAX_QUESTION_FIELD_CHARS = (
     20_000  # hard cap before sanitizing; the real limit is QUESTION_MAX_CHARS
@@ -33,6 +34,12 @@ class ResearchRequest(BaseModel):
     callback_url: HttpUrl | None = Field(
         None, description="HTTPS URL that receives a signed POST when the run ends."
     )
+    conversation_id: str | None = Field(
+        None,
+        pattern=CONVERSATION_ID,
+        description="v1.2: continue this conversation (a follow-up may be 2+ characters). "
+        "Omit to start a new conversation.",
+    )
 
 
 class RejectRequest(BaseModel):
@@ -50,3 +57,5 @@ class Accepted(BaseModel):
     callback_secret: str | None = Field(
         None, description="Only when callback_url was given; shown once (Standard Webhooks)."
     )
+    conversation_id: str = Field(description="v1.2: the conversation this run belongs to.")
+    turn: int = Field(description="v1.2: 1-based position of this run in its conversation.")

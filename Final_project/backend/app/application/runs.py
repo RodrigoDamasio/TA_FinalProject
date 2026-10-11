@@ -11,6 +11,9 @@ from datetime import UTC, datetime, timedelta
 
 from app.domain.depth import PROFILES, Depth
 from app.domain.errors import (
+    ConversationBusy,
+    ConversationFull,
+    ConversationNotFound,
     FetchRefused,
     InputTooLarge,
     InvalidCallbackUrl,
@@ -43,6 +46,7 @@ class SubmitCommand:
     callback_url: str | None = None
     telegram_chat_id: str | None = None
     client_key: str = "unknown"  # rate-limit key: IP or "tg:<chat>"
+    conversation_id: str | None = None  # v1.2: None starts a new conversation
 
 
 @dataclass(frozen=True)
@@ -54,6 +58,8 @@ class RunLimits:
     revision_iterations: int = 2
     retention_days: int = 30
     memory_enabled: bool = True
+    conversation_max_turns: int = 30  # v1.2
+    followup_min_chars: int = 2  # v1.2: "and cost?" is a valid follow-up
 
 
 class RunService:
@@ -77,17 +83,20 @@ class RunService:
 
     # ---- submit ----------------------------------------------------------------------------
 
-    def check_input(self, question: str, max_iterations: int | None) -> tuple[str, int, list[str]]:
+    def check_input(
+        self, question: str, max_iterations: int | None, min_chars: int | None = None
+    ) -> tuple[str, int, list[str]]:
         """Free checks: (sanitized question, iterations, injection pattern names)."""
+        minimum = self.limits.question_min_chars if min_chars is None else min_chars
         clean = self._input.sanitize(question)
         if len(clean) > self.limits.question_max_chars:
             raise InputTooLarge(
                 f"The question has {len(clean)} characters; the limit is "
                 f"{self.limits.question_max_chars}."
             )
-        if len(clean) < self.limits.question_min_chars:
+        if len(clean) < minimum:
             raise InvalidField(
-                f"Write the question in at least {self.limits.question_min_chars} characters.",
+                f"Write the question in at least {minimum} characters.",
                 "#/question",
             )
         iterations = max_iterations or self.limits.default_max_iterations
@@ -100,7 +109,9 @@ class RunService:
     def check_command(self, cmd: SubmitCommand) -> tuple[str, int, list[str]]:
         """Free checks for a whole command: input, sources, callback URL."""
         iterations = cmd.max_iterations or PROFILES[cmd.depth].default_max_iterations
-        clean, iterations, patterns = self.check_input(cmd.question, iterations)
+        followup = cmd.conversation_id is not None and bool(self.conversation_turns(cmd))
+        minimum = self.limits.followup_min_chars if followup else None
+        clean, iterations, patterns = self.check_input(cmd.question, iterations, minimum)
         if not cmd.sources or not cmd.sources <= REQUESTABLE_SOURCES:
             raise InvalidField("Choose at least one of: web, wikipedia, documents.", "#/sources")
         if cmd.callback_url:
@@ -110,8 +121,29 @@ class RunService:
                 raise InvalidCallbackUrl(err.reason) from err
         return clean, iterations, patterns
 
+    def conversation_turns(self, cmd: SubmitCommand) -> list[ResearchRun]:
+        """v1.2 rules for continuing a conversation (plan Improving_Chat_UI_UX §4.3):
+        unknown → 404, full → 409, a turn still in progress → 409. [] for a new one."""
+        if cmd.conversation_id is None:
+            return []
+        turns = self.runs.conversation(cmd.conversation_id, self.limits.conversation_max_turns + 1)
+        if not turns:
+            raise ConversationNotFound(cmd.conversation_id)
+        if len(turns) >= self.limits.conversation_max_turns:
+            raise ConversationFull(self.limits.conversation_max_turns)
+        if any(not t.done for t in turns):
+            raise ConversationBusy()
+        return turns
+
+    def conversation(self, conversation_id: str) -> list[ResearchRun]:
+        turns = self.runs.conversation(conversation_id, self.limits.conversation_max_turns)
+        if not turns:
+            raise ConversationNotFound(conversation_id)
+        return turns
+
     def submit(self, cmd: SubmitCommand) -> ResearchRun:
         clean, iterations, patterns = self.check_command(cmd)
+        earlier = self.conversation_turns(cmd)
         self._ensure_llm()
         if not self.runner.has_capacity():
             raise QueueFull()
@@ -130,6 +162,8 @@ class RunService:
             workspace_id=cmd.workspace_id,
             channel=cmd.channel,
             subscribers=subscribers,
+            conversation_id=cmd.conversation_id,
+            turn=len(earlier) + 1,
         )
         if cmd.telegram_chat_id:  # "working on it", committed with the run (one transaction)
             run.queue_outbox(

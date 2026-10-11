@@ -17,8 +17,8 @@ from app.domain.run import ResearchRun, RunEvent, RunStatus, run_from_dict, run_
 from . import database
 
 _UPSERT_RUN = (
-    "INSERT INTO runs (id, status, state_json, duration_ms, created_at, updated_at) "
-    "VALUES (?, ?, ?, ?, ?, ?) "
+    "INSERT INTO runs (id, status, state_json, duration_ms, created_at, updated_at, "
+    "conversation_id) VALUES (?, ?, ?, ?, ?, ?, ?) "
     "ON CONFLICT(id) DO UPDATE SET status = excluded.status, state_json = excluded.state_json, "
     "duration_ms = excluded.duration_ms, updated_at = excluded.updated_at"
 )
@@ -26,6 +26,9 @@ _INSERT_EVENT = "INSERT INTO events (run_id, type, data_json) VALUES (?, ?, ?)"
 _GET_RUN = "SELECT state_json FROM runs WHERE id = ?"
 _EVENTS_SINCE = "SELECT id, type, data_json FROM events WHERE run_id = ? AND id > ? ORDER BY id"
 _RUNS_WITH_STATUS = "SELECT state_json FROM runs WHERE status = ?"
+_CONVERSATION_RUNS = (
+    "SELECT state_json FROM runs WHERE conversation_id = ? ORDER BY created_at, rowid LIMIT ?"
+)
 _OLD_RUNS = "SELECT id FROM runs WHERE updated_at < ? AND status IN (?, ?, ?)"
 _DELETE_EVENTS = "DELETE FROM events WHERE run_id = ?"
 _DELETE_RUN = "DELETE FROM runs WHERE id = ?"
@@ -113,6 +116,7 @@ class SqliteRunRepository(_Store):
                     run.duration_ms,
                     run.created_at,
                     run.updated_at,
+                    run.conversation_id,
                 ),
             )
             for event in events:
@@ -151,6 +155,12 @@ class SqliteRunRepository(_Store):
             rows = [
                 r for s in sorted(statuses) for r in conn.execute(_RUNS_WITH_STATUS, (s.value,))
             ]
+        return [run_from_dict(json.loads(r["state_json"])) for r in rows]
+
+    def conversation(self, conversation_id: str, limit: int) -> list[ResearchRun]:
+        """v1.2: the runs of one conversation, oldest first."""
+        with self._conn() as conn:
+            rows = conn.execute(_CONVERSATION_RUNS, (conversation_id, limit)).fetchall()
         return [run_from_dict(json.loads(r["state_json"])) for r in rows]
 
     def delete_older_than(self, cutoff_iso: str) -> list[str]:

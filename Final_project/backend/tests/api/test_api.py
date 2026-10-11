@@ -189,9 +189,10 @@ def test_read_endpoints(api):
         "reviewer",
         "fact_checker",
     ]
-    # Module 5's sample runs were removed; this project records its own in phase 6.
-    assert a.client.get("/samples").json() == []
-    assert a.client.get("/samples/rag-vs-finetuning").status_code == 404
+    index = a.client.get("/samples").json()  # the exported eval runs (samples/runs/)
+    assert {s["id"] for s in index} >= {"rag-vs-finetuning", "http-caching-injection"}
+    sample = a.client.get("/samples/rag-vs-finetuning").json()
+    assert sample["sample"] is True and sample["report"]["references"]
     a.run()
     stats = a.client.get("/stats").json()
     assert stats["runs"] == {"completed": 1} and stats["llm"]["calls_today"] == 8

@@ -174,6 +174,8 @@ class RunRepository(Protocol):
 
     def runs_in(self, statuses: set["RunStatus"]) -> list["ResearchRun"]: ...
 
+    def conversation(self, conversation_id: str, limit: int) -> list["ResearchRun"]: ...  # v1.2
+
     def delete_older_than(self, cutoff_iso: str) -> list[str]: ...  # v1.1: the deleted ids
 
     def status_counts(self) -> dict[str, int]: ...

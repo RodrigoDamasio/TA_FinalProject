@@ -115,6 +115,7 @@ def start_research(
         channel=Channel.API if body.callback_url else Channel.WEB,
         callback_url=str(body.callback_url) if body.callback_url else None,
         client_key=_client(request),
+        conversation_id=body.conversation_id,
     )
     c.service.check_command(cmd)  # free checks first
     c.limiter.check(_client(request))  # only requests that would start a run count
@@ -134,7 +135,31 @@ def start_research(
         events_url=f"{status_url}/events",
         web_url=c.dispatcher.web_url(run.id),
         callback_secret=c.callback_secret(run.id) if cmd.callback_url else None,
+        conversation_id=run.conversation_id,
+        turn=run.turn,
     )
+
+
+@router.get("/conversations/{conversation_id}", responses=_problems(404), tags=["research"])
+def get_conversation(conversation_id: str, c: Container = Depends(get_container)) -> dict[str, Any]:
+    """v1.2: the turns of a conversation, oldest first (no reports: open each run for it)."""
+    runs = c.service.conversation(conversation_id)
+    return {
+        "conversation_id": conversation_id,
+        "max_turns": c.settings.conversation_max_turns,
+        "turns": [
+            {
+                "run_id": r.id,
+                "turn": r.turn,
+                "question": r.question,
+                "status": r.status.value,
+                "title": r.report.title if r.report else None,
+                "depth": r.depth.value,
+                "created_at": r.created_at,
+            }
+            for r in runs
+        ],
+    }
 
 
 @router.get("/research/{run_id}", responses=_problems(404), tags=["research"])

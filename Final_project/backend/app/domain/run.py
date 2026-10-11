@@ -89,6 +89,9 @@ class ResearchRun:
     sources: frozenset[SourceKind] = REQUESTABLE_SOURCES  # allowed tool families
     workspace_id: str | None = None
     channel: Channel = Channel.WEB
+    conversation_id: str = ""  # v1.2: "conv_" + 16 hex; every run belongs to one conversation
+    turn: int = 1  # v1.2: 1-based position in its conversation
+    context_turns: int = 0  # v1.2: earlier turns shown to the agents (set by the Supervisor)
     subscribers: list[Subscriber] = field(default_factory=list)
     transcript: list[TranscriptEntry] = field(default_factory=list)
     evidence: list[EvidenceRef] = field(default_factory=list)  # numbered, order of first use
@@ -129,9 +132,14 @@ class ResearchRun:
         workspace_id: str | None = None,
         channel: Channel = Channel.WEB,
         subscribers: list[Subscriber] | None = None,
+        conversation_id: str | None = None,
+        turn: int = 1,
     ) -> "ResearchRun":
+        """No conversation id → the run starts a new conversation (turn 1)."""
         return cls(
             id="run_" + secrets.token_hex(6),
+            conversation_id=conversation_id or new_conversation_id(),
+            turn=turn,
             question=question,
             max_iterations=max_iterations,
             require_approval=require_approval,
@@ -362,6 +370,18 @@ class ResearchRun:
 
 # ---- persistence -----------------------------------------------------------------------
 
+CONVERSATION_ID = r"^conv_[a-f0-9]{16}$"
+
+
+def new_conversation_id() -> str:
+    return "conv_" + secrets.token_hex(8)
+
+
+def legacy_conversation_id(run_id: str) -> str:
+    """Runs stored before v1.2: each one is its own conversation (same rule as the SQL
+    backfill in database.py)."""
+    return "conv_" + (run_id.removeprefix("run_") + "0000")[:16]
+
 
 def run_to_dict(run: ResearchRun) -> dict[str, Any]:
     return {
@@ -377,6 +397,9 @@ def run_to_dict(run: ResearchRun) -> dict[str, Any]:
         "sources": sorted(s.value for s in run.sources),
         "workspace_id": run.workspace_id,
         "channel": run.channel.value,
+        "conversation_id": run.conversation_id,
+        "turn": run.turn,
+        "context_turns": run.context_turns,
         # Subscriber secrets are never stored (v1.1): only kind and target.
         "subscribers": [{"kind": s.kind, "target": s.target} for s in run.subscribers],
         "transcript": [entry_to_dict(e) for e in run.transcript],
@@ -423,6 +446,9 @@ def run_from_dict(d: dict[str, Any]) -> ResearchRun:
         sources=frozenset(SourceKind(x) for x in d["sources"]),
         workspace_id=d["workspace_id"],
         channel=Channel(d["channel"]),
+        conversation_id=d.get("conversation_id") or legacy_conversation_id(d["id"]),
+        turn=d.get("turn", 1),
+        context_turns=d.get("context_turns", 0),
         subscribers=[Subscriber(x["kind"], x["target"]) for x in d["subscribers"]],
         transcript=[entry_from_dict(e) for e in d["transcript"]],
         evidence=[ref_from_dict(r) for r in d["evidence"]],

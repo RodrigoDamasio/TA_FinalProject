@@ -39,6 +39,24 @@ class InvalidTransition(DomainError):
         self.current = current
 
 
+class ConversationNotFound(DomainError):
+    """v1.2: unknown or swept conversation id."""
+
+    def __init__(self, conversation_id: str) -> None:
+        super().__init__(f"No conversation with id '{conversation_id}'.")
+        self.conversation_id = conversation_id
+
+
+class ConversationFull(DomainError):
+    def __init__(self, max_turns: int) -> None:
+        super().__init__(f"This chat has reached {max_turns} questions. Start a new chat.")
+
+
+class ConversationBusy(DomainError):
+    def __init__(self) -> None:
+        super().__init__("This chat is still answering. Wait for the current answer.")
+
+
 class QueueFull(DomainError):
     def __init__(self) -> None:
         super().__init__("The server is busy: too many runs are waiting. Try again shortly.")

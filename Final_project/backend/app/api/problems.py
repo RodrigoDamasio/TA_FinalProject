@@ -15,6 +15,9 @@ from starlette.responses import Response
 
 from app.config import get_settings
 from app.domain.errors import (
+    ConversationBusy,
+    ConversationFull,
+    ConversationNotFound,
     DemoReadOnly,
     DocumentNotFound,
     FeatureNotReady,
@@ -100,6 +103,26 @@ RUN_NOT_FOUND = _p(
     404,
     "Run not found.",
     "No run has this id. Finished runs are deleted after the retention period (30 days).",
+)
+CONVERSATION_NOT_FOUND = _p(
+    "conversation-not-found",
+    404,
+    "Conversation not found.",
+    "No conversation has this id. Conversations are deleted with their last run (30 days). "
+    "Start a new chat.",
+)
+CONVERSATION_FULL = _p(
+    "conversation-full",
+    409,
+    "This chat is full.",
+    "A conversation holds at most CONVERSATION_MAX_TURNS questions. Start a new chat.",
+)
+CONVERSATION_BUSY = _p(
+    "conversation-busy",
+    409,
+    "This chat is still answering.",
+    "A question of this conversation is still queued, running or waiting for approval. "
+    "Ask the next one when it finishes.",
 )
 SAMPLE_NOT_FOUND = _p(
     "sample-not-found", 404, "Sample not found.", "No sample run has this id. See GET /samples."
@@ -211,6 +234,7 @@ CATALOG = {
     p.slug: p
     for p in (
         VALIDATION_ERROR, MALFORMED_REQUEST, RUN_NOT_FOUND, SAMPLE_NOT_FOUND, INVALID_TRANSITION,
+        CONVERSATION_NOT_FOUND, CONVERSATION_FULL, CONVERSATION_BUSY,
         INPUT_TOO_LARGE, RATE_LIMITED, LLM_QUOTA_EXHAUSTED, LLM_UNAVAILABLE, WAIT_TIMEOUT,
         INVALID_WORKSPACE, DOCUMENT_NOT_FOUND, DEMO_READ_ONLY, UNSUPPORTED_MEDIA_TYPE,
         FILE_TOO_LARGE, WORKSPACE_QUOTA_EXCEEDED, INDEXING_BUSY, INVALID_CALLBACK_URL,
@@ -396,6 +420,9 @@ def register_problem_handlers(app: FastAPI) -> None:
     app.add_exception_handler(InvalidField, _invalid_field_handler)
     app.add_exception_handler(RunNotFound, _simple(RUN_NOT_FOUND))
     app.add_exception_handler(SampleNotFound, _simple(SAMPLE_NOT_FOUND))
+    app.add_exception_handler(ConversationNotFound, _simple(CONVERSATION_NOT_FOUND))
+    app.add_exception_handler(ConversationFull, _simple(CONVERSATION_FULL))
+    app.add_exception_handler(ConversationBusy, _simple(CONVERSATION_BUSY))
     app.add_exception_handler(InvalidTransition, _simple(INVALID_TRANSITION))
     app.add_exception_handler(InputTooLarge, _simple(INPUT_TOO_LARGE))
     app.add_exception_handler(RateLimited, _rate_limited_handler)

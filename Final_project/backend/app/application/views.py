@@ -70,6 +70,8 @@ def research_view(
     duration = run.duration_ms
     return {
         "run_id": run.id,
+        "conversation_id": run.conversation_id,
+        "turn": run.turn,
         "status": run.status.value,
         "question": run.question,
         "depth": run.depth.value,
@@ -78,6 +80,7 @@ def research_view(
         "report": _report(run),
         "metadata": {
             "iterations": run.iteration,
+            "context_turns": run.context_turns,
             "iteration_limit": run.iteration_limit,
             "max_iterations": run.max_iterations,
             "agents_used": [display_name(w) for w in used],

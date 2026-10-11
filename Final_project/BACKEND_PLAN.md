@@ -961,3 +961,42 @@ Every 🔒 section and v1.1 change is implemented. Each owned area has a **stub*
 | WEBHOOKS | `outbox/` (signing exact; dispatcher and texts simple), `telegram.py` (501), `telegram_client.py`, `webhook_sender.py`, `api/webhooks.py` | Telegram commands, allowlist, ledger, per-chat limits, exact texts, claiming and `retry_after`, the receiver sample (WEBHOOKS_PLAN §3) |
 
 **Quality at the tag:** 121 tests, 96 % coverage, Ruff clean. A fake run returns the assignment's response shape: report, metadata, conversation history with `TOOL_CALL` entries, and a signed callback verified end to end.
+
+## 26. Conversations: contracts v1.2 (tag `contracts-v1.2`)
+
+From [`plans/Improving_Chat_UI_UX.md`](plans/Improving_Chat_UI_UX.md) (phases A + B + C, decided by the user 2026-10-11). This section is the contract both implementation sessions build on. **Already code at the tag** means the frontend may rely on it now. **To implement** means the backend session must use exactly these names.
+
+### 26.1 Already code at `contracts-v1.2`
+
+| Area | Contract |
+|---|---|
+| Domain | `ResearchRun.conversation_id: str` (`conv_` + 16 hex, `CONVERSATION_ID` pattern), `turn: int` (1-based), `context_turns: int = 0` (earlier turns shown to the agents; **set by the Supervisor**, see 26.2). `ResearchRun.create(conversation_id=None, turn=1)`: no id → a new conversation. Runs stored before v1.2 load as their own conversation (`legacy_conversation_id`) |
+| Errors | `ConversationNotFound`, `ConversationFull`, `ConversationBusy` (`domain/errors.py`) |
+| Ports | `RunRepository.conversation(conversation_id, limit) -> list[ResearchRun]` (oldest first) |
+| SQLite | `runs.conversation_id` column + `runs_by_conversation` index, added and backfilled by `database.init` (idempotent) |
+| Service | `SubmitCommand.conversation_id`. `RunLimits.conversation_max_turns = 30` (`CONVERSATION_MAX_TURNS`), `followup_min_chars = 2`. `RunService.conversation_turns(cmd)` applies the plan §4.3 rules: unknown → 404, full → 409, a turn not finished (queued, running, awaiting approval) → 409. `RunService.conversation(id)` |
+| API | `POST /research` body `conversation_id?`. 202 adds `conversation_id`, `turn`. `GET /research/{id}` adds `conversation_id`, `turn`, `metadata.context_turns`. **New** `GET /conversations/{id}` → `{conversation_id, max_turns, turns: [{run_id, turn, question, status, title, depth, created_at}]}` |
+| Problems | `conversation-not-found` (404), `conversation-full` (409), `conversation-busy` (409) |
+| Tests | `tests/api/test_conversations.py` |
+
+### 26.2 To implement (backend session)
+
+| Item | Exact contract |
+|---|---|
+| Context block | `context.conversation_block(turns, fence) -> str`: the plan §5.1 rules (last 5 finished turns compact, older ones as questions, at most 10; `[E<n>]` stripped; ~4,000-char budget). Fence kinds `earlier_turn` (attribute `turn`) and `earlier_questions` |
+| Prompts (v5) | `supervisor_task.md` gains `# Earlier turns in this chat` + `{earlier_turns}` **before** `# Research question`. `writer_task.md` gains `# Earlier turns in this chat (context only)` + `{earlier_turns}`. Rules of plan §5.3. `earlier_turns` joins the known placeholders |
+| `context_turns` | The Supervisor sets `run.context_turns` to the number of earlier turns it showed (0 on turn 1) before the first decision |
+| Memory | Runs of the same conversation are excluded from recall |
+| Tool | `search_conversation(query)`, family **`SourceKind.CONVERSATION = "conversation"`** (internal, never requestable, so `REQUESTABLE_SOURCES` is unchanged). Offered from turn 2 when an earlier turn still has evidence. Provider `"conversation"`. Copies hits into the current run with their original kind, key, URL and title (plan §6). Listed by `GET /tools` with family `conversation` |
+| Telegram | `/new` command. Table `chat_conversations (chat_id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL, updated_at TEXT NOT NULL)`. Texts per plan §7 |
+| Demo agents | Follow-ups: the demo Supervisor prefixes the TASK with the earlier question; the demo Researcher calls `search_conversation` first on turn ≥ 2 |
+| Eval | Multi-turn dataset items (`turns: [...]`) and the follow-up checks of plan §9 |
+
+### 26.3 Ownership (two parallel sessions)
+
+| Session | Branch | Owns |
+|---|---|---|
+| Backend | `impl/conversations-backend` | `Final_project/backend/**` and the Deviations of `plans/Improving_Chat_UI_UX.md` (backend rows) |
+| Frontend | `impl/conversations-frontend` | `Final_project/frontend/**` and the Deviations of `plans/Improving_Chat_UI_UX.md` (frontend rows) |
+
+Neither changes 26.1. A needed change goes in the PR description (§22).

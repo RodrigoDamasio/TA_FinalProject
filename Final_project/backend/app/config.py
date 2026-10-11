@@ -51,6 +51,7 @@ class Settings:
     rate_limit_runs_per_minute: int
     rate_limit_runs_per_day: int
     run_retention_days: int
+    conversation_max_turns: int  # v1.2
     max_queued_jobs: int
     sync_wait_timeout_s: int
     llm_daily_request_limit: int
@@ -152,6 +153,7 @@ def get_settings() -> Settings:
         rate_limit_runs_per_minute=_int("RATE_LIMIT_RUNS_PER_MINUTE", 3),
         rate_limit_runs_per_day=_int("RATE_LIMIT_RUNS_PER_DAY", 15),
         run_retention_days=_int("RUN_RETENTION_DAYS", 30),
+        conversation_max_turns=_int("CONVERSATION_MAX_TURNS", 30),
         max_queued_jobs=_int("MAX_QUEUED_JOBS", 5),
         sync_wait_timeout_s=_int("SYNC_WAIT_TIMEOUT_S", 180),
         llm_daily_request_limit=_int("LLM_DAILY_REQUEST_LIMIT", 900),

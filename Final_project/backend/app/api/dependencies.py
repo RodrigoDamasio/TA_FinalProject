@@ -468,6 +468,7 @@ def build_container(
             settings.revision_iterations,
             settings.run_retention_days,
             settings.memory_enabled,
+            settings.conversation_max_turns,
         ),
         ensure_llm_available,
         memory_store,

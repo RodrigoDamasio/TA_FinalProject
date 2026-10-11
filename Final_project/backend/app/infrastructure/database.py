@@ -113,6 +113,23 @@ def connect(path: str) -> sqlite3.Connection:
     return conn
 
 
+# v1.2: runs gain a conversation id. Constant DDL; the backfill uses the same rule as
+# run.legacy_conversation_id (each older run is its own conversation).
+_RUN_COLUMNS = "PRAGMA table_info(runs)"
+_ADD_CONVERSATION = "ALTER TABLE runs ADD COLUMN conversation_id TEXT"
+_BACKFILL_CONVERSATION = (
+    "UPDATE runs SET conversation_id = 'conv_' || substr(substr(id, 5) || '0000', 1, 16) "
+    "WHERE conversation_id IS NULL"
+)
+_CONVERSATION_INDEX = (
+    "CREATE INDEX IF NOT EXISTS runs_by_conversation ON runs (conversation_id, created_at)"
+)
+
+
 def init(path: str) -> None:
     with connect(path) as conn:
         conn.executescript(SCHEMA)
+        if "conversation_id" not in {r["name"] for r in conn.execute(_RUN_COLUMNS)}:
+            conn.execute(_ADD_CONVERSATION)
+        conn.execute(_BACKFILL_CONVERSATION)
+        conn.execute(_CONVERSATION_INDEX)
