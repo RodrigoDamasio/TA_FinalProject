@@ -416,6 +416,7 @@ def build_container(
             approval_timeout_min=settings.approval_timeout_min,
             supervisor_context_tokens=settings.supervisor_context_tokens,
             worker_context_chars=int(settings.worker_context_tokens * 3.5),
+            writer_context_chars=int(settings.writer_context_tokens * 3.5),
             memory_limit=settings.memory_recall_limit,
             budget_per_iteration=settings.llm_run_budget_per_iteration,
             budget_base=settings.llm_run_budget_base,

@@ -296,6 +296,7 @@ def test_worker_context_tools_and_evidence(tmp_path):
     assert tool_ctx.evidence_by_n(3) is None and tool_ctx.evidence_count() == 2
     w = writer.contexts[0]
     assert w.tools is None and [e.n for e in w.evidence] == [1, 2]
+    assert w.context_chars == 42_000 and ctx.context_chars == 17_500  # the Writer reads more
     assert set(w.results) == {"researcher"} and len(w.history["researcher"]) == 1
     assert run.tool_calls == 1 and run.transcript[1].iteration == 1  # stamped with the iteration
 

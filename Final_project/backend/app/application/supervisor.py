@@ -94,6 +94,7 @@ class LoopSettings:
     approval_timeout_min: int = 30
     supervisor_context_tokens: int = 6000
     worker_context_chars: int = 17_500
+    writer_context_chars: int = 42_000  # WRITER_CONTEXT_TOKENS × 3.5 (the Writer reads evidence)
     memory_limit: int = 3
     budget_per_iteration: int = 3  # v1.1: budget = 3 × iterations left + 5
     budget_base: int = 5
@@ -375,7 +376,11 @@ class Supervisor:
                 record_tool_call=record_tool_call,
                 model=self.s.worker_model,
                 canary=self.canary,
-                context_chars=self.s.worker_context_chars,
+                context_chars=(
+                    self.s.writer_context_chars
+                    if d.worker == "writer"
+                    else self.s.worker_context_chars
+                ),
                 history={k: v for k, v in history.items() if k in worker.needs},
             )
             counter = StepCounter(llm, self.output)
