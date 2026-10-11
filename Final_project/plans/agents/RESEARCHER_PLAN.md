@@ -480,3 +480,20 @@ Each step ends with green tests and Ruff, on branch `impl/researcher`, after `co
 8. **Real tools over fakes** (after the RAG and SEARXNG branches merge): R4, R16, R17, R19, R20, and the layout tests if G1 is accepted.
 9. **Metrics:** the rewrite / repeat / cap functions of §3.10, with unit tests, handed to phase 7.
 10. **Deviations:** record any difference from this plan in a "Deviations" section here.
+
+## 13. Deviations (implementation, 2026-10-11)
+
+| Plan | Implementation | Why |
+|---|---|---|
+| §3.4: an in-task memo (G3 proposed run-wide) | **Run-wide** memo (`ToolBox.memo`, G3 accepted). A repeat from an earlier task gets its own first line (`REPEAT This exact call was already made earlier in this run…`), and its evidence counts as seen, so it's citable. Only `ok` and `empty` outputs are memoized | The in-task wording would be false across tasks. A provider error should be retried, not replayed |
+| §3.8: `{cap}` inside the persona `researcher.md` | The persona says the number is in the assignment; `researcher_task.md` carries `Tool calls allowed: {cap}` | `PromptLibrary.worker_system` (Shared) fills no persona placeholders |
+| §3.8: heading `# Research question (context)` | Kept `# User question (context)` | The demo agents parse this heading, and the other workers use it |
+| §3.7: task fenced in the findings call | The task is also fenced (`kind="task"`) in the first turn | Same input, same treatment |
+| §3.2: the Researcher refuses a canary in arguments | Kept, and the record stores `args={}` so the canary never reaches the transcript. In production `StepCounter` (G5, accepted) raises `CanaryLeak` first, so this is a second line of defense for direct callers | — |
+| — | Each `LLMRequest` gets a **copy** of the message list | The loop appends to the list. A shared list made recorded requests change afterwards (a test caught it) |
+| §3.9 unsourced path | Also fills `data` with zero counters. An empty answer raises `LLMBadResponse` | The Supervisor's tool-use summary reads `data` for every task |
+| Q7: metric functions in `eval/tool_use.py` | `rewrites_after_weak(records)` lives in `researcher.py`. It also feeds `data.rewrites`; phase 7 imports it | One definition for the live counter and the evaluation |
+| §12: prompts `VERSION` | Not bumped (still `2`) | The wave-2 PRs also edit prompts: bump once after they merge. Cache keys change anyway, because they hash the prompt text |
+| §9 test files | R1–R20 plus depth, trimming and demo cases in `tests/component/test_researcher.py`; helpers in `tests/unit/test_researcher_helpers.py`. The step-3 Researcher cases in `test_workers.py` stay | — |
+
+**Coverage:** `researcher.py` and `demo/researcher.py` 100%, overall 97%. **Ruff:** clean.

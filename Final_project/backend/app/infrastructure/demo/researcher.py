@@ -1,5 +1,6 @@
-"""Demo Researcher: calls the first offered search tool with the question, then writes
-findings citing the evidence ids it received. Owner: RESEARCHER."""
+"""Demo Researcher (RESEARCHER_PLAN G6): calls the first offered search tool with the
+question; when a result says `results=0`, tries the next search tool; then writes findings
+citing the first evidence ids it received. Owner: RESEARCHER."""
 
 from app.domain.ports import LLMRequest, ToolCall, ToolResultsMessage
 
@@ -9,15 +10,17 @@ PREFERRED = ("search_web", "search_documents", "search_wikipedia")
 
 
 def respond(request: LLMRequest, prompt: str) -> tuple[str | None, list[ToolCall]]:
-    results = [
-        r.content for m in request.messages if isinstance(m, ToolResultsMessage) for r in m.results
-    ]
-    if request.tools and not results:
+    results = [r for m in request.messages if isinstance(m, ToolResultsMessage) for r in m.results]
+    if request.tools:
         names = [t.name for t in request.tools]
-        tool = next((n for n in PREFERRED if n in names), names[0])
-        query = question(prompt, "User question (context)") or "research topic"
-        return None, [ToolCall("demo-call-1", tool, {"query": query})]
-    refs = refs_in("\n".join(results) or prompt)[:3]
+        searches = [n for n in PREFERRED if n in names] or names
+        tried = [r.name for r in results]
+        last_empty = bool(results) and "results=0 " in results[-1].content
+        untried = [n for n in searches if n not in tried]
+        if (not results or last_empty) and untried:
+            query = question(prompt, "User question (context)") or "research topic"
+            return None, [ToolCall(f"demo-call-{len(results) + 1}", untried[0], {"query": query})]
+    refs = refs_in("\n".join(r.content for r in results) or prompt)[:3]
     if not refs:
         return (
             "UNSOURCED: notes from general knowledge, not verified against sources.\n"

@@ -158,6 +158,7 @@ def test_prompt_files_use_only_known_placeholders():
         "memories", "sources", "evidence", "tools", "cap", "known_evidence", "guidance",
         "transcript", "iterations_left", "last_hint", "parser_error", "task", "notes",
         "review", "fact_check", "previous_draft", "draft", "sentences", "validation_errors",
+        "depth_hint", "word_limit", "tool_log",
     }  # fmt: skip
     root = APP / "prompts"
     for path in root.rglob("*.md"):
