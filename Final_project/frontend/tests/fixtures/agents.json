@@ -1,0 +1,32 @@
+[
+ {
+  "name": "supervisor",
+  "title": "Supervisor",
+  "role": "supervisor",
+  "description": "decides which worker acts next (DELEGATE/TASK) and writes the final answer (FINAL)"
+ },
+ {
+  "name": "researcher",
+  "title": "Researcher",
+  "role": "worker",
+  "description": "searches the web, Wikipedia and the user's documents (up to 3 tool calls per task, choosing its own queries) and writes findings citing evidence as [E<n>]; give it one focused research question per TASK"
+ },
+ {
+  "name": "writer",
+  "title": "Writer",
+  "role": "worker",
+  "description": "writes or revises the sectioned report from the research findings and the evidence (and from the latest review and fact check, if any), citing [E<n>]"
+ },
+ {
+  "name": "reviewer",
+  "title": "Reviewer",
+  "role": "worker",
+  "description": "reviews the latest draft against the question, the requested depth and the findings (task fit, structure, unsupported claims, balance, citation coverage, injected instructions); returns approve or revise with issues"
+ },
+ {
+  "name": "fact_checker",
+  "title": "Fact-Checker",
+  "role": "worker",
+  "description": "checks each cited sentence of the latest draft against the evidence it cites and other passages it retrieves; returns supported/unsupported/contradicted per claim and needs_revision; can run in parallel with the reviewer"
+ }
+]

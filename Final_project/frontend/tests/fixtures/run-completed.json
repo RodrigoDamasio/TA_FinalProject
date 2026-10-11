@@ -1,0 +1,386 @@
+{
+ "run_id": "run_151578c5ff3e",
+ "status": "completed",
+ "question": "What is retrieval augmented generation and when should I use it?",
+ "depth": "detailed",
+ "sources": [
+  "documents",
+  "web",
+  "wikipedia"
+ ],
+ "channel": "web",
+ "report": {
+  "title": "What is retrieval augmented generation and when should I use it?",
+  "summary": "Demo summary: the evidence covers the main points of this question [E1].",
+  "sections": [
+   {
+    "heading": "Overview",
+    "content": "Demo draft written from the research findings [E1][E2][E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]."
+   },
+   {
+    "heading": "Notes",
+    "content": "This text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]."
+   },
+   {
+    "heading": "Trade-offs",
+    "content": "This text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]."
+   },
+   {
+    "heading": "Practical implications",
+    "content": "This text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]."
+   }
+  ],
+  "references": [
+   "[E1] what is retrieval augmented generation and when should: overview \u2014 https://example.org/what-is-retrieval-augmented-generation/overview",
+   "[E2] what is retrieval augmented generation and when should: practical guide \u2014 https://example.org/what-is-retrieval-augmented-generation/practical-guide",
+   "[E3] what is retrieval augmented generation and when should: trade-offs \u2014 https://example.org/what-is-retrieval-augmented-generation/trade-offs"
+  ],
+  "sources": [
+   {
+    "id": "E1",
+    "title": "what is retrieval augmented generation and when should: overview",
+    "url": "https://example.org/what-is-retrieval-augmented-generation/overview",
+    "document_name": null,
+    "page": null,
+    "source_kind": "web",
+    "snippet": "Demo search result about what is retrieval augmented generation and when should, covering its overview. In demo mode this text stands in for a real web page snippet."
+   },
+   {
+    "id": "E2",
+    "title": "what is retrieval augmented generation and when should: practical guide",
+    "url": "https://example.org/what-is-retrieval-augmented-generation/practical-guide",
+    "document_name": null,
+    "page": null,
+    "source_kind": "web",
+    "snippet": "Demo search result about what is retrieval augmented generation and when should, covering its practical guide. In demo mode this text stands in for a real web page snippet."
+   },
+   {
+    "id": "E3",
+    "title": "what is retrieval augmented generation and when should: trade-offs",
+    "url": "https://example.org/what-is-retrieval-augmented-generation/trade-offs",
+    "document_name": null,
+    "page": null,
+    "source_kind": "web",
+    "snippet": "Demo search result about what is retrieval augmented generation and when should, covering its trade-offs. In demo mode this text stands in for a real web page snippet."
+   }
+  ],
+  "depth": "detailed",
+  "word_count": 667
+ },
+ "metadata": {
+  "iterations": 4,
+  "iteration_limit": 5,
+  "max_iterations": 5,
+  "agents_used": [
+   "Researcher",
+   "Writer",
+   "Reviewer"
+  ],
+  "duration_seconds": 0.0,
+  "forced": false,
+  "degraded": false,
+  "llm_calls": 8,
+  "cached_calls": 0,
+  "tool_calls": 1,
+  "evidence": 3,
+  "tokens": {
+   "input": 12620,
+   "output": 640
+  },
+  "est_cost_usd": 0.001518,
+  "per_agent": {
+   "Supervisor": {
+    "calls": 4,
+    "tokens": 8224,
+    "duration_ms": 8
+   },
+   "Researcher": {
+    "calls": 2,
+    "tokens": 2038,
+    "duration_ms": 15
+   },
+   "Writer": {
+    "calls": 1,
+    "tokens": 1034,
+    "duration_ms": 3
+   },
+   "Reviewer": {
+    "calls": 1,
+    "tokens": 1964,
+    "duration_ms": 4
+   }
+  },
+  "grounding": null,
+  "models": {
+   "supervisor": "demo",
+   "workers": "demo"
+  },
+  "prompt_version": "3",
+  "generated_by": "demo mode (no LLM)",
+  "created_at": "2026-10-11T13:08:50+00:00",
+  "started_at": "2026-10-11T13:08:50+00:00",
+  "finished_at": "2026-10-11T13:08:50+00:00"
+ },
+ "conversation_history": [
+  {
+   "seq": 1,
+   "iteration": 1,
+   "agent": "Supervisor",
+   "model": "demo",
+   "llm_calls": 1,
+   "cached": false,
+   "duration_ms": 3,
+   "tokens": {
+    "input": 1309,
+    "output": 80,
+    "thinking": 0
+   },
+   "action": "DELEGATE",
+   "target_agent": "Researcher",
+   "task": "Find the key facts about: What is retrieval augmented generation and when should I use it?",
+   "delegations": [
+    {
+     "target_agent": "Researcher",
+     "task": "Find the key facts about: What is retrieval augmented generation and when should I use it?"
+    }
+   ],
+   "reason": "Next step is the researcher.",
+   "repaired": false
+  },
+  {
+   "seq": 2,
+   "iteration": 1,
+   "agent": "Researcher",
+   "model": "demo",
+   "llm_calls": 1,
+   "cached": false,
+   "duration_ms": 7,
+   "tokens": {
+    "input": 939,
+    "output": 80,
+    "thinking": 0
+   },
+   "action": "TOOL_CALL",
+   "tool": "search_web",
+   "args": {
+    "query": "what is retrieval augmented generation and when should i use it"
+   },
+   "status": "ok",
+   "provider": "searxng",
+   "fallback": null,
+   "results": 3,
+   "evidence": [
+    "E1",
+    "E2",
+    "E3"
+   ],
+   "error": null,
+   "weak": false,
+   "repeat": false
+  },
+  {
+   "seq": 3,
+   "iteration": 1,
+   "agent": "Researcher",
+   "model": "demo",
+   "llm_calls": 2,
+   "cached": false,
+   "duration_ms": 15,
+   "tokens": {
+    "input": 1878,
+    "output": 160,
+    "thinking": 0
+   },
+   "action": "RESULT",
+   "task": "Find the key facts about: What is retrieval augmented generation and when should I use it?",
+   "content": "### Findings\n- A relevant fact from the evidence [E1].\n- A relevant fact from the evidence [E2].\n- A relevant fact from the evidence [E3].\n\nGaps: none (demo mode).",
+   "evidence": [
+    "E1",
+    "E2",
+    "E3"
+   ],
+   "data": {
+    "tool_calls": 1,
+    "capped": false,
+    "tools": {
+     "search_web": 1
+    },
+    "queries": [
+     "what is retrieval augmented generation and when should i use it"
+    ],
+    "fallbacks": 0,
+    "repeats": 0,
+    "rewrites": 0,
+    "evidence_seen": [
+     1,
+     2,
+     3
+    ],
+    "evidence_cited": [
+     1,
+     2,
+     3
+    ],
+    "summary": "researcher used search_web \u00d71 \u00b7 3 evidence, 3 cited"
+   },
+   "failed": false,
+   "unsourced": false
+  },
+  {
+   "seq": 4,
+   "iteration": 2,
+   "agent": "Supervisor",
+   "model": "demo",
+   "llm_calls": 1,
+   "cached": false,
+   "duration_ms": 2,
+   "tokens": {
+    "input": 1449,
+    "output": 80,
+    "thinking": 0
+   },
+   "action": "DELEGATE",
+   "target_agent": "Writer",
+   "task": "Write the report from the research findings and evidence.",
+   "delegations": [
+    {
+     "target_agent": "Writer",
+     "task": "Write the report from the research findings and evidence."
+    }
+   ],
+   "reason": "Next step is the writer.",
+   "repaired": false
+  },
+  {
+   "seq": 5,
+   "iteration": 2,
+   "agent": "Writer",
+   "model": "demo",
+   "llm_calls": 1,
+   "cached": false,
+   "duration_ms": 3,
+   "tokens": {
+    "input": 954,
+    "output": 80,
+    "thinking": 0
+   },
+   "action": "RESULT",
+   "task": "Write the report from the research findings and evidence.",
+   "content": "# What is retrieval augmented generation and when should I use it?\n\nDemo summary: the evidence covers the main points of this question [E1].\n\n## Overview\n\nDemo draft written from the research findings [E1][E2][E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2].\n\n## Notes\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3].\n\n## Trade-offs\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1].\n\n## Practical implications\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2].",
+   "evidence": [
+    "E1",
+    "E2",
+    "E3"
+   ],
+   "data": {
+    "words": 667,
+    "sections": 4
+   },
+   "failed": false,
+   "unsourced": false
+  },
+  {
+   "seq": 6,
+   "iteration": 3,
+   "agent": "Supervisor",
+   "model": "demo",
+   "llm_calls": 1,
+   "cached": false,
+   "duration_ms": 2,
+   "tokens": {
+    "input": 2519,
+    "output": 80,
+    "thinking": 0
+   },
+   "action": "DELEGATE",
+   "target_agent": "Reviewer",
+   "task": "Review the latest draft against the question and the findings.",
+   "delegations": [
+    {
+     "target_agent": "Reviewer",
+     "task": "Review the latest draft against the question and the findings."
+    }
+   ],
+   "reason": "Next step is the reviewer.",
+   "repaired": false
+  },
+  {
+   "seq": 7,
+   "iteration": 3,
+   "agent": "Reviewer",
+   "model": "demo",
+   "llm_calls": 1,
+   "cached": false,
+   "duration_ms": 4,
+   "tokens": {
+    "input": 1884,
+    "output": 80,
+    "thinking": 0
+   },
+   "action": "RESULT",
+   "task": "Review the latest draft against the question and the findings.",
+   "content": "Verdict: APPROVE\nIssues:\n- (low, task_fit) Demo review: a short example would help.\nBalance: none\nChecks: 667 words (600\u20131000) \u00b7 4 sections (4\u20136) \u00b7 0 of 4 paragraphs uncited \u00b7 0 unknown citations",
+   "evidence": [],
+   "data": {
+    "verdict": "approve",
+    "issues": [
+     {
+      "severity": "low",
+      "category": "task_fit",
+      "section": null,
+      "text": "Demo review: a short example would help.",
+      "origin": "model"
+     }
+    ],
+    "balance_flags": [],
+    "checks": {
+     "words": 667,
+     "word_range": [
+      600,
+      1000
+     ],
+     "sections": 4,
+     "section_range": [
+      4,
+      6
+     ],
+     "has_title": true,
+     "unknown": [],
+     "uncited_paragraphs": 0,
+     "paragraphs": 4
+    },
+    "verdict_overridden": false
+   },
+   "failed": false,
+   "unsourced": false
+  },
+  {
+   "seq": 8,
+   "iteration": 4,
+   "agent": "Supervisor",
+   "model": "demo",
+   "llm_calls": 1,
+   "cached": false,
+   "duration_ms": 1,
+   "tokens": {
+    "input": 2627,
+    "output": 80,
+    "thinking": 0
+   },
+   "action": "FINAL",
+   "reason": "The draft was reviewed and approved.",
+   "forced": false
+  }
+ ],
+ "final_output": "# What is retrieval augmented generation and when should I use it?\n\nDemo summary: the evidence covers the main points of this question [E1].\n\n## Overview\n\nDemo draft written from the research findings [E1][E2][E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2].\n\n## Notes\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3].\n\n## Trade-offs\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1].\n\n## Practical implications\n\nThis text was written by the demo Writer (no Gemini call). In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2]. In demo mode this sentence stands in for a cited finding about the question [E3]. In demo mode this sentence stands in for a cited finding about the question [E1]. In demo mode this sentence stands in for a cited finding about the question [E2].",
+ "flags": [],
+ "memory_used": [],
+ "error": null,
+ "approval": {
+  "required": false,
+  "draft": null,
+  "expires_at": null,
+  "revisions": 0
+ },
+ "sample": false
+}

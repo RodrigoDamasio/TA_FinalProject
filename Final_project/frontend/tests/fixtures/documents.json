@@ -1,0 +1,110 @@
+{
+ "workspace": null,
+ "documents": [],
+ "demo": [
+  {
+   "id": "doc_2219d6ddd7ed",
+   "name": "tool-use-design-pattern.md",
+   "media_type": "text/markdown",
+   "size_bytes": 20802,
+   "status": "ready",
+   "pages": null,
+   "chunks": 25,
+   "error": null,
+   "created_at": "2026-10-11T13:08:45+00:00",
+   "expires_at": null,
+   "demo": true
+  },
+  {
+   "id": "doc_3a862b0ca3ed",
+   "name": "agentic-rag.md",
+   "media_type": "text/markdown",
+   "size_bytes": 15994,
+   "status": "ready",
+   "pages": null,
+   "chunks": 20,
+   "error": null,
+   "created_at": "2026-10-11T13:08:45+00:00",
+   "expires_at": null,
+   "demo": true
+  },
+  {
+   "id": "doc_3e65229b69f7",
+   "name": "standard-webhooks-spec.md",
+   "media_type": "text/markdown",
+   "size_bytes": 28287,
+   "status": "ready",
+   "pages": null,
+   "chunks": 35,
+   "error": null,
+   "created_at": "2026-10-11T13:08:45+00:00",
+   "expires_at": null,
+   "demo": true
+  },
+  {
+   "id": "doc_5ac7ca22a3a8",
+   "name": "vector-store-operations-notes.txt",
+   "media_type": "text/plain",
+   "size_bytes": 3449,
+   "status": "ready",
+   "pages": null,
+   "chunks": 3,
+   "error": null,
+   "created_at": "2026-10-11T13:08:45+00:00",
+   "expires_at": null,
+   "demo": true
+  },
+  {
+   "id": "doc_8726f4a83f4d",
+   "name": "securing-ai-applications.md",
+   "media_type": "text/markdown",
+   "size_bytes": 18601,
+   "status": "ready",
+   "pages": null,
+   "chunks": 24,
+   "error": null,
+   "created_at": "2026-10-11T13:08:45+00:00",
+   "expires_at": null,
+   "demo": true
+  },
+  {
+   "id": "doc_d7a685e7288d",
+   "name": "rag-and-vector-databases.md",
+   "media_type": "text/markdown",
+   "size_bytes": 14003,
+   "status": "ready",
+   "pages": null,
+   "chunks": 20,
+   "error": null,
+   "created_at": "2026-10-11T13:08:45+00:00",
+   "expires_at": null,
+   "demo": true
+  },
+  {
+   "id": "doc_dc4900816ed6",
+   "name": "nist-ai-rmf-1.0.pdf",
+   "media_type": "application/pdf",
+   "size_bytes": 1946127,
+   "status": "ready",
+   "pages": 48,
+   "chunks": 108,
+   "error": null,
+   "created_at": "2026-10-11T13:08:45+00:00",
+   "expires_at": null,
+   "demo": true
+  },
+  {
+   "id": "doc_e7e4f0cf7edf",
+   "name": "multi-agent-design.md",
+   "media_type": "text/markdown",
+   "size_bytes": 16646,
+   "status": "ready",
+   "pages": null,
+   "chunks": 20,
+   "error": null,
+   "created_at": "2026-10-11T13:08:45+00:00",
+   "expires_at": null,
+   "demo": true
+  }
+ ]
+}
