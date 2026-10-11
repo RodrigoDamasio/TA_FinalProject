@@ -1,6 +1,6 @@
 # Frontend deployment (Vercel): steps for the user
 
-**Not deployed yet.** Cloud sessions never deploy; these steps are run locally by the user (FRONTEND_PLAN §7). The Module 5 deployment notes this file replaced are in the TA_Module5 repo.
+**Deployed 2026-10-11:** https://research-assistant-final-project.vercel.app (Vercel project `research-assistant-final-project`), API https://backend-production-092d.up.railway.app. Backend `FRONTEND_ORIGIN` and `FRONTEND_URL` point at the Vercel URL. Steps below are for redeploys.
 
 ```bash
 # gates first
