@@ -205,3 +205,24 @@ sequenceDiagram
 | Injection carried across turns (a malicious page in turn 1) | Earlier turns are fenced data; summaries are the Writer's text, already reviewed; `possible_injection` flags carry to the turn card |
 | Stale evidence reused | `search_conversation` results show their original retrieval date; the persona says to search the web for anything time-sensitive |
 | Old clients without `conversation_id` | Still work: each run is a new conversation (today's behaviour) |
+
+## 14. Deviations
+
+Recorded during implementation. Each session adds only its own rows (BACKEND_PLAN §26.3).
+
+### Frontend (branch `impl/conversations-frontend`, step 8)
+
+| Plan | Implementation | Why |
+|---|---|---|
+| §8.1 storage v3 `{current, chats: [...]}` | As planned, plus `read_only?: boolean` per chat. Imported v2 runs get the backend's `legacy_conversation_id` rule (`conv_` + the run's hex, padded); the v2 key is removed after the import | "Continuing one starts a new chat" needs a flag; removing the v2 key keeps a removed chat from coming back on reload |
+| §8.1 read-only history (v2 only) | A chat the server answers `conversation-not-found` for (swept, or `GET /conversations` 404) also becomes read-only: still readable, and the next question starts a new chat with a note | Same behaviour as an imported chat; the composer never sends an id the server rejects twice |
+| §8.1 `?chat=<id>&run=<id>` | `?chat=` and `&run=` are read; `?run=` **alone** also works (`GET /research` → its `conversation_id` → `GET /conversations`), because the 202 `web_url`, Telegram and callback links are still `/?run=`. The URL the UI writes is `?chat=<id>` | Old and server-made links keep working |
+| §8.1 unknown chat loaded by `GET /conversations` | A known chat is also refreshed once per page load (turns added on another device or tab are merged; local turns in flight are kept). A run without a `conversation_id` (an older backend) opens as a read-only chat of its own | One request per opened chat, no polling |
+| §8.1 New chat | An empty new chat is not stored: it appears in the sidebar with its first question. Samples are offered on the empty (new chat) state only; a sample replay is not a turn and has no toggle | A chat exists server-side only from its first run |
+| §8.1 sidebar | A list (with **New chat** and a "Chats (N)" heading) on wide screens (≥ 1024 px, `useMediaQuery`); a drawer on phones, as the v1.1 history. Each row: title, "N turns · 5 min ago" (· read-only), `aria-current="page"` on the current chat; × asks for confirmation inline | Keeps the 375 px layout of v1.1 |
+| §8.2 state in `sessionStorage` | `research-collapse-v1`: the user's choices per run. Without a choice, only the latest turn is expanded (so a reload in a new tab shows the default); sending a question drops the chat's choices (every earlier turn collapses) | Plan's "only the latest on load" and "kept in sessionStorage" combined |
+| §8.2 collapsed card | Header = the question as a button (`aria-expanded`, `aria-controls`; name "Turn 1: …" / "Follow-up · turn 2: …"). Card: report title, 2-line summary (citations and bold marks stripped, plain text), badges: status (unless completed), tool calls, evidence, grounding (when fact-checked), depth | |
+| §8.2 "How the agents worked" collapses on completion | It is open only while the run is queued or running, so it is also closed while a run **awaits approval**; a sample replay keeps it open after the replay (demo of the agents) | The approval panel is the focus then; samples exist to show the agents |
+| §8.1 composer limits | `/health.limits` has no `followup_min_chars` / `conversation_max_turns` yet: the UI uses the contract values 2 and 30 (the schema reads them when sent). A full chat disables the composer with "This chat is full. Start a new chat." | See the API change requests in the PR |
+| §8.3 / §7 Zod | `ResearchView.conversation_id` and `turn` are optional (stored samples and pre-v1.2 views lack them); `metadata.context_turns` defaults to 0. `GET /tools` gets a schema whose `family` is an open string (`conversation` and future families parse) and a client function; the UI does not call it yet | Samples replay unchanged; forward compatible |
+| §10 tests | `search_conversation` and `context_turns > 0` are covered by component tests on a fixture built from the recorded follow-up (`followupWithContext()`), not E2E (the fake backend at `contracts-v1.2` has neither). Existing E2E tests changed only where the plan changed the UI: `?chat=` URL, "Chats (1)", and opening "How the agents worked" before checking the board after completion | The parallel backend session ships them |
