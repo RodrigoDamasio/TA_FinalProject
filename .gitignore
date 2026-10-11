@@ -1,9 +1,16 @@
-# Only Final_project is published. Everything else in the Final Project folder
-# (course PDF, scripts, notes, test files) stays local.
+# Only Final_project and the files cloud sessions need are published.
+# Everything else in the Final Project folder (course PDF, notes, test files)
+# stays local.
 /*
 !/.gitignore
 !/README.md
+!/CLAUDE.md
 !/Final_project/
+!/scripts/
+!/.github/
+!/.claude/
+# Personal Claude Code settings stay local
+/.claude/settings.local.json
 
 # Safety net for anything generated inside Final_project
 __pycache__/
