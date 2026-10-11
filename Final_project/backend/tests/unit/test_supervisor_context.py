@@ -289,3 +289,21 @@ def test_first_paragraph_and_reasons():
     assert _why(BudgetExceeded(3)) == "the LLM call budget was used up"
     assert _why(LLMQuotaExceeded("day", 1)) == "the LLM quota was reached"
     assert _why(LLMRequestRejected(400, "x")) == "the LLM service refused the request"
+
+
+def test_supervisor_prompt_files_match_what_the_code_fills():
+    from app.application.prompts import PromptLibrary, placeholders
+
+    lib = PromptLibrary()
+    assert placeholders(lib.read("supervisor_task.md")) == {
+        "question", "guidance", "sources", "memories", "evidence", "transcript",
+        "iterations_left", "last_hint",
+    }  # fmt: skip
+    assert placeholders(lib.read("supervisor.md")) == {
+        "worker_list", "parallel_rule", "fact_check_hint",
+    }  # fmt: skip
+    assert placeholders(lib.read("supervisor_repair.md")) == {"parser_error"}
+    assert placeholders(lib.read("supervisor_forced.md")) == set()
+    system = lib.read("supervisor.md")
+    assert "Topics:" not in system and "never cite them" in system.lower()
+    assert "Do not add a Sources or References section" in system
