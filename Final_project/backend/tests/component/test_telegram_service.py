@@ -201,3 +201,10 @@ def test_chat_limiter_windows():
     assert limiter.retry_after("b") is None
     clock.t += 86400
     assert limiter.retry_after("a") is None  # old hits expire
+
+
+def test_the_unknown_chat_memory_is_bounded(bot):
+    _, service, clock = bot
+    service._told = {str(i): clock.t - 7200 for i in range(10_001)}
+    assert service.handle(update(chat=7)) == "not_allowed"
+    assert service._told == {"7": clock.t}
