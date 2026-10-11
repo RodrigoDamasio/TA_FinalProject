@@ -447,4 +447,4 @@ Each step ends with its tests green and Ruff clean.
 - **Telegram registration:** the `setWebhook` block of §3.3, unchanged.
 - **Callback demo:** `backend/samples/webhooks/README.md` (local receiver, `CALLBACK_ALLOW_PRIVATE=true` locally, `ngrok http 8001` against the deployed backend).
 - **Secret rotation:** rotating `PROMPT_SECRET` changes every derived callback secret. Rotate only when `/health` shows `outbox.pending == 0`, otherwise pending callbacks are signed with secrets their clients don't hold.
-- **Checks after deploy:** `/health` → `telegram.mode == "live"`; `getWebhookInfo` → no `last_error_message`; one question from an allowed chat → "Working on it" then the report; `GET /research/{id}/deliveries` → both `delivered`.
+- **Checks after deploy:** `/health` → `telegram` is `live`; `getWebhookInfo` → no `last_error_message`; one question from an allowed chat → "Working on it" then the report; `GET /research/{id}/deliveries` → both `delivered`.
