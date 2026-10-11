@@ -28,7 +28,7 @@ function AgentChip({ name, card, agent, now }: { name: string; card: Card; agent
     >
       <span className="block truncate text-sm font-medium">{title}</span>
       <span
-        className={`block text-xs font-medium ${card.state === "working" ? "text-orange-800 motion-safe:animate-pulse dark:text-orange-300" : "text-zinc-700 dark:text-zinc-300"}`}
+        className={`block text-xs font-medium ${card.state === "working" ? "text-orange-800 dark:text-orange-300" : "text-zinc-700 dark:text-zinc-300"}`}
       >
         {STATE_TEXT[card.state]}
         {elapsed !== null && elapsed >= 1000 ? ` · ${formatMs(elapsed)}` : ""}

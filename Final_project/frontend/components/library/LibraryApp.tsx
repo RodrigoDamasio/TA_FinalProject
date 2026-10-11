@@ -9,13 +9,13 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import * as api from "@/lib/api";
 import { ApiError } from "@/lib/api";
 import { formatBytes, formatDate } from "@/lib/format";
-import type { DocumentView } from "@/lib/schemas";
+import type { DocumentView, WorkspaceInfo } from "@/lib/schemas";
 
 export const POLL_MS = 2000;
 const ACCEPT = ".md,.txt,.pdf,text/markdown,text/plain,application/pdf";
 const EXTENSIONS = [".md", ".txt", ".pdf"];
-// Backend defaults (UPLOAD_MAX_BYTES, WORKSPACE_MAX_DOCS, WORKSPACE_MAX_BYTES); /health.limits
-// overrides them when it sends them.
+// Backend defaults (UPLOAD_MAX_BYTES, WORKSPACE_MAX_DOCS, WORKSPACE_MAX_BYTES). The workspace
+// summary of GET /documents (after the first upload) and /health.limits override them.
 const DEFAULT_MAX_BYTES = 5 * 1024 * 1024;
 const DEFAULT_MAX_DOCS = 10;
 const DEFAULT_MAX_TOTAL = 20 * 1024 * 1024;
@@ -118,6 +118,7 @@ export default function LibraryApp() {
   const { error, cooldown, fail, clear } = useApiError();
   const [docs, setDocs] = useState<DocumentView[] | null>(null);
   const [demo, setDemo] = useState<DocumentView[]>([]);
+  const [workspace, setWorkspace] = useState<WorkspaceInfo | null>(null);
   const [uploads, setUploads] = useState<Upload[]>([]);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -127,8 +128,8 @@ export default function LibraryApp() {
 
   const limits = {
     maxBytes: health?.limits.upload_max_bytes ?? DEFAULT_MAX_BYTES,
-    maxDocs: health?.limits.workspace_max_docs ?? DEFAULT_MAX_DOCS,
-    maxTotal: health?.limits.workspace_max_bytes ?? DEFAULT_MAX_TOTAL,
+    maxDocs: workspace?.limits?.max_documents ?? health?.limits.workspace_max_docs ?? DEFAULT_MAX_DOCS,
+    maxTotal: workspace?.limits?.max_bytes ?? health?.limits.workspace_max_bytes ?? DEFAULT_MAX_TOTAL,
   };
 
   const load = useCallback(() => {
@@ -137,6 +138,7 @@ export default function LibraryApp() {
       (list) => {
         setDocs(list.documents);
         setDemo(list.demo);
+        setWorkspace(list.workspace ?? null);
       },
       (err) => {
         setDocs([]);

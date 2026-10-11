@@ -152,3 +152,39 @@ Exact field lists are generated from `/openapi.json` during implementation and p
 8. Samples and service banner updates.
 9. E2E + axe + 375 px; coverage ≥ 80 %; lint and typecheck clean.
 10. Deploy to Vercel, set backend CORS/URLs, production smoke. Record deviations here.
+
+## 9. Deviations
+
+Recorded during implementation (branch `impl/frontend`, steps 1–9; step 10 is the user's, locally).
+
+**API shapes (the live fake-mode server is the truth; fixtures in `frontend/tests/fixtures/`):**
+
+| Plan (§4) | Live API | Frontend |
+|---|---|---|
+| `POST /research` body `workspace_id?` | `X-Workspace-Id` header (lowercase UUIDv4; anything else is `400 invalid-workspace`) | Header on runs and document calls; the id is `crypto.randomUUID()` kept in `localStorage` (`research-workspace-v1`) |
+| `report.references[]` structured | `references` are strings (assignment shape); the structured list is `report.sources[]` `{id, title, url, document_name, page, source_kind, snippet}` | Chips, popovers and the References list use `sources`; the Markdown export uses the strings |
+| Document view `size` | `size_bytes` | Schema follows the API |
+| `GET /documents` → `workspace` | An object `{id, created_at, expires_at, bytes_used, documents, limits{max_documents, max_bytes}}`, `null` before the first upload | Library limits come from it when present |
+| `/health.limits` with upload limits | Not sent (only run limits) | Defaults 5 MB / 10 docs / 20 MB, overridden by `workspace.limits` |
+| Sample index `{id, title, task}` (M5) | `{id, title, question}` | Schema follows the API |
+| History entries | Common fields `seq, iteration, agent, model, llm_calls, cached, duration_ms, tokens`; `RESULT` also `failed, unsourced`; `DELEGATE` also `delegations[]`, `repaired`; `FINAL` also `forced`; `TOOL_CALL.duration_ms` is the tool's | Discriminated union on `action`, unknown actions kept as a generic entry |
+| Metadata | Adds `iteration_limit`, `max_iterations`, `evidence`, `started_at`; `grounding` is `{checked, supported, unsupported, contradicted, supported_ratio}` or `null` | Shown in MetaBar and the report footer |
+
+**UI:**
+- **Layout (§3.1).** No right-hand column and no M5 tabs: each turn holds its own "How the agents worked" panel (agent board + activity feed, open for the live/latest run), then the report and a collapsed "Run details". History is a collapsible list at the top of the sidebar on wide screens and a drawer on phones (one element, collapsed by default), which keeps the 375 px layout simple.
+- **Rewrite marker (§3.3).** History entries carry no task id, so a "task" is the tool calls of one agent in one iteration. Two parallel Researcher tasks in the same iteration would be grouped together.
+- **Advanced → max decisions** defaults to "by depth" (no `max_iterations` sent), since the depth profile sets it (4 / 5 / 6); `/health.limits.default_max_iterations` is the detailed default only.
+- **Deliveries (§3.5)** are fetched only for runs whose channel is not `web` (the web UI never sends a `callback_url`).
+- **Citation popover** is placed with `position: fixed` inside the viewport (never causes horizontal scroll) and follows the chip on scroll.
+- **CSP (§5)** without nonces (`script-src 'self' 'unsafe-inline'`, the Next.js "without nonces" pattern) so pages stay static; `connect-src` is `'self'` + the API origin from `NEXT_PUBLIC_API_URL`.
+- `ApiError` kinds add `unsupported_type`, `quota_exceeded` and rename M5's `invalid_response` to `contract` (§6).
+
+**Tests:**
+- The fake backend's demo Researcher makes one `ok` call per task, so weak / repeat / fallback / capped / refused / error cards and the rewrite marker are covered by component tests (variants built on the real `TOOL_CALL` shape), not by E2E.
+- `backend/samples/runs/index.json` is empty in the repo, so the E2E sample replay answers `/samples` with a run recorded from the fake-mode backend (`tests/fixtures/run-completed.json`) through Playwright routing. Against production (`BASE_URL`) the real samples are used.
+- Playwright uses `/opt/pw-browsers/chromium` when it exists (cloud), otherwise the installed Chrome (local); the backend interpreter is `backend/.venv` or the shared `.venv` above the repo.
+
+**Backend change requests (BACKEND_PLAN §22, not made here):**
+1. Add `upload_max_bytes`, `workspace_max_docs`, `workspace_max_bytes` to `/health.limits`, so the library shows the limits before the first upload (the schema already accepts them).
+2. Export sample runs (`python -m eval.run --export-samples`, fake mode is enough for the demo) into `samples/runs/`, or make `SampleStore`'s directory configurable (`SAMPLES_DIR`), so E2E can replay a real stored sample without routing.
+3. Optional: a task id (or the delegation index) on `TOOL_CALL` and `RESULT` entries, to group tool calls by task exactly as `rewrites_after_weak` does.

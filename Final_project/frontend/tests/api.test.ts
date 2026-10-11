@@ -1,22 +1,26 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import * as api from "@/lib/api";
-import { ApiError, fieldLabel } from "@/lib/api";
-import { health, ragRun } from "./fixtures";
+import { ApiError, fieldLabel, parseRetryAfter, toApiError } from "@/lib/api";
+import { completedRun, delivery, doc, raw } from "./fixtures";
+
+const WS = "2a97516c-1111-4222-8333-444455556666";
 
 function respond(status: number, body: unknown, headers: Record<string, string> = {}) {
   // a new Response per call: a body can be read once
   const fetchMock = vi.fn().mockImplementation(
-    async () => new Response(typeof body === "string" ? body : JSON.stringify(body), { status, headers }),
+    async () =>
+      new Response(status === 204 ? null : typeof body === "string" ? body : JSON.stringify(body), { status, headers }),
   );
   vi.stubGlobal("fetch", fetchMock);
   return fetchMock;
 }
 
 const problem = (slug: string, status: number, extra: object = {}) => ({
-  type: `https://api.example/problems/${slug}`,
+  type: `http://localhost:8000/problems/${slug}`,
   title: "T",
   status,
   detail: `detail of ${slug}`,
+  instance: "/research",
   ...extra,
 });
 
@@ -32,82 +36,133 @@ async function errorOf(p: Promise<unknown>): Promise<ApiError> {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("requests", () => {
-  it("starts a run with the task and settings", async () => {
-    const fetchMock = respond(202, { run_id: "run_1", status: "queued", status_url: "/runs/run_1", events_url: "/runs/run_1/events" });
-    const accepted = await api.startRun("A task here", { max_iterations: 3, require_approval: true, use_memory: false });
+  it("starts a run with question, depth, sources, settings and the workspace header", async () => {
+    const fetchMock = respond(202, raw.accepted);
+    const input = { question: "What is RAG and why?", depth: "brief" as const, sources: ["documents" as const], require_approval: false, use_memory: true };
+    const accepted = await api.startResearch(input, WS);
+    expect(accepted.run_id).toBe(raw.accepted.run_id);
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe("http://localhost:8000/run");
+    expect(url).toBe("http://localhost:8000/research");
     expect(init.method).toBe("POST");
-    expect(JSON.parse(init.body)).toEqual({ task: "A task here", max_iterations: 3, require_approval: true, use_memory: false });
-    expect(accepted.run_id).toBe("run_1");
+    expect(init.headers).toMatchObject({ "X-Workspace-Id": WS, "Content-Type": "application/json" });
+    expect(JSON.parse(init.body)).toEqual(input);
+    expect(JSON.parse(init.body)).not.toHaveProperty("callback_url");
   });
 
-  it("reads runs, approves and rejects", async () => {
-    const fetchMock = respond(200, ragRun);
-    expect((await api.getRun("run_x")).run_id).toBe(ragRun.run_id);
-    await api.approve("run_x");
-    await api.reject("run_x", "More detail");
-    expect(fetchMock.mock.calls.map((c) => c[0])).toEqual([
-      "http://localhost:8000/runs/run_x",
-      "http://localhost:8000/runs/run_x/approve",
-      "http://localhost:8000/runs/run_x/reject",
-    ]);
-    expect(JSON.parse(fetchMock.mock.calls[2][1].body)).toEqual({ feedback: "More detail" });
-    expect(api.eventsUrl("run_x")).toBe("http://localhost:8000/runs/run_x/events");
+  it("reads runs, approves, rejects and lists deliveries", async () => {
+    let fetchMock = respond(200, raw.completed);
+    expect((await api.getResearch(completedRun.run_id)).report?.title).toBe(completedRun.report?.title);
+    expect(fetchMock.mock.calls[0][0]).toBe(`http://localhost:8000/research/${completedRun.run_id}`);
+    fetchMock = respond(200, raw.completed);
+    await api.approve("run_1");
+    expect(fetchMock.mock.calls[0][0]).toMatch(/\/research\/run_1\/approve$/);
+    fetchMock = respond(200, raw.completed);
+    await api.reject("run_1", "more detail");
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ feedback: "more detail" });
+    respond(200, [delivery]);
+    expect(await api.deliveries("run_1")).toEqual([delivery]);
+    expect(api.eventsUrl("run_1")).toBe("http://localhost:8000/research/run_1/events");
   });
 
   it("reads health, agents and samples; uses NEXT_PUBLIC_API_URL", async () => {
     vi.stubEnv("NEXT_PUBLIC_API_URL", "https://api.example/");
-    const fetchMock = respond(200, health);
-    expect((await api.health()).limits.task_max_chars).toBe(2000);
+    const fetchMock = respond(200, raw.health);
+    expect((await api.health()).search?.available).toBe(true);
     expect(fetchMock.mock.calls[0][0]).toBe("https://api.example/health");
-    respond(200, [{ name: "writer", title: "Writer", role: "worker", description: "d" }]);
-    expect((await api.agents())[0].name).toBe("writer");
-    respond(200, [{ id: "a", title: "A", task: "t" }]);
-    expect((await api.samples())[0].id).toBe("a");
-    respond(200, { ...ragRun, sample: true });
-    expect((await api.sample("rag")).sample).toBe(true);
+    respond(200, raw.agents);
+    expect((await api.agents()).map((a) => a.name)).toContain("fact_checker");
+    respond(200, [{ id: "s1", title: "T", question: "Q?" }]);
+    expect(await api.samples()).toEqual([{ id: "s1", title: "T", question: "Q?" }]);
+    respond(200, { ...raw.completed, sample: true });
+    expect((await api.sample("s1")).sample).toBe(true);
+  });
+
+  it("documents: list, get and delete with the workspace header", async () => {
+    let fetchMock = respond(200, raw.documents);
+    const list = await api.listDocuments(WS);
+    expect(list.demo.length).toBeGreaterThan(0);
+    expect(fetchMock.mock.calls[0][1].headers).toEqual({ "X-Workspace-Id": WS });
+    fetchMock = respond(200, doc());
+    expect((await api.getDocument("doc_aaaa", WS)).name).toBe("notes.md");
+    fetchMock = respond(204, null);
+    await api.deleteDocument("doc_aaaa", WS);
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: "DELETE", headers: { "X-Workspace-Id": WS } });
   });
 });
 
 describe("errors (RFC 9457)", () => {
-  it.each([
+  const cases: [string, number, api.ApiErrorKind][] = [
     ["validation-error", 422, "validation"],
-    ["malformed-request", 400, "validation"],
+    ["invalid-workspace", 400, "validation"],
+    ["invalid-callback-url", 422, "validation"],
     ["input-too-large", 413, "too_large"],
+    ["file-too-large", 413, "too_large"],
+    ["unsupported-media-type", 415, "unsupported_type"],
+    ["workspace-quota-exceeded", 507, "quota_exceeded"],
     ["run-not-found", 404, "not_found"],
+    ["document-not-found", 404, "not_found"],
     ["sample-not-found", 404, "not_found"],
     ["invalid-transition", 409, "conflict"],
+    ["demo-read-only", 409, "conflict"],
     ["rate-limited", 429, "rate_limited"],
     ["llm-quota-exhausted", 503, "quota"],
     ["llm-unavailable", 503, "busy"],
-  ])("%s → %s", async (slug, status, kind) => {
-    respond(status, problem(slug, status), { "Retry-After": "42" });
-    const err = await errorOf(api.getRun("run_x"));
+    ["wait-timeout", 504, "timeout"],
+  ];
+  it.each(cases)("%s → %s", async (slug, status, kind) => {
+    respond(status, problem(slug, status), { "Content-Type": "application/problem+json", "Retry-After": "29" });
+    const err = await errorOf(api.getResearch("run_1"));
     expect(err.kind).toBe(kind);
     expect(err.slug).toBe(slug);
-    expect(err.retryAfter).toBe(42);
+    expect(err.status).toBe(status);
+    expect(err.retryAfter).toBe(29);
   });
 
-  it("maps field errors to labels", async () => {
-    respond(422, problem("validation-error", 422, { errors: [{ pointer: "#/max_iterations", detail: "Must be between 1 and 8." }] }));
-    const err = await errorOf(api.startRun("x", { max_iterations: 9, require_approval: false, use_memory: true }));
-    expect(err.fieldErrors).toEqual(["Max iterations: Must be between 1 and 8."]);
-    expect(fieldLabel("#/task")).toBe("Task");
-    expect(fieldLabel("#/some_field")).toBe("Some field");
-    expect(fieldLabel("#")).toBe("Request");
+  it("maps field errors to labels (real 422 body)", async () => {
+    respond(
+      422,
+      problem("validation-error", 422, { errors: [{ detail: "Write the question in at least 10 characters.", pointer: "#/question" }] }),
+    );
+    const err = await errorOf(api.getResearch("run_1"));
+    expect(err.fieldErrors).toEqual(["Question: Write the question in at least 10 characters."]);
+    expect(fieldLabel("#/")).toBe("Request");
+    expect(fieldLabel("#/max_iterations")).toBe("Max iterations");
+    expect(fieldLabel("#/some_field/0")).toBe("Some field");
   });
 
   it("falls back on status codes and non-JSON bodies", async () => {
-    for (const [status, kind] of [[400, "validation"], [404, "not_found"], [429, "rate_limited"], [503, "busy"], [500, "server"]] as const) {
+    const byStatus: [number, api.ApiErrorKind][] = [
+      [400, "validation"],
+      [404, "not_found"],
+      [413, "too_large"],
+      [415, "unsupported_type"],
+      [429, "rate_limited"],
+      [503, "busy"],
+      [507, "quota_exceeded"],
+      [500, "server"],
+    ];
+    for (const [status, kind] of byStatus) {
       respond(status, "<html>proxy</html>");
       expect((await errorOf(api.health())).kind).toBe(kind);
     }
+    expect(toApiError({ status: 500, body: { title: "Boom" } }).message).toBe("Boom");
   });
 
-  it("rejects responses that do not match the schema", async () => {
-    respond(200, { run_id: 42 });
-    expect((await errorOf(api.getRun("run_x"))).kind).toBe("invalid_response");
+  it("Retry-After as seconds or an HTTP date", () => {
+    const now = Date.parse("2026-10-11T12:00:00Z");
+    expect(parseRetryAfter("30", now)).toBe(30);
+    expect(parseRetryAfter("0", now)).toBeUndefined();
+    expect(parseRetryAfter("Sun, 11 Oct 2026 12:01:00 GMT", now)).toBe(60);
+    expect(parseRetryAfter("Sun, 11 Oct 2026 11:00:00 GMT", now)).toBeUndefined();
+    expect(parseRetryAfter("soon", now)).toBeUndefined();
+    expect(parseRetryAfter(null, now)).toBeUndefined();
+  });
+
+  it("a response that breaks the schema is a contract error", async () => {
+    respond(200, { run_id: 1 });
+    expect((await errorOf(api.getResearch("run_1"))).kind).toBe("contract");
+    respond(200, "not json");
+    expect((await errorOf(api.health())).kind).toBe("contract");
   });
 
   it("network failure and timeout", async () => {
@@ -115,5 +170,78 @@ describe("errors (RFC 9457)", () => {
     expect((await errorOf(api.health())).kind).toBe("network");
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new DOMException("t", "TimeoutError")));
     expect((await errorOf(api.health())).kind).toBe("timeout");
+  });
+});
+
+describe("upload (XMLHttpRequest with progress)", () => {
+  class FakeXHR {
+    static last: FakeXHR;
+    static reply: { status: number; body: string; retryAfter?: string } | "error" | "timeout" = { status: 202, body: "{}" };
+    method = "";
+    url = "";
+    headers: Record<string, string> = {};
+    timeout = 0;
+    status = 0;
+    responseText = "";
+    sent: FormData | null = null;
+    upload: { onprogress: ((e: { lengthComputable: boolean; loaded: number; total: number }) => void) | null } = { onprogress: null };
+    onload: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    ontimeout: (() => void) | null = null;
+    constructor() {
+      FakeXHR.last = this;
+    }
+    open(method: string, url: string) {
+      this.method = method;
+      this.url = url;
+    }
+    setRequestHeader(k: string, v: string) {
+      this.headers[k] = v;
+    }
+    getResponseHeader(name: string) {
+      const r = FakeXHR.reply;
+      return name === "Retry-After" && typeof r === "object" ? (r.retryAfter ?? null) : null;
+    }
+    send(body: FormData) {
+      this.sent = body;
+      this.upload.onprogress?.({ lengthComputable: true, loaded: 50, total: 100 });
+      this.upload.onprogress?.({ lengthComputable: false, loaded: 0, total: 0 });
+      const r = FakeXHR.reply;
+      queueMicrotask(() => {
+        if (r === "error") return this.onerror?.();
+        if (r === "timeout") return this.ontimeout?.();
+        this.status = r.status;
+        this.responseText = r.body;
+        this.onload?.();
+      });
+    }
+  }
+  const file = new File(["# hi"], "notes.md", { type: "text/markdown" });
+
+  it("sends multipart with the workspace header and reports progress", async () => {
+    vi.stubGlobal("XMLHttpRequest", FakeXHR);
+    FakeXHR.reply = { status: 202, body: JSON.stringify(doc({ status: "indexing" })) };
+    const progress: number[] = [];
+    const d = await api.uploadDocument(file, WS, (f) => progress.push(f));
+    expect(d.status).toBe("indexing");
+    expect(progress).toEqual([0.5]);
+    const x = FakeXHR.last;
+    expect([x.method, x.url, x.headers["X-Workspace-Id"]]).toEqual(["POST", "http://localhost:8000/documents", WS]);
+    expect((x.sent?.get("file") as File).name).toBe("notes.md");
+  });
+
+  it("maps problems, contract, network and timeout errors", async () => {
+    vi.stubGlobal("XMLHttpRequest", FakeXHR);
+    FakeXHR.reply = { status: 415, body: JSON.stringify(problem("unsupported-media-type", 415)) };
+    expect((await errorOf(api.uploadDocument(file, WS))).kind).toBe("unsupported_type");
+    FakeXHR.reply = { status: 429, body: "nope", retryAfter: "12" };
+    const limited = await errorOf(api.uploadDocument(file, WS));
+    expect([limited.kind, limited.retryAfter]).toEqual(["rate_limited", 12]);
+    FakeXHR.reply = { status: 202, body: JSON.stringify({ id: 1 }) };
+    expect((await errorOf(api.uploadDocument(file, WS))).kind).toBe("contract");
+    FakeXHR.reply = "error";
+    expect((await errorOf(api.uploadDocument(file, WS))).kind).toBe("network");
+    FakeXHR.reply = "timeout";
+    expect((await errorOf(api.uploadDocument(file, WS))).kind).toBe("timeout");
   });
 });

@@ -1,16 +1,20 @@
-# Multi-Agent Research Assistant — frontend
+# Research Assistant (v1.1): frontend
 
-Next.js 16 UI for [Lab 5](../Lab5_Multi_Agent_Orchestration.md): a chat where a research task is answered by a Supervisor agent and its workers, with a live **agent board**, an **activity feed**, the **transcript** of Supervisor decisions and worker results, and the final **Markdown answer** with linked Wikipedia sources. Design: [FRONTEND_PLAN.md](../FRONTEND_PLAN.md). API: [backend/README.md](../backend/README.md).
+Next.js 16 UI of the final project's multi-agent research assistant. Ask a question, choose a **depth** and the **sources** (web, Wikipedia, documents), and watch the agents work live: the agent board, every **tool call** of the Researcher (query, provider, results, evidence range, weak / repeat / fallback / capped flags, the "↻ rewrote the query" marker), then the **structured report** with `[E<n>]` citation chips and references. A `/library` page manages this browser's uploads next to the read-only demo library. Design: [FRONTEND_PLAN.md](../FRONTEND_PLAN.md). API: [BACKEND_PLAN.md](../BACKEND_PLAN.md) §14 and the backend's `/docs`.
+
+Started from the Module 5 frontend (copied, not imported); see FRONTEND_PLAN §2 for what was kept.
 
 ## Run locally
 
-Node 24 (`source ~/.nvm/nvm.sh && nvm use 24`). `next dev` hits this machine's file-watch limit, so use a production build:
+Node 24. `next dev` hits the file-watch limit on the user's machine, so use a production build:
 
 ```bash
-# backend in demo mode (no key, no quota), from ../backend:
-LLM_MODE=fake FAKE_LLM_DELAY_S=0.4 ../../../.venv/bin/uvicorn app.main:app --port 8000
+# backend in fake mode (0 real calls), from ../backend:
+LLM_MODE=fake EMBED_MODE=fake TELEGRAM_MODE=off FAKE_LLM_DELAY_S=0.3 \
+  DATABASE_PATH=/tmp/fe.db CHROMA_PATH=/tmp/chroma FRONTEND_ORIGIN=http://localhost:3000 \
+  .venv/bin/uvicorn app.main:app --port 8000          # or ../../../.venv/bin/uvicorn locally
 # frontend:
-npm install
+npm ci
 NEXT_PUBLIC_API_URL=http://localhost:8000 npm run build && npm run start   # http://localhost:3000
 ```
 
@@ -18,21 +22,27 @@ NEXT_PUBLIC_API_URL=http://localhost:8000 npm run build && npm run start   # htt
 
 ```bash
 npm run typecheck && npm run lint
-npm run test:coverage                       # 45 unit/component tests, ~95 % lines
-npm run test:e2e                            # 6 E2E: starts the fake backend + the production build
-BASE_URL=https://<vercel-domain> npm run test:e2e   # production subset (samples, phone, axe, one real run)
+npm run test:coverage        # Vitest + Testing Library: unit, API client and component tests
+npm run test:e2e             # Playwright: starts the fake-mode backend and the production build
+BASE_URL=https://<vercel-domain> npm run test:e2e   # production smoke (a real run only with E2E_REAL_RUN=1)
 ```
 
-The fixtures are the real stored runs from `backend/samples/runs/`, parsed with the frontend's schemas.
+- `tests/fixtures/*.json` are **verbatim responses of a fake-mode backend** (`/health`, `/agents`, `POST /research`, `GET /research/{id}`, the SSE stream, `/documents`). `tests/fixtures.ts` parses them with the frontend's Zod schemas, so a backend shape change fails the suite.
+- E2E covers: a full run with the live board and report, a documents-only run, upload → indexed → searched → deleted, approval, the 429 countdown, a sample replay, axe (no serious / critical) on home, run and library, and no horizontal scroll at 375 px.
+- Playwright uses `/opt/pw-browsers/chromium` when present (cloud sessions), otherwise the installed Chrome; the backend interpreter is `../backend/.venv` or the shared `.venv` above the repo.
 
-## What it shows
+## Layout
 
-| Lab requirement | Where |
+| Folder | What |
 |---|---|
-| Chat-like interface | Conversation thread + composer (Enter sends), run settings, sample chips |
-| Real-time agent activity | Agent board (state as text, timers, two cards working in parallel) + activity feed, from SSE |
-| Conversation history | Transcript: decisions (REASON, DELEGATE/TASK, FINAL), worker results, review verdict, fact-check table, notices, feedback |
-| Final output panel | Markdown answer, `[n]` links to sources, flags, copy / download, meta bar (calls, tokens, est. cost) |
-| Responsive | Two columns on wide screens; tabs Answer · Agents · Transcript on phones |
+| `lib/` | `api.ts` (fetch + Zod + `ApiError` from RFC 9457 slugs, `Retry-After`), `schemas.ts`, `events.ts` (SSE), `agents.ts` (board reducer), `tools.ts` (tool-card rules, rewrite marker), `citations.ts`, `report.ts`, `workspace.ts`, `thread.ts`, `replay.ts` |
+| `hooks/` | `useRun` (SSE + reconcile + replay), `useHealth`, `useThread`, `useWorkspace`, `useApiError`, `useCountdown`, `useNow` |
+| `components/activity` | `AgentBoard`, `ActivityFeed`, `ToolCallCard` |
+| `components/report` | `Report`, `Markdown` (sanitized), `CitationChip` |
+| `components/run` | `RunDetails`, `MetaBar`, `PerAgentTable`, `Deliveries` |
+| `components/library` | `LibraryApp` |
+| `components/chat` | `Composer`, `RunSettings`, `History`, `Suggestions`, `Turn` |
 
-Also: human approval panel, memory links, service banner (`reduced` / `minimal` / `offline`), injection notice, `?run=` resume, thread kept in the browser.
+## Security
+
+Untrusted text (reports, findings, snippets, titles, document names) is rendered as text or as Markdown with raw HTML skipped, images replaced by text and only `http(s)` links (`rel="noopener noreferrer nofollow"`). No `dangerouslySetInnerHTML`. The web UI never sends a `callback_url`. A CSP in `next.config.ts` limits `connect-src` to the API origin.

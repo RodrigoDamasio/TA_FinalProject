@@ -286,8 +286,19 @@ export const DocumentSchema = z.object({
 });
 export type DocumentView = z.infer<typeof DocumentSchema>;
 
+/** The workspace summary: null until the first upload. */
+export const WorkspaceInfoSchema = z.object({
+  id: str,
+  created_at: str.nullable().optional(),
+  expires_at: str.nullable().optional(),
+  bytes_used: num,
+  documents: num,
+  limits: z.object({ max_documents: num, max_bytes: num }).partial().optional(),
+});
+export type WorkspaceInfo = z.infer<typeof WorkspaceInfoSchema>;
+
 export const DocumentListSchema = z.object({
-  workspace: str.nullable().optional(),
+  workspace: WorkspaceInfoSchema.nullable().optional(),
   documents: z.array(DocumentSchema),
   demo: z.array(DocumentSchema),
 });

@@ -28,16 +28,18 @@ export default function CitationChip({ id, source, runId }: { id: string; source
   }
   const hide = () => setPos(null);
 
+  const open = pos !== null;
   useEffect(() => {
-    if (!pos) return;
-    const close = () => setPos(null);
-    window.addEventListener("scroll", close, true);
-    window.addEventListener("resize", close);
+    if (!open) return;
+    // focusing a chip scrolls it into view: follow it instead of closing
+    const follow = () => show();
+    window.addEventListener("scroll", follow, true);
+    window.addEventListener("resize", follow);
     return () => {
-      window.removeEventListener("scroll", close, true);
-      window.removeEventListener("resize", close);
+      window.removeEventListener("scroll", follow, true);
+      window.removeEventListener("resize", follow);
     };
-  }, [pos]);
+  }, [open]);
 
   const kind = source.source_kind;
   const location = sourceLocation(source);

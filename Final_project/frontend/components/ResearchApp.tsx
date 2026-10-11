@@ -161,7 +161,7 @@ export default function ResearchApp({ initialRunId }: { initialRunId: string | n
     clear();
     try {
       setReplay(await api.sample(s.id));
-      requestAnimationFrame(() => document.getElementById(`turn-${REPLAY_ID}`)?.scrollIntoView({ block: "start" }));
+      requestAnimationFrame(() => document.getElementById(`turn-${REPLAY_ID}`)?.scrollIntoView?.({ block: "start" }));
     } catch (err) {
       failAndCheck(err);
     }
