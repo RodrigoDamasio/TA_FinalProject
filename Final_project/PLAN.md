@@ -469,12 +469,14 @@ Phases 2–5 run **in parallel** in cloud sessions, each on its own branch with 
 - **Real-model runs:** run the evaluation and the first real runs locally (phase 7).
 - **Cloud sessions:** review and merge the cloud-session PRs.
 
-## 18. Open decisions (you)
+## 18. Decisions (you)
 
-1. **Plans folder:** `plans/agents`, `plans/tools`, `plans/integrations` (assumed above), or everything at the `Final_project/` level.
-2. **Fact-Checker:** kept, inside the Reviewer plan (assumed above).
-3. **Demo library content:** which documents to preload (proposal: a handful of public-domain or permissively licensed Markdown/PDF documents on AI engineering topics, plus one with a planted prompt injection for the evaluation).
-4. **Human approval on the web:** keep Module 5's optional approval step (assumed: yes, web only; Telegram and API runs never pause).
+All decided on 2026-10-10:
+
+1. **Plans folder:** `plans/agents`, `plans/tools`, `plans/integrations`.
+2. **Fact-Checker:** kept, planned inside `REVIEWER_PLAN.md`.
+3. **Demo library:** 5–8 permissively licensed Markdown/PDF documents on AI engineering topics (RAG, agents, webhooks…), plus one with a planted prompt injection for the evaluation. The list and licenses go in `RAG_PLAN.md`.
+4. **Human approval:** Module 5's optional approval step is kept, **web only**. Telegram and API runs never pause.
 
 ## 19. Risks
 

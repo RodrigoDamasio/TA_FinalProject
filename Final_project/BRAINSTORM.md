@@ -238,11 +238,11 @@ In this order. Agent behavior and tool use get their own plans, because that is 
 | 6 | Webhook plan | Telegram in and out, `callback_url`, outbox |
 | 7 | `FRONTEND_PLAN.md` | Last |
 
-**Still open:**
-- **Folder layout:** a `plans/` subfolder (`agents/`, `tools/`, `integrations/`) or everything at the `Final_project/` level.
-- **The webhook plan:** under the agents group (as first listed) or its own integrations group (proposed, since it isn't an agent).
-- **The chunking plan:** about uploads only, or widened into a full RAG plan (proposed, since web results go through the same pipeline).
-- **The Fact-Checker** (a fourth worker from Module 5 that Option D doesn't list): keep it, inside the Reviewer plan (proposed).
+**Settled in [PLAN.md §18](PLAN.md#18-decisions-you):**
+- **Folder layout:** a `plans/` subfolder with `agents/`, `tools/` and `integrations/`.
+- **The webhook plan** is its own integrations plan (it isn't an agent).
+- **The chunking plan** is widened into a full `RAG_PLAN.md`, since web results go through the same pipeline.
+- **The Fact-Checker** is kept and planned inside the Reviewer plan.
 
 ## 9. Other settled points
 
