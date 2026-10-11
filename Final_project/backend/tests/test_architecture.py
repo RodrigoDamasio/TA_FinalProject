@@ -104,7 +104,12 @@ def test_sql_lives_only_in_the_sqlite_adapters():
         for p in APP.rglob("*.py")
         if any(w in p.read_text() for w in sql_words)
     }
-    assert files <= {"infrastructure/database.py", "infrastructure/sqlite_store.py"}
+    assert files <= {
+        "infrastructure/database.py",
+        "infrastructure/sqlite_store.py",
+        "infrastructure/document_store.py",  # RAG (BACKEND_PLAN §4)
+        "infrastructure/embedding_cache.py",  # RAG
+    }
 
 
 def test_model_output_is_never_executed():

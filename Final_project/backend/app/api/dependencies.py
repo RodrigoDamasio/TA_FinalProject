@@ -9,17 +9,22 @@ Cache hits never reach the budget or the daily cap: re-runs cost 0 and never sto
 import logging
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from fastapi import Request
 
 from app.application.budget import BudgetedLLMClient, CallBudget, RunCounter
-from app.application.indexing.simple import SimpleIndexer
-from app.application.memory import BM25Memory
+from app.application.documents import DocumentLimits, DocumentService
+from app.application.embedding import CachedEmbeddings, Models, StaticModels
+from app.application.indexing.chunkers import ChunkOptions, embed_text
+from app.application.indexing.indexer import HybridIndexer
+from app.application.memory import HybridMemoryStore
 from app.application.outbox.dispatcher import OutboxDispatcher
 from app.application.outbox.signing import callback_secret
 from app.application.prompts import PromptLibrary
-from app.application.retrieval.simple import SimpleRetriever
+from app.application.retrieval.bm25 import ScopedBM25
+from app.application.retrieval.retriever import HybridRetriever
 from app.application.runs import RunLimits, RunService
 from app.application.service_level import ServiceLevel
 from app.application.stats import (
@@ -55,6 +60,8 @@ from app.domain.ports import (
 )
 from app.infrastructure.caching_llm import CachingLLMClient
 from app.infrastructure.demo import DemoLLMClient
+from app.infrastructure.document_store import SqliteDocumentStore
+from app.infrastructure.embedding_cache import SqliteEmbeddingCache
 from app.infrastructure.fake_search import FakePageFetcher, FakeWebSearch
 from app.infrastructure.fake_telegram import FakeTelegram
 from app.infrastructure.fake_wikipedia import FakeWikipedia
@@ -68,6 +75,7 @@ from app.infrastructure.llm_decorators import (
     RetryingLLMClient,
 )
 from app.infrastructure.memory_vector_store import InMemoryVectorStore
+from app.infrastructure.pdf_extract import PypdfExtractor
 from app.infrastructure.runner import InlineRunner, ThreadRunner
 from app.infrastructure.safe_http import StubPageFetcher, check_url
 from app.infrastructure.samples import SampleStore
@@ -84,7 +92,24 @@ from app.infrastructure.telegram_client import TelegramClient
 from app.infrastructure.webhook_sender import HttpWebhookSender
 from app.infrastructure.wikipedia import WikipediaSource
 
-from .guards import RateLimiter
+from .guards import HourlyRateLimiter, RateLimiter
+
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
+
+
+def demo_library_files(path: str) -> list[tuple[str, bytes]]:
+    """The demo library's documents (LICENSES.md excluded). Empty path = no seeding."""
+    if not path:
+        return []
+    root = Path(path) if Path(path).is_absolute() else BACKEND_ROOT / path
+    if not root.is_dir():
+        return []
+    return [
+        (f.name, f.read_bytes())
+        for f in sorted(root.iterdir())
+        if f.suffix.lower() in (".md", ".txt", ".pdf") and f.name != "LICENSES.md"
+    ]
+
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +136,10 @@ class Container:
     telegram_service: TelegramService
     callback_secret: Callable[[str], str]
     search: WebSearch
+    documents: DocumentService
+    upload_limiter: HourlyRateLimiter
+    models: Models
+    indexing_runner: InlineRunner | ThreadRunner
 
     def start(self) -> None:
         interrupted = self.service.recover()
@@ -123,12 +152,21 @@ class Container:
             self.settings.embed_mode,
             self.settings.telegram_mode,
         )
+        start = getattr(self.models, "start", None)
+        if start is not None:
+            start()  # ONNX models load in the background
+        stuck = self.documents.recover()
+        if stuck:
+            logger.info("startup interrupted_documents=%d", stuck)
         self.runner.start()
+        self.indexing_runner.start()
+        self.documents.schedule_seed(demo_library_files(self.settings.demo_library_path))
         if self.settings.runner_mode != "inline":
             self.dispatcher.start(self.settings.outbox_poll_s)
 
     def stop(self) -> None:
         self.dispatcher.stop()
+        self.indexing_runner.stop()
         self.runner.stop()
 
     def health(self) -> dict[str, Any]:
@@ -142,7 +180,7 @@ class Container:
             "llm_mode": s.llm_mode,
             "wikipedia": s.wiki_mode,
             "search": {"mode": s.search_mode, "available": self.search.available()},
-            "embedder": s.embed_mode,
+            "embedder": {"mode": s.embed_mode, "status": self.models.status()},
             "telegram": s.telegram_mode,
             "outbox": self.outbox.counts(),
             "models": {
@@ -224,13 +262,54 @@ def build_container(
                 settings.wiki_timeout_s,
                 settings.wiki_cache_ttl_h * 3600,
             )
-    # RAG (step 3: hashing embedder + in-memory store for every mode; RAG adds ONNX + Chroma)
-    if settings.embed_mode != "fake" and embedder is None:
-        logger.warning("EMBED_MODE=%s is not implemented yet: using the fake", settings.embed_mode)
-    embedder = embedder or HashingEmbedder()
-    store = store or InMemoryVectorStore()
-    indexer = SimpleIndexer(store, embedder, settings.chunk_max_chars)
-    retriever = SimpleRetriever(store, embedder)
+    # RAG (RAG_PLAN §3): local ONNX + Chroma, or the hashing fake in memory (tests, UI work)
+    models: Models
+    if embedder is not None or settings.embed_mode == "fake":
+        models = StaticModels(embedder or HashingEmbedder())
+        store = store or InMemoryVectorStore()
+    else:
+        from app.infrastructure.chroma_store import ChromaVectorStore
+        from app.infrastructure.fastembed_models import OnnxModels
+
+        models = OnnxModels(
+            settings.embed_model, settings.rerank_model, settings.models_path,
+            settings.onnx_threads, settings.embed_batch_size,
+        )  # fmt: skip
+        store = store or ChromaVectorStore(settings.chroma_path, settings.embed_model)
+    vectors = store
+    embeddings = CachedEmbeddings(SqliteEmbeddingCache(db))
+    bm25 = ScopedBM25(
+        lambda scope: (
+            (c.id, embed_text(c), c.source_key, c.position) for c in vectors.iter_chunks(scope)
+        )
+    )
+    indexer = HybridIndexer(
+        store,
+        models,
+        embeddings,
+        bm25,
+        ChunkOptions(settings.chunk_max_chars, settings.chunk_min_chars, settings.chunk_overlap),
+    )
+    retriever = HybridRetriever(store, models, embeddings, bm25)
+    memory_store = HybridMemoryStore(memories, indexer, retriever)
+    documents = DocumentService(
+        SqliteDocumentStore(db),
+        indexer,
+        PypdfExtractor(settings.pdf_max_pages),
+        DocumentLimits(
+            settings.upload_max_bytes,
+            settings.workspace_max_docs,
+            settings.workspace_max_bytes,
+            settings.workspace_ttl_h,
+        ),  # fmt: skip
+        wait_ready=models.wait_ready,
+    )
+    indexing_runner: InlineRunner | ThreadRunner = (
+        InlineRunner(documents.run_job)
+        if settings.runner_mode == "inline"
+        else ThreadRunner(documents.run_job, 5)
+    )
+    documents.runner = indexing_runner
 
     # Search and page reading
     if search is None:
@@ -298,7 +377,7 @@ def build_container(
             budget_per_iteration=settings.llm_run_budget_per_iteration,
             budget_base=settings.llm_run_budget_base,
         ),
-        memory=BM25Memory(memories) if settings.memory_enabled else None,
+        memory=memory_store if settings.memory_enabled else None,
         tools=tools,
         retriever=retriever,
     )
@@ -322,7 +401,7 @@ def build_container(
         else ThreadRunner(
             supervisor.run,
             settings.max_queued_jobs,
-            sweep=lambda: sweep_target["service"].sweep(),
+            sweep=lambda: (sweep_target["service"].sweep(), documents.purge()),
             sweep_every_s=settings.sweep_every_s,
         )
     )
@@ -340,7 +419,7 @@ def build_container(
             settings.memory_enabled,
         ),
         ensure_llm_available,
-        memories,
+        memory_store,
         url_check=lambda url: check_url(
             url,
             schemes=frozenset({"http", "https"} if settings.callback_allow_private else {"https"}),
@@ -399,6 +478,10 @@ def build_container(
         telegram_service=TelegramService(),
         callback_secret=lambda run_id: callback_secret(secret, run_id),
         search=search,
+        documents=documents,
+        upload_limiter=HourlyRateLimiter(settings.rate_limit_uploads_per_hour),
+        models=models,
+        indexing_runner=indexing_runner,
     )
     container.stats = StatsService(runs, meter, pricing, container.health)
     return container

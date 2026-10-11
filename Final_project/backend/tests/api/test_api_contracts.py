@@ -70,16 +70,6 @@ def test_request_validation_and_new_problem_types(api):
     assert a.client.get("/problems/feature-not-ready").json()["status"] == 501
 
 
-def test_document_routes_are_stubs_until_rag_lands(api):
-    a = api(raise_errors=False)
-    assert a.client.get("/documents").status_code == 400  # no workspace header
-    r = a.client.get("/documents", headers={"X-Workspace-Id": WS})
-    assert r.status_code == 501 and r.json()["type"].endswith("/feature-not-ready")
-    for method, path in (("post", "/documents"), ("get", "/documents/doc_1"),
-                         ("delete", "/documents/doc_1")):  # fmt: skip
-        assert getattr(a.client, method)(path, headers={"X-Workspace-Id": WS}).status_code == 501
-
-
 def test_telegram_webhook_is_off_by_default_and_checks_its_secret(api):
     off = api(raise_errors=False)
     assert off.client.post("/webhooks/telegram", json={"update_id": 1}).status_code == 404

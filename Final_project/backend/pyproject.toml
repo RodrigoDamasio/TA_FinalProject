@@ -23,4 +23,4 @@ select = ["E", "F", "I", "B", "UP", "S"]
 "eval/**" = ["S101"]
 
 [tool.ruff.lint.flake8-bugbear]
-extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Header", "fastapi.Body"]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Header", "fastapi.Body", "fastapi.File"]

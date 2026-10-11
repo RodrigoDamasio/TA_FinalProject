@@ -1,34 +1,44 @@
-"""Keyword search (extension: hybrid search): a code-aware tokenizer and an incremental
-BM25 index (Okapi, Lucene IDF). Own code instead of rank-bm25 because files are re-indexed
-and codebases expire: documents must be added and removed without rebuilding (§8.2)."""
+"""Keyword search: a tokenizer and an incremental BM25 index (Okapi, Lucene IDF), from M4.
+
+RAG_PLAN §3.4 changes: no `codebase` field; documents are grouped by `source_key`; a PROSE
+tokenizer mode (English stop words only; code words like `function` or `return` stay, since
+they carry meaning in prose); and ScopedBM25 keeps ONE index per scope, so term statistics
+never mix across scopes (the fix for M4's cross-codebase leak). Owner: RAG."""
 
 import math
 import re
 import threading
-from collections import Counter, defaultdict
+from collections import Counter, OrderedDict, defaultdict
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
 _WORD = re.compile(r"[A-Za-z0-9_]+")
 _CAMEL = re.compile(r"[A-Z]+(?=[A-Z][a-z])|[A-Z]?[a-z]+|[A-Z]+|\d+")
-STOP_WORDS = frozenset(
+CODE_STOP_WORDS = frozenset(
     "the a an and or of to in on for is are be by it as at with from this that what how "
-    "does do which where when who why self this return const let var def import export "
+    "does do which where when who why self return const let var def import export "
     "function class async await new none null true false".split()
+)
+PROSE_STOP_WORDS = frozenset(
+    "the a an and or but of to in on for is are was were be been being by it its as at with "
+    "from this that these those what how does do did which where when who whom why than then "
+    "so such if not no can could should would will may might must there here their they them "
+    "we you your our his her he she i me my".split()
 )
 
 
-def tokenize(text: str) -> list[str]:
-    """`processOrder` → process, order, processorder; `get_current_user` → get, current,
-    user, get_current_user. Lowercase; stop words and 1-char tokens dropped."""
+def tokenize(text: str, mode: str = "prose") -> list[str]:
+    """`processOrder` → process, order, processorder; `max_tokens` → max, tokens,
+    max_tokens. Lowercase; stop words and 1-char tokens dropped."""
+    stop = PROSE_STOP_WORDS if mode == "prose" else CODE_STOP_WORDS
     tokens: list[str] = []
     for word in _WORD.findall(text):
-        parts = [p for chunk in word.split("_") for p in _CAMEL.findall(chunk)]
+        parts = [p for piece in word.split("_") for p in _CAMEL.findall(piece)]
         lowered = [p.lower() for p in parts]
         tokens += lowered
-        joined = word.lower()
         if len(lowered) > 1:
-            tokens.append(joined)
-    return [t for t in tokens if len(t) > 1 and t not in STOP_WORDS]
+            tokens.append(word.lower())
+    return [t for t in tokens if len(t) > 1 and t not in stop]
 
 
 @dataclass(frozen=True)
@@ -39,27 +49,29 @@ class KeywordHit:
 
 
 class BM25Index:
-    def __init__(self, k1: float = 1.5, b: float = 0.75) -> None:
-        self.k1, self.b = k1, b
-        self._docs: dict[str, tuple[str, Counter[str], int]] = {}  # id → (codebase, tf, len)
+    """One scope's index. Thread-safe; documents can be added and removed incrementally."""
+
+    def __init__(self, k1: float = 1.5, b: float = 0.75, mode: str = "prose") -> None:
+        self.k1, self.b, self.mode = k1, b, mode
+        self._docs: dict[str, tuple[str, Counter[str], int]] = {}  # id → (source_key, tf, len)
+        self._order: dict[str, tuple[str, int]] = {}  # id → run-independent tie-break key
         self._postings: dict[str, set[str]] = defaultdict(set)
-        self._by_file: dict[tuple[str, str], set[str]] = defaultdict(set)
-        self._file_of: dict[str, tuple[str, str]] = {}
+        self._by_source: dict[str, set[str]] = defaultdict(set)
         self._total_len = 0
         self._lock = threading.Lock()
 
     def __len__(self) -> int:
         return len(self._docs)
 
-    def add(self, chunk_id: str, codebase: str, text: str, path: str = "") -> None:
-        tokens = tokenize(text)
+    def add(self, chunk_id: str, text: str, source_key: str = "", position: int = 0) -> None:
+        tokens = tokenize(text, self.mode)
         with self._lock:
             if chunk_id in self._docs:
                 self._remove(chunk_id)
             tf = Counter(tokens)
-            self._docs[chunk_id] = (codebase, tf, len(tokens))
-            self._by_file[(codebase, path)].add(chunk_id)
-            self._file_of[chunk_id] = (codebase, path)
+            self._docs[chunk_id] = (source_key, tf, len(tokens))
+            self._order[chunk_id] = (source_key, position)
+            self._by_source[source_key].add(chunk_id)
             self._total_len += len(tokens)
             for term in tf:
                 self._postings[term].add(chunk_id)
@@ -68,44 +80,38 @@ class BM25Index:
         with self._lock:
             self._remove(chunk_id)
 
-    def remove_file(self, codebase: str, path: str) -> int:
+    def remove_source(self, source_key: str) -> int:
         with self._lock:
-            ids = list(self._by_file.get((codebase, path), ()))
-            for i in ids:
-                self._remove(i)
-            return len(ids)
-
-    def remove_codebase(self, codebase: str) -> int:
-        with self._lock:
-            ids = [i for i, (cb, _, _) in self._docs.items() if cb == codebase]
+            ids = list(self._by_source.get(source_key, ()))
             for i in ids:
                 self._remove(i)
             return len(ids)
 
     def _remove(self, chunk_id: str) -> None:
         doc = self._docs.pop(chunk_id, None)
+        self._order.pop(chunk_id, None)
         if doc is None:
             return
-        _, tf, length = doc
+        source_key, tf, length = doc
         self._total_len -= length
-        key = self._file_of.pop(chunk_id, None)
-        if key is not None:
-            self._by_file[key].discard(chunk_id)
-            if not self._by_file[key]:
-                del self._by_file[key]
+        ids = self._by_source.get(source_key)
+        if ids is not None:
+            ids.discard(chunk_id)
+            if not ids:
+                del self._by_source[source_key]
         for term in tf:
-            ids = self._postings.get(term)
-            if ids is not None:
-                ids.discard(chunk_id)
-                if not ids:
+            posting = self._postings.get(term)
+            if posting is not None:
+                posting.discard(chunk_id)
+                if not posting:
                     del self._postings[term]
 
-    def search(self, query: str, codebases: list[str], n: int) -> list[KeywordHit]:
-        terms = list(dict.fromkeys(tokenize(query)))
-        allowed = set(codebases)
+    def search(self, query: str, n: int, source_keys: list[str] | None = None) -> list[KeywordHit]:
+        terms = list(dict.fromkeys(tokenize(query, self.mode)))
+        allowed = set(source_keys) if source_keys is not None else None
         with self._lock:
             total = len(self._docs)
-            if not total or not terms:
+            if not total or not terms or n <= 0:
                 return []
             avg_len = self._total_len / total
             scores: dict[str, float] = defaultdict(float)
@@ -116,8 +122,8 @@ class BM25Index:
                     continue
                 idf = math.log(1 + (total - len(ids) + 0.5) / (len(ids) + 0.5))
                 for chunk_id in ids:
-                    codebase, tf, length = self._docs[chunk_id]
-                    if codebase not in allowed:
+                    source_key, tf, length = self._docs[chunk_id]
+                    if allowed is not None and source_key not in allowed:
                         continue
                     f = tf[term]
                     norm = (
@@ -125,5 +131,54 @@ class BM25Index:
                     )
                     scores[chunk_id] += idf * norm
                     matched[chunk_id].append(term)
-        ranked = sorted(scores.items(), key=lambda kv: (-kv[1], kv[0]))[:n]
+        # Ties break on (source_key, position), never on the chunk id: ids contain the run's
+        # scope, so two identical runs must rank identically (stable LLM cache keys).
+        ranked = sorted(scores.items(), key=lambda kv: (-kv[1], self._order[kv[0]], kv[0]))[:n]
         return [KeywordHit(i, s, matched[i]) for i, s in ranked]
+
+
+Loader = Callable[[str], Iterable[tuple[str, str, str, int]]]  # scope → (id, text, key, position)
+
+
+class ScopedBM25:
+    """One BM25Index per scope, built lazily from the vector store (the source of truth).
+    Pinned scopes (demo, memory) are never evicted; others live in an LRU."""
+
+    def __init__(self, loader: Loader, pinned: tuple[str, ...] = ("demo", "memory"),
+                 capacity: int = 16) -> None:  # fmt: skip
+        self._loader, self._pinned, self._capacity = loader, set(pinned), capacity
+        self._pinned_indexes: dict[str, BM25Index] = {}
+        self._lru: OrderedDict[str, BM25Index] = OrderedDict()
+        self._lock = threading.Lock()
+
+    def index(self, scope: str) -> BM25Index:
+        with self._lock:
+            found = self._pinned_indexes.get(scope) or self._lru.get(scope)
+            if found is not None:
+                if scope in self._lru:
+                    self._lru.move_to_end(scope)
+                return found
+            built = BM25Index()
+            for chunk_id, text, source_key, position in self._loader(scope):
+                built.add(chunk_id, text, source_key, position)
+            if scope in self._pinned:
+                self._pinned_indexes[scope] = built
+            else:
+                self._lru[scope] = built
+                while len(self._lru) > self._capacity:
+                    self._lru.popitem(last=False)
+            return built
+
+    def loaded(self, scope: str) -> bool:
+        with self._lock:
+            return scope in self._pinned_indexes or scope in self._lru
+
+    def evict(self, scope: str) -> None:
+        with self._lock:
+            self._pinned_indexes.pop(scope, None)
+            self._lru.pop(scope, None)
+
+    def search(
+        self, scope: str, query: str, n: int, source_keys: list[str] | None = None
+    ) -> list[KeywordHit]:
+        return self.index(scope).search(query, n, source_keys)

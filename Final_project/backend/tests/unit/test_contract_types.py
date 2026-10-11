@@ -33,7 +33,7 @@ NOW = datetime(2026, 10, 11, 12, 0, tzinfo=UTC)
 
 
 def test_evidence_ids_are_stable_and_dedup_ignores_whitespace():
-    assert content_hash("a  b\nc") == content_hash("a b c")
+    assert content_hash("a  B\nc") == content_hash("a b c")
     one = chunk_id("run:1", "https://x.org", 0, content_hash("text"))
     assert one == chunk_id("run:1", "https://x.org", 0, content_hash("text")) and len(one) == 24
     assert one != chunk_id("run:2", "https://x.org", 0, content_hash("text"))

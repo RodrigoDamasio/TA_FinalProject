@@ -15,6 +15,7 @@ TEST_SETTINGS = {
     "search_mode": "fake",  # 0 network: never derive it from the environment's LLM_MODE
     "embed_mode": "fake",
     "telegram_mode": "off",
+    "demo_library_path": "",  # no seeding in tests unless a test sets it
     "runner_mode": "inline",
     "prompt_secret": "test-secret",
     "rate_limit_runs_per_minute": 1000,
