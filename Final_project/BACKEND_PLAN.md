@@ -96,7 +96,8 @@ backend/
 │   │   ├── budget.py  security.py  structured.py  stats.py  tracing.py  service_level.py  prompts.py   Shared (M5)
 │   ├── prompts/                      VERSION Shared · supervisor*.md SUPERVISOR · workers/<name>.md its worker's owner
 │   ├── infrastructure/
-│   │   ├── gemini_client.py  llm_decorators.py  caching_llm.py  demo_llm.py  runner.py   Shared (M5)
+│   │   ├── gemini_client.py  llm_decorators.py  caching_llm.py  runner.py   Shared (M5)
+│   │   ├── demo/                     v1.1: the fake LLM split per agent: __init__.py (router) Shared · supervisor.py SUPERVISOR · researcher.py RESEARCHER · writer.py WRITER · reviewer.py REVIEWER
 │   │   ├── database.py  sqlite_store.py   Shared (all DDL in phase 1, §16)
 │   │   ├── wikipedia.py  fake_wikipedia.py      SEARXNG
 │   │   ├── searxng.py  fake_search.py           SEARXNG
@@ -241,7 +242,7 @@ class Report:
     word_count: int
 ```
 
-`parse_report(markdown: str, evidence: list[EvidenceRef]) -> Report` lives in `application/report.py` (WRITER). It is **deterministic**: the first `# ` heading is the title, the paragraph(s) before the first `## ` are the summary, each `## ` starts a section, and a trailing "Sources"/"References" section is dropped and rebuilt from the cited evidence. Fallbacks: no title → the question; no summary → the first sentence of the first section. It **never raises**.
+`parse_report(markdown: str, evidence: list[EvidenceRef], *, question: str = "", depth: Depth = Depth.DETAILED, snippets: Mapping[int, str] | None = None) -> Report` (signature v1.1, §24) lives in `application/report.py` (WRITER). It is **deterministic**: the first `# ` heading is the title, the paragraph(s) before the first `## ` are the summary, each `## ` starts a section, and a trailing "Sources"/"References" section is dropped and rebuilt from the cited evidence. Fallbacks: no title → the question; no summary → the first sentence of the first section. It **never raises**.
 
 ### 5.5 Documents (`domain/documents.py`)
 
@@ -287,7 +288,7 @@ class Channel(StrEnum):
 class Subscriber:
     kind: Literal["callback", "telegram"]
     target: str                 # callback URL | Telegram chat id
-    secret: str | None          # callback: "whsec_…" (per run, returned once); never in API views or logs
+    secret: str | None          # always None (v1.1, §24): the callback secret is DERIVED, never stored
 
 class OutboxStatus(StrEnum):
     PENDING = "pending"; DELIVERED = "delivered"; DEAD = "dead"
@@ -299,7 +300,7 @@ class OutboxMessage:
     kind: Literal["callback", "telegram"]
     event: str                  # research.accepted | research.completed | research.failed | research.cancelled
     target: str
-    payload: dict[str, Any]     # built at queue time (§13)
+    payload: dict[str, Any]     # routing only ({"chat_id"} or {}); the body is rendered at SEND time (v1.1, §24)
     status: OutboxStatus = OutboxStatus.PENDING
     attempts: int = 0
     next_attempt_at: str = ""   # ISO-8601 UTC
@@ -441,7 +442,7 @@ The M5 `MemoryStore` port shape is kept (`recall(query, limit, exclude_question)
 | `WebSearch` | `search(query, limit) -> list[WebResult]` · `available() -> bool` | `SearxngSearch`, `FakeWebSearch` |
 | `KnowledgeSource` | M5 (Wikipedia): `search`, `fetch`, `available` | `WikipediaClient`, `FakeWikipedia` |
 | `PageFetcher` | `fetch(url) -> FetchedPage` (SSRF-guarded, size/time capped) | `SafeHttpFetcher`, `FakePageFetcher` |
-| `TextExtractor` | `html_to_markdown(html, url) -> str` · `pdf_to_text(data) -> (text, pages)` | `html_extract`, `pdf_extract` |
+| `HtmlExtractor` · `PdfExtractor` (v1.1: split from `TextExtractor`) | `html_to_markdown(html, url) -> str` · `pdf_to_text(data) -> (text, pages)` | `html_extract` (SEARXNG) · `pdf_extract` (RAG) |
 | `Embedder`, `VectorStore`, `EmbeddingCache` | §7.2 | fastembed / hashing fake · Chroma / in-memory · SQLite |
 | `RunRepository` | M5 (+ the outbox in `save`, §13) | `SqliteRunStore` |
 | `DocumentRepository` | `save`, `get`, `list(workspace_id)`, `by_hash(workspace_id, sha)`, `delete`, `expired(now)` + workspace upsert/usage | `SqliteDocumentStore` |
@@ -528,8 +529,9 @@ class ToolContext:
     add_evidence: Callable[[list[EvidenceChunk]], list[EvidenceRef]]   # numbers chunks in the run
     evidence_by_n: Callable[[int], EvidenceRef | None]                 # for read_result
     fence: DataFence
+    sources: frozenset[SourceKind]   # v1.1: the run's allowed sources (fallback rules)
 
-class ToolBox:                        # built per Researcher step
+class ToolBox:                        # built per Researcher step by ToolRegistry.box(ctx, sources, memo) (v1.1)
     def offered(self) -> list[ToolSpec]: ...          # only tools whose family ∈ run.sources
     def call(self, name: str, args: dict[str, Any]) -> ToolOutput: ...  # unknown/disallowed → status "refused"
 ```
@@ -589,7 +591,7 @@ class SubmitCommand:                 # RunService.submit(cmd) -> ResearchRun
 
 1. **`submit`** validates the input, creates the run, adds subscribers, queues `research.accepted` for Telegram, then persists through `RunRepository.create(run)` (state + events + outbox in **one transaction**). Only then is the run handed to the runner.
 2. **When a terminal status is reached,** the run queues one `OutboxMessage` per subscriber. `RunRepository.save(run)` writes the state, the new events and the new outbox rows in **one SQLite transaction**. A crash can't leave a finished run without its notification.
-3. **The callback payload** (built when queued, `event` ∈ `research.completed`, `research.failed`, `research.cancelled`):
+3. **The callback payload** (rendered by the dispatcher at **send** time from the stored terminal run, v1.1 §24; `event` ∈ `research.completed`, `research.failed`, `research.cancelled`):
    ```json
    {"type": "research.completed", "timestamp": "2026-10-11T12:00:00Z",
     "data": {"run_id": "run_…", "status": "completed", "links": {"self": "…/research/run_…", "web": "…/?run=run_…"},
@@ -758,7 +760,7 @@ CREATE INDEX IF NOT EXISTS outbox_by_run ON outbox (run_id);
 CREATE TABLE IF NOT EXISTS telegram_updates (update_id INTEGER PRIMARY KEY, received_at TEXT NOT NULL);
 ```
 
-`runs.state_json` gains the new run fields (§5.1). **Subscriber secrets are stored only in `outbox.secret`, never in `state_json`.** The `secret` column is read only by the dispatcher.
+`runs.state_json` gains the new run fields (§5.1). **No secret is stored anywhere** (v1.1, §24): each callback secret is derived as `HMAC-SHA256(server secret, "callback-secret:v1:" + run_id)`. The `outbox.secret` column stays NULL (kept only to avoid a DDL change).
 
 All SQL uses bound parameters (Ruff `S608`). DDL is the only `executescript`.
 
@@ -883,3 +885,56 @@ The M5 rules are kept. New ones:
 | 1′ (2026-10-11) | Copy the M4 RAG files in the foundation step | Copied **later**: at step 3 (adapted to `EvidenceChunk`) or by the RAG implementation (step 4) | The M4 files depend on M4's own domain (`Chunk` with `codebase`, `Language`, `ModelsLoading`). Copied unadapted, they would break the tests and the architecture rules. Their dependencies (`chromadb`, `fastembed`, `numpy`) are already pinned and installed |
 | 1′ | Keep the M5 sample runs | **Removed**, along with `eval/results.json`, `eval/report.md` and `DEPLOY.md`. `samples/runs/index.json` is `[]` | They are Module 5's outputs in Module 5's response shape. This project records its own samples in step 6 |
 | 1′ | — | Settings `TASK_MIN_CHARS` / `TASK_MAX_CHARS` renamed `QUESTION_MIN_CHARS` / `QUESTION_MAX_CHARS`. The fence label and prompt placeholder `user_task` became `question`. Prompt prose is otherwise unchanged (the agent plans rewrite it) | Part of the `task` → `question` rename. The worker **TASK** (`Delegation.task`, `TranscriptEntry.task`) keeps its name |
+
+## 24. Plan review: accepted changes (contracts v1.1)
+
+The seven detailed plans (PRs #1–#7, merged 2026-10-11) listed their contract gaps and open questions. This section records what was decided. Step 3 implements **v1.1** = the 🔒 sections above **plus** this list. The original plan text is kept, and inline notes marked "v1.1" point here.
+
+### 24.1 Decisions by the user
+
+| Topic | Decision |
+|---|---|
+| Fallback outside the selected sources | **No.** If `wikipedia` ∉ `sources`, `search_web` never falls back to Wikipedia. It answers "web search unavailable", and the model switches to another allowed tool or writes findings |
+| Empty search results | **No fallback.** The tool reports `results=0` with a rewrite hint, and the agent decides (the agentic behavior). The fallback triggers only on **failure**. PLAN §5 diagram corrected |
+| Live callback demo | **Local receiver (`samples/webhooks/receiver.py`) + `ngrok http 8001`** (installed). webhook.site only as a no-install fallback |
+| Unknown Telegram chats | Reply **at most once per hour** with their chat id. No run, no Gemini call |
+
+### 24.2 Decisions in review
+
+| Topic | Decision | Why |
+|---|---|---|
+| SSRF guard transport | **No private httpx attribute.** An `httpx.BaseTransport` over `httpcore.ConnectionPool(network_backend=GuardedBackend(...))` (SEARXNG Q4 alternative) | Security-critical code must not break silently on a library upgrade |
+| HTML extractor | `trafilatura` (Apache-2.0), pinned in step 3. `trafilatura.fetch_url` is banned by an architecture test | SEARXNG §3.8 measurement |
+| Revision trigger | Writer revision when the Reviewer says `revise` **or** the Fact-Checker's `needs_revision` is true (contradicted > 0, or ≥ 25 % unsupported/miscited). **One** revision round | REVIEWER §3, SUPERVISOR Q4. Fits the budget |
+| `FINAL` format | Full report Markdown (no `FINAL: DRAFT` shortcut in v1). Revisit if phase 6 shows cut-offs | Settled decision, SUPERVISOR Q1 |
+| Fence label for the question | `question` everywhere (code and plans) | Step 1′ rename |
+| `thinking_budget=0` | No change: the M5 adapter maps 0 → `LOW` on 3.x (verified) | REVIEWER gap |
+| Public API base for links | M5's existing `BASE_URL` (no new `PUBLIC_API_URL`) | WEBHOOKS G5 |
+| Crash window between run creation and the update ledger | Accepted (WEBHOOKS G7 declined) | An allowlist makes the impact negligible |
+| Other open questions | Each plan's recommendation is accepted (see the "Review decisions" note in each plan's §11) | |
+
+### 24.3 Contract changes (v1.1)
+
+| Area | Change | From |
+|---|---|---|
+| **Tools** | `render_tool_result(record, blocks, fence, note=None) -> str` in `tools/base.py` (Shared), with RESEARCHER §3.6's exact layout. Tools fence each evidence block themselves | RESEARCHER G1, SEARXNG G8, RAG G9 |
+| | `ToolContext.sources: frozenset[SourceKind]`. `ToolRegistry.box(ctx, sources, memo) -> ToolBox`. A **run-wide tool memo** (created by the Supervisor per run). The registry is injected into the `Supervisor` along with the `Retriever` | SUPERVISOR G3/G4, SEARXNG G1, RESEARCHER G3, RAG G14 |
+| | `ToolCallRecord` gains `weak: bool = False`, `repeat: bool = False`. `args` hold **normalized** values. The same keys go in the `TOOL_CALL` history entry | RESEARCHER G2, G7 |
+| | `record_tool_call(record, meta)`: `meta` is display-only, never added to the run counters. `StepCounter` also checks the canary in tool-call arguments | RESEARCHER G4, G5 |
+| **Report** | `parse_report(md, evidence, *, question, depth, snippets)`, plus `snippets_for(...)` and `reference_label(...)` in `application/report.py`. The Supervisor loads snippets through the `Retriever` | WRITER 1–3, SUPERVISOR G1/G5 |
+| | `set_report` is called before `propose_final`. `report_ready` is emitted in `_complete`. The view shows `report` only when `completed` (the approval UI uses `approval.draft`). `TOOL_CALL` entries are stamped with the run's iteration | SUPERVISOR G2, G8 |
+| **Workers** | `WorkerContext.history: dict[str, tuple[WorkerResult, ...]]` (default empty). Config `WRITER_CONTEXT_TOKENS=12000` | WRITER 4, 5 |
+| | `citations.py` also normalizes `[e3]`, `[E 3]` and `[E1; E3]` | WRITER 6 |
+| | `ResearchView.metadata.grounding = {checked, supported, unsupported, contradicted, supported_ratio}` (latest fact-check) | REVIEWER |
+| **RAG** | `VectorStore.query(…, source_keys=None)`. `Indexer.adopt(chunks, scope)` (document evidence copied into `run:<id>`). `Indexer.remove(scope, source_key=None)`. `RunService.sweep` removes the run scopes of deleted runs (`delete_older_than` returns ids) | RAG G1–G3 |
+| | Additive `SourceKind.MEMORY` (rejected by `ResearchRequest.sources`). `Memory.reference_titles`. Content-hash dedup: across sources in `run:`/`memory`, within a source in `ws:`/`demo` | RAG G4, G8, G10 |
+| | `DocumentRepository`: `get_workspace`, `upsert_workspace`, `delete_workspace`, `expired(now)`, `with_status(status)`. `WorkspaceView` = `{id, created_at, expires_at, bytes_used, documents, limits: {max_documents, max_bytes}} \| null` in `GET /documents`. `bytes_used` and `documents` are computed | RAG G5, G6 |
+| | Retrieval evaluation in `application/retrieval/evaluation.py` + `eval/retrieval_eval.py` (RAG). Wiring in `main.py`: indexing runner (queue 5), purge in the sweeper, startup recovery, `seed:demo`, BM25 warm-up, model loader | RAG G11, G12 |
+| **Search & fetch** | Domain errors `SearchUnavailable`, `FetchRefused`, `FetchFailed(reason)`, `ModelsLoading`, `ExtractionError`. Problem slug `indexing-busy` (503 + `Retry-After`) | SEARXNG G3, RAG G7 |
+| | Ports `HtmlExtractor` + `PdfExtractor` (split from `TextExtractor`). PDFs behind web results are refused in v1 (no `FetchedPage.data`). Config `READ_MAX_CHARS=60000` | SEARXNG G4, G5, G9 |
+| | `SqliteSearchCache` and `SqlitePageCache` in `sqlite_store.py` (Shared). Architecture rules: `httpcore` only in `safe_http.py`, ban on `trafilatura.fetch_url`. `RunService` receives a `url_check` callable (raises `FetchRefused`) for `callback_url` | SEARXNG G6, G7, G10 |
+| | `safe_http` API as in SEARXNG §3.9 (`UrlPolicy`, `check_url`, `resolve_public`, `SafeHttpClient.request`, `SafeHttpFetcher`). WEBHOOKS uses it | SEARXNG §3.9, WEBHOOKS G8 |
+| **Webhooks** | The callback secret is **derived** (`HMAC(server secret, run_id)`), never stored. Payloads are rendered at **send** time from the stored terminal run | WEBHOOKS G1, G3 |
+| | `OutboxRepository.add(message)` for standalone bot replies (event `bot.reply`, `run_id=""`). `delete_older_than`, `counts()`. A `status` argument on the `mark_*` methods. `OutboxMessage.last_status`. `UpdateLedger.forget_older_than` | WEBHOOKS G2, G4 |
+| | The run → `ResearchView` mapper moves to `application/views.py` (Shared). `samples/webhooks/receiver.py` + README | WEBHOOKS G6, G9 |
+| **Fakes** | `FakeRetriever` in `tests/fakes.py`. The fake LLM is split into `infrastructure/demo/` (one file per agent, owned by that agent), so parallel sessions never edit the same file | WRITER 7–8, REVIEWER, RESEARCHER G6 |

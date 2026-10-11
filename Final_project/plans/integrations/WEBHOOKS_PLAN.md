@@ -396,6 +396,8 @@ Coverage target ≥ 90 % for every owned file; Ruff clean.
 
 ## 11. Open questions
 
+> **Review decisions (2026-10-11), recorded in [BACKEND_PLAN §24](../../BACKEND_PLAN.md#24-plan-review-accepted-changes-contracts-v11):** Q1, Q3–Q6 accepted. **Q2: local receiver + `ngrok http 8001`** (installed on the user's machine) instead of a Cloudflare tunnel; webhook.site only as a no-install fallback. Gaps accepted except **G5** (use M5's existing `BASE_URL` instead of a new `PUBLIC_API_URL`) and **G7** (declined: the crash window is accepted).
+
 | # | Question | Recommendation |
 |---|---|---|
 | Q1 | Reply to non-allowlisted chats or stay silent? | **Reply once per hour with the chat id.** It's the only easy way for the owner to learn their id while a webhook is set (`getUpdates` is disabled) |

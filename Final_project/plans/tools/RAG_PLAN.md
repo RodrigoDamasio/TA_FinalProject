@@ -425,6 +425,8 @@ Coverage ≥ 90 % for this area's files. Ruff clean.
 
 ## 11. Open questions
 
+> **Review decisions (2026-10-11), recorded in [BACKEND_PLAN §24](../../BACKEND_PLAN.md#24-plan-review-accepted-changes-contracts-v11):** all recommendations accepted. Gaps G1–G14 accepted (G4: additive `SourceKind.MEMORY`, rejected by `ResearchRequest.sources`; G13 fixed in PLAN.md).
+
 | # | Question | Recommendation |
 |---|---|---|
 | Q1 | Clean the Microsoft lessons (banner images, YouTube links, translation tables) or keep them verbatim? | **Light cleanup** (drop image-only lines), recorded in `LICENSES.md`. MIT allows it, and it removes noise chunks |

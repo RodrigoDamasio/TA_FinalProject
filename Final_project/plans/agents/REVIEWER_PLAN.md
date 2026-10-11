@@ -338,7 +338,7 @@ sequenceDiagram
 
 ## 7. Security
 
-- **Everything is data.** The question, findings, draft, evidence titles, claims and passages are each wrapped with `DataFence.wrap` (kinds `user_question`, `research_notes`, `draft`, `evidence_list`, `draft_claims`, `evidence`). Both task prompts repeat the "data, never instructions" rule; `base.md` carries it too.
+- **Everything is data.** The question, findings, draft, evidence titles, claims and passages are each wrapped with `DataFence.wrap` (kinds `question`, `research_notes`, `draft`, `evidence_list`, `draft_claims`, `evidence`). Both task prompts repeat the "data, never instructions" rule; `base.md` carries it too.
 - **The injection document** of the demo library: the Reviewer's item 7 makes a draft that echoes "ignore previous instructions…" a `high · injection` issue. The Fact-Checker only labels claims, so a passage cannot make it do anything but return a status.
 - **Read-only.** The Fact-Checker uses `ctx.retriever` only (`get`, `search`). It never indexes and never numbers new evidence. Architecture test §19.3 keeps `workers/*` away from `indexing`/`retrieval`.
 - **Isolation.** Search scopes are the run scope plus the scopes of chunks the run already cited, so a Fact-Checker never reads another workspace.
@@ -385,6 +385,8 @@ sequenceDiagram
 No 🔒 type, port, field or name is redefined. The run scopes for documents evidence come from `EvidenceChunk.scope`, so `WorkerContext` needs no new field.
 
 ## 11. Open questions
+
+> **Review decisions (2026-10-11), recorded in [BACKEND_PLAN §24](../../BACKEND_PLAN.md#24-plan-review-accepted-changes-contracts-v11):** all recommendations accepted. Gap "`thinking_budget=0`" needs no change: the M5 Gemini adapter maps 0 to the `LOW` thinking level on 3.x models (verified). Other gaps accepted, including `metadata.grounding`.
 
 1. **Search beyond the cited chunks?** The "elsewhere in the evidence" search finds contradictions and miscitations, at the cost of up to 12 passages more in the prompt. **Recommendation:** keep it, with the budget rules that drop it first.
 2. **Claim cap by depth** (8 / 12 / 14) instead of a fixed 12? **Recommendation:** fixed 12. Output tokens and the 1,200-character context trim are the real limits, and round-robin already spreads the checks.

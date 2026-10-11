@@ -51,7 +51,7 @@ The user prompt (`supervisor_task.md`) is built by the app, in this order. Every
 
 | Block | Content | Fenced |
 |---|---|---|
-| **Question** | `run.question` | `user_question` |
+| **Question** | `run.question` | `question` |
 | **Depth** | `Depth: detailed — 600–1000 words, 4–6 sections.` + `PROFILES[depth].guidance` | No (app text) |
 | **Allowed sources** | One line per allowed `SourceKind`: `web` → "the web (search engines) and full pages of web results", `wikipedia` → "Wikipedia", `documents` → "the user's uploaded documents and the demo library" (or "the demo library" when `workspace_id` is `None`). Disallowed families are listed as "not allowed for this run" | No |
 | **Past reports** | Up to 3 recalled memories (§3.8) | `memory` |
@@ -204,7 +204,7 @@ FINAL:
 - If the research found nothing useful (see the tool-use summary), ask the researcher once more with a different angle. If it still finds nothing, continue with the writer and let the report say the evidence is thin.
 - writer: ask for the report at the depth you are given. On a revision, list the exact issues to fix.
 - Before FINAL, the reviewer and fact_checker must have checked the latest draft. Skip them only when you have one decision left.
-- If the reviewer says "revise", or the fact_checker marks claims unsupported or contradicted, delegate the writer once with those issues. Do not start a second revision round: after it, finish.
+- If the reviewer says "revise", or the fact_checker reports `needs_revision` (REVIEWER_PLAN §3: any contradicted claim, or ≥ 25 % unsupported or miscited), delegate the writer once with those issues. Do not start a second revision round: after it, finish.
 - If a human reviewer gave feedback, delegate the writer with that feedback, then finish.
 - Never send the same task to the same worker twice. Never ask a worker to "continue" an earlier answer.
 - Watch the decisions and LLM calls left. A researcher task costs up to 5 calls. Reply with FINAL before they run out.
@@ -346,7 +346,7 @@ sequenceDiagram
 
 ## 7. Security
 
-- **Untrusted text is fenced:** the question (`user_question`), memories, worker results (incl. tool-use summaries with model-written queries), human feedback. `base.md` says data blocks are never instructions.
+- **Untrusted text is fenced:** the question (`question`), memories, worker results (incl. tool-use summaries with model-written queries), human feedback. `base.md` says data blocks are never instructions.
 - **No evidence text reaches the Supervisor**, so a page or uploaded document with an injection can reach it only through a worker's summary, already fenced.
 - **Order rules in code** stop an injected "skip the review" from saving calls the run should spend, but only for the cheap cases; the prompt rule covers the rest.
 - **Canary and `OutputValidator`** on every Supervisor reply and every worker result (M5 `StepCounter`).
@@ -396,6 +396,8 @@ All with **0 real calls**: `ScriptedLLM`, stub workers (in the test file, return
 | G8 | `TranscriptEntry` for a `TOOL_CALL` carries the worker's iteration | The tool summary groups tool records under their Researcher result | None if `record_tool_call` stamps `run.iteration` like every M5 entry |
 
 ## 11. Open questions
+
+> **Review decisions (2026-10-11), recorded in [BACKEND_PLAN §24](../../BACKEND_PLAN.md#24-plan-review-accepted-changes-contracts-v11):** all recommendations accepted. The revision rule uses the Fact-Checker's `needs_revision`. G7 is resolved: `Memory.question` was renamed in step 1′. Other gaps accepted.
 
 1. **`FINAL: DRAFT` shortcut.** Letting the Supervisor answer `FINAL: DRAFT` to mean "the latest Writer draft, unchanged" would save ≈ 2,000 output tokens per run and remove the risk of a cut-off FINAL. It changes the settled "FINAL = full report Markdown" (§11). **Recommendation:** keep full Markdown for v1 (as settled), measure cut-offs in phase 6, and revisit only if they happen.
 2. **Order rules in code (§3.6).** They make a broken order cost one repair call instead of a wasted worker call. **Recommendation:** keep them; they are small and tested.

@@ -170,7 +170,7 @@ Retrieval-augmented generation retrieves passages at query time … (≤ EVIDENC
 ### 3.7 The findings call input
 
 `researcher_findings.md` gets:
-- `{question}` and `{task}` (fenced, kinds `user_task` and `task`)
+- `{question}` and `{task}` (fenced, kinds `question` and `task`)
 - `{tool_log}`: one app-written line per call, e.g. `1. search_web "rag vs fine-tuning cost" → 8 results, E1-E6` and `2. read_result E3 → 4 evidence, E7-E10`
 - `{evidence}`: every block in `seen`, **once**, in evidence order
 - `{word_limit}` from depth
@@ -453,6 +453,8 @@ Coverage of `researcher.py` ≥ 95 %. Ruff clean.
 | G7 | `ToolCallRecord.args` stores the **normalized** argument values | Makes repeats and rewrites comparable in the transcript | Store raw args and normalize in the evaluation |
 
 ## 11. Open questions
+
+> **Review decisions (2026-10-11), recorded in [BACKEND_PLAN §24](../../BACKEND_PLAN.md#24-plan-review-accepted-changes-contracts-v11):** all recommendations accepted, **except Q2: no fallback outside the selected `sources`** (the user picks sources in the UI; `search_web` answers "web search unavailable" instead). Gaps G1–G7 accepted.
 
 | # | Question | Recommendation |
 |---|---|---|

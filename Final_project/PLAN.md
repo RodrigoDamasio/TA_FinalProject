@@ -247,7 +247,7 @@ flowchart TD
     cap -- "no" --> force["Ask for findings now<br/>(no tools offered)"]
     cap -- "yes" --> run["Run the tool (app code)<br/>search · index into run scope<br/>retrieve top k evidence"]
     run --> fail{"Provider failed?"}
-    fail -- "SearXNG down or empty" --> fb["Fallback: Wikipedia<br/>(noted in the tool result)"]
+    fail -- "SearXNG failed and Wikipedia is an allowed source" --> fb["Fallback: Wikipedia<br/>(noted in the tool result)"]
     fail -- "ok" --> res["Tool result:<br/>numbered evidence E1..Ek"]
     fb --> res
     res --> llm
@@ -278,7 +278,7 @@ Details go in `RAG_PLAN.md`. The big picture:
 | Scope | Filled by | Read by | Lifetime |
 |---|---|---|---|
 | `run:{id}` (evidence) | The tools, during the run | Researcher (retrieval), Writer (cited chunks), Fact-Checker | Deleted with the run (30-day retention) |
-| `workspace:{id}` (uploads) | `POST /documents` → indexing job | `search_documents` | 24 h after creation |
+| `ws:{id}` (uploads) | `POST /documents` → indexing job | `search_documents` | 24 h after creation |
 | `demo` (library) | Seeded at startup from `backend/samples/library/` | `search_documents` | Permanent, read-only |
 | `memory` (past reports) | Each completed run | The Supervisor (top 3 relevant past reports) | 30 days |
 

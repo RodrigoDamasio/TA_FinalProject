@@ -429,6 +429,8 @@ All with **0 real calls**: `ScriptedLLM`, `HashingEmbedder`/`InMemoryVectorStore
 
 ## 11. Open questions
 
+> **Review decisions (2026-10-11), recorded in [BACKEND_PLAN §24](../../BACKEND_PLAN.md#24-plan-review-accepted-changes-contracts-v11):** all recommendations and gaps 1–9 accepted.
+
 1. **Structure repair call?** When the draft has no title or no sections, one extra call could fix it. **Recommendation: no.** Notices + the Reviewer + Supervisor revision cover it without spending a call on every bad draft.
 2. **Bare `[3]` citations** (M5 habit). Map to `[E3]`, remove, or leave? **Recommendation: leave as text.** Mapping can mis-attribute; the prompt shows only `[E<n>]` and the Reviewer flags them.
 3. **Summary cap of 1,200 chars** in `parse_report`. **Recommendation: yes**, at a sentence end: the UI card and the Telegram message (4,096) both show it.

@@ -352,6 +352,8 @@ Coverage ≥ 90 % for the owned files, Ruff clean.
 
 ## 11. Open questions
 
+> **Review decisions (2026-10-11), recorded in [BACKEND_PLAN §24](../../BACKEND_PLAN.md#24-plan-review-accepted-changes-contracts-v11):** Q1 accepted (fall back on failure only, and only when `wikipedia` ∈ `sources`), Q2 `trafilatura` accepted, Q3/Q5/Q6 accepted. **Q4 not accepted:** no private httpx attribute in security code; use the alternative, an `httpx.BaseTransport` over `httpcore.ConnectionPool(network_backend=GuardedBackend(...))`. Gaps G1–G10 accepted (G5: two ports, `HtmlExtractor` and `PdfExtractor`).
+
 | # | Question | Recommendation |
 |---|---|---|
 | Q1 | PLAN §5's diagram falls back to Wikipedia when SearXNG is "down **or empty**"; the POC says empty results are for the Researcher to react to | **Fall back only on failure** (incl. all engines blocked). Empty → the model rewrites the query, which is the agentic behavior the evaluator looks for. Update the PLAN diagram label |
