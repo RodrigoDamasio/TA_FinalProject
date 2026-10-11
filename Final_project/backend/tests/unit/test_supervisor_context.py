@@ -276,3 +276,16 @@ def test_valid_orders_pass():
     later = new_run()
     later.add_evidence([chunk(1)])
     check(decision("writer"), later)
+
+
+# C9 degradation helpers
+def test_first_paragraph_and_reasons():
+    from app.application.supervisor import _first_paragraph, _why
+    from app.domain.errors import BudgetExceeded, LLMQuotaExceeded, LLMRequestRejected
+
+    assert _first_paragraph("### Only a heading") == "The research findings are below."
+    long = _first_paragraph("### H\n\n- " + "word " * 300)
+    assert len(long) <= 601 and long.endswith("…") and long.startswith("word")
+    assert _why(BudgetExceeded(3)) == "the LLM call budget was used up"
+    assert _why(LLMQuotaExceeded("day", 1)) == "the LLM quota was reached"
+    assert _why(LLMRequestRejected(400, "x")) == "the LLM service refused the request"
