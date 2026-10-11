@@ -36,6 +36,7 @@ Everything is in [`poc_searxng/`](poc_searxng/):
 | [`settings.yml`](poc_searxng/settings.yml) | The **final** configuration (§6). JSON format only: HTML returns `403`. Limiter, public-instance features and image proxy off. English by default. Short timeouts (4 s, max 8 s) |
 | [`probe.py`](poc_searxng/probe.py) | Standard library only, so it runs **inside the container on Railway**. It runs 10 research-style queries through each engine on its own, then through the default mix, with 1 s between requests. It reports, per engine: answered queries, result count, **relevance**, latency, and SearXNG's `unresponsive_engines` reasons |
 | [`results/`](poc_searxng/results/) | Raw JSON reports of every run |
+| [`sx.sh`](poc_searxng/sx.sh) | Manual testing from your terminal: `source sx.sh`, then `sx "query"` or `sx "query" yandex`. It goes through `railway ssh`, because the service has no public domain |
 
 **Relevance heuristic:** a result counts as relevant when its title and snippet contain all but one of the query's keywords (at least 2). It's rough but deterministic, and enough to separate useful engines from ones returning dictionary pages.
 
