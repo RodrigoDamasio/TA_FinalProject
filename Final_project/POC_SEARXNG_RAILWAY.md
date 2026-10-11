@@ -2,7 +2,7 @@
 
 A short spike before any plan builds on SearXNG. The rationale for choosing it is in [BRAINSTORM.md §3](BRAINSTORM.md#3-web-search).
 
-**Status:** done on 2026-10-10. **Result: SearXNG is kept**, with 3 engines (§6). A stability re-run one hour later is recorded in §5.4.
+**Status:** done on 2026-10-10. **Result: SearXNG is kept**, with 3 engines (§6). The stability re-run one hour later confirmed it (§5.4).
 
 ## 1. Questions to answer
 
@@ -106,7 +106,7 @@ railway metrics --service searxng --memory
 | Public domain | **None** (`railway domain list` → no domains) |
 | Private network | `wget http://searxng.railway.internal:8080/healthz` → **`OK`** |
 | Egress | Railway's own network (AS400940, Santa Clara, CA). **The IP changed with every redeploy:** `152.55.177.212` → `.177.197` → `.178.91` |
-| RAM | **139–186 MB** (peak 186 MB of the 1,024 MB limit) |
+| RAM | **139–198 MB** (peak 198 MB of the 1,024 MB limit, after the one-hour re-run) |
 
 ### 5.3 Q1 and Q2: engines from Railway
 
@@ -135,7 +135,16 @@ Raw reports: [`railway_round1.json`](poc_searxng/results/railway_round1.json), [
 
 ### 5.4 Stability re-run (one hour later)
 
-*Pending: the same final probe, about an hour after the final deploy.*
+The same final probe, run about an hour after the final deploy, on the same egress IP (`152.55.178.91`). Raw report: [`railway_final_1h.json`](poc_searxng/results/railway_final_1h.json).
+
+| Engine | Answered | Avg results | Relevant | Avg time |
+|---|---|---|---|---|
+| yahoo | 10/10 | 7.0 | 96 % | 0.53 s |
+| yandex | 10/10 | 14.5 | 97 % | 0.57 s |
+| duckduckgo | 10/10 | 10.0 | 94 % | 0.58 s |
+| **default mix** | **10/10** | 22.8 | **96 %** | **0.61 s** |
+
+**Stable:** no engine failures, and the same quality as the final run. Memory peaked at **198 MB** over the hour (`railway metrics`).
 
 ## 6. Decision
 
@@ -147,7 +156,7 @@ Raw reports: [`railway_round1.json`](poc_searxng/results/railway_round1.json), [
 | Default mix | 10/10, ≥ 5 results with snippets | **10/10, ~23 results**, 17–26 with snippets |
 | Average latency | ≤ 3 s | **0.61 s** |
 | Private network | `/healthz` OK | **OK** |
-| RAM | < 300 MB | **≤ 186 MB** |
+| RAM | < 300 MB | **≤ 198 MB** |
 
 **Final `settings.yml`:** `use_default_settings.engines.keep_only: [yahoo, yandex, duckduckgo]`. Only these three engines are loaded, which also removed the Tor-engine startup errors.
 

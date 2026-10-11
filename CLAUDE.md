@@ -16,7 +16,11 @@ The evaluator will look at **how the agents use their tools**, so agent and tool
 1. [`Final_project/BRAINSTORM.md`](Final_project/BRAINSTORM.md): every decision so far and why. **Settled decisions are not reopened** without the user.
 2. [`Final_project/Final_Project_Options.md`](Final_project/Final_Project_Options.md): the assignment (Option D section).
 3. [`Final_project/POC_SEARXNG_RAILWAY.md`](Final_project/POC_SEARXNG_RAILWAY.md): the search-service spike and its results.
-4. `Final_project/PLAN.md`, `Final_project/BACKEND_PLAN.md` and the detailed plans, once they exist. **Plans are the contract; code follows them.**
+4. [`Final_project/PLAN.md`](Final_project/PLAN.md) (big picture) and [`Final_project/BACKEND_PLAN.md`](Final_project/BACKEND_PLAN.md). **Plans are the contract; code follows them.**
+   - Sections marked 🔒 in `BACKEND_PLAN.md` are **shared contracts**: types, ports, config, schemas, tables.
+   - **§4 says which files your task owns.** Change only those.
+   - A contract change follows **§22**: describe it in the PR, don't make it.
+5. The detailed plan for your area under `Final_project/plans/`, once it exists.
 
 ## Repository layout
 
@@ -103,7 +107,7 @@ Cloud sessions build plans and code in parallel. They run with **fakes only**.
 
 **Don't:**
 - **Never** deploy, call Railway or Vercel, use real API keys, or make real Gemini calls. Those steps are done by the user, locally.
-- **Don't change shared contracts** (ports, domain schemas, API schemas, `config.py`, `main.py` wiring) unless the task says so. Parallel sessions depend on them. If a contract must change, say so in the PR instead of changing it quietly.
+- **Don't change shared contracts** (🔒 sections and "Shared" files in `BACKEND_PLAN.md` §4) unless the task says so. Parallel sessions depend on them. If a contract must change, follow `BACKEND_PLAN.md` §22.
 - **Don't reopen decisions** in `BRAINSTORM.md`. Raise concerns in the PR description.
 
 **Tooling in the cloud:**

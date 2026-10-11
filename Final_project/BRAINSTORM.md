@@ -62,7 +62,7 @@ The assignment is in [Final_Project_Options.md](Final_Project_Options.md).
   - page text is data, never instructions
 - **At most 3 tool calls per Researcher task.** Each tool step is one Gemini call. Three is enough to search, read, and retry once with a better query.
 - **A proof of concept before building on it.** Search engines often block cloud-server IPs, so SearXNG is deployed first and tested from Railway ([POC_SEARXNG_RAILWAY.md](POC_SEARXNG_RAILWAY.md)).
-  - **Outcome (2026-10-10): passed.** From Railway, Yahoo, Yandex and DuckDuckGo answered 10/10 queries with 89–97 % relevant results in about 0.6 s, using under 190 MB of RAM. Bing answered but returned off-topic pages, and the other engines were blocked. SearXNG is kept with those three engines.
+  - **Outcome (2026-10-10): passed.** From Railway, Yahoo, Yandex and DuckDuckGo answered 10/10 queries with 89–97 % relevant results in about 0.6 s, using under 200 MB of RAM, and held steady in a re-run an hour later. Bing answered but returned off-topic pages, and the other engines were blocked. SearXNG is kept with those three engines.
 
 ## 4. RAG
 
@@ -123,7 +123,7 @@ These pieces carry over almost unchanged:
 | Direction | What |
 |---|---|
 | **Inbound** | A **Telegram bot**: a question sent in Telegram starts a research run. The bot replies with a link to follow the run live in the web UI, then sends the report summary and a link to the full report |
-| **Outbound** | Replies to Telegram, and a **signed `callback_url`** on `POST /research` for API clients. Signed with HMAC following the Standard Webhooks spec, retried with growing delays, logged, and guarded against SSRF |
+| **Outbound** | A **signed `callback_url`** on `POST /research` for API clients (an outbound webhook). Replies to Telegram are API calls (`sendMessage`), not webhooks, sent through the same outbox. Signed with HMAC following the Standard Webhooks spec, retried with growing delays, logged, and guarded against SSRF |
 
 **Why webhooks over a broker:**
 - **A broker's main benefit doesn't apply.** It lets several workers process jobs in parallel, but the Gemini quota is per key, so more workers would not complete more research.
@@ -139,13 +139,13 @@ These pieces carry over almost unchanged:
 - **Protect the quota:** only allowed chat ids can start a run.
 - **Fit the message limit:** Telegram allows 4,096 characters, so the chat gets a summary plus a link.
 
-### Two ways in, one research service
+### Three ways in, one run service
 
-Both entry points call the **same application service**. Only the adapters differ, so the agents never know where a request came from. Each run records its `channel` (`web`, `telegram` or `api`), and every run appears in the web history.
+All entry points call the **same application service**, the Run service (Module 5's `RunService`, no LLM calls). Only the adapters differ, so the agents never know where a request came from. Each run records its `channel` (`web`, `telegram` or `api`), and every run appears in the web history.
 
 ```mermaid
 flowchart LR
-    web["Web UI<br/>REST + SSE"] --> svc["Research service"]
+    web["Web UI<br/>REST + SSE"] --> svc["Run service"]
     tg["Telegram<br/>inbound webhook"] --> svc
     api["API client<br/>POST /research + callback_url"] --> svc
     svc --> agents["Supervisor + workers"]

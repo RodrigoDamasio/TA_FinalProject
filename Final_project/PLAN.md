@@ -33,7 +33,7 @@ A web app, and a Telegram bot, where a user asks a research question and a team 
 | **Memory** | BM25 over past tasks | Hybrid (BM25 + embeddings) over past **reports** |
 | **Output** | A Markdown answer | A **structured report**: `title`, `summary`, `sections[]`, `references[]`, plus `metadata` and `conversation_history` |
 | **API** | `POST /run` | `POST /research` with `depth` (brief, detailed, technical) and `sources`, plus document endpoints and webhooks |
-| **Integration** | Async runs + SSE | + **inbound webhook** (Telegram), **outbound webhooks** (Telegram replies, signed `callback_url`), **transactional outbox** |
+| **Integration** | Async runs + SSE | + **inbound webhook** (Telegram → us), **outbound webhook** (signed `callback_url`), Telegram replies as API calls, both through a **transactional outbox** |
 
 ### The learning journey this shows
 
@@ -79,7 +79,7 @@ flowchart TB
     subgraph railway["☁️ Railway · Research-Assistant-Final-Project"]
         subgraph be["service: backend · FastAPI · 1 replica"]
             api["API<br/>/research · /documents<br/>/webhooks/telegram · SSE"]
-            svc["Research service"]
+            svc["Run service<br/>(no LLM)"]
             sup["Supervisor loop"]
             workers["Workers<br/>Researcher (tools) · Writer<br/>Reviewer · Fact-Checker"]
             tools["Tools<br/>search_web · search_wikipedia<br/>search_documents · read_result"]
@@ -142,7 +142,7 @@ flowchart TB
 | Service | Where | Notes |
 |---|---|---|
 | `backend` | Railway, public domain | `railpack.json` (uvicorn `--proxy-headers`), health check `/health`, volume `/data`, 1 replica. Secrets set **by the user** |
-| `searxng` | Railway, private only | Pinned image + `settings.yml` from the POC. ~140–190 MB RAM |
+| `searxng` | Railway, private only | Pinned image + `settings.yml` from the POC. ~140–200 MB RAM |
 | frontend | Vercel | `NEXT_PUBLIC_API_URL` inlined at build time |
 
 **Why one backend service, not one per agent or component:**
@@ -152,6 +152,13 @@ flowchart TB
 - **It fits the free plan's service limits.**
 
 Any component can move out later behind its port with an HTTP adapter.
+
+**The Run service** (Module 5's `RunService`) is plain application code with **no LLM calls**. All three channels call it:
+- it validates the request and creates the run with its `channel` and subscribers
+- it hands the run to the runner, answers status queries, and handles approval and housekeeping
+- when the run ends, it writes the outbox rows
+
+The API routes and the Telegram webhook stay thin, and the agents never see HTTP or channels.
 
 ### One research run, end to end
 
@@ -317,8 +324,9 @@ sequenceDiagram
 
 | Piece | Design |
 |---|---|
-| **Inbound Telegram** | `POST /webhooks/telegram`. Every request checks `X-Telegram-Bot-Api-Secret-Token`. **Allowed chat ids** only (quota protection). Duplicate `update_id`s are ignored. Commands: `/start`, `/help`, plain text = a question (depth `brief` by default) |
-| **Outbound `callback_url`** | Optional on `POST /research`. Signed per the **Standard Webhooks** spec (`webhook-id`, `webhook-timestamp`, `webhook-signature` = HMAC-SHA256), with a **per-run secret returned once** in the `202` response. SSRF guard on the URL (public HTTPS hosts only) |
+| **Inbound webhook (Telegram → us)** | `POST /webhooks/telegram`. Every request checks `X-Telegram-Bot-Api-Secret-Token`. **Allowed chat ids** only (quota protection). Duplicate `update_id`s are ignored. Commands: `/start`, `/help`, plain text = a question (depth `brief` by default) |
+| **Outbound webhook (`callback_url`)** | Optional on `POST /research`. Signed per the **Standard Webhooks** spec (`webhook-id`, `webhook-timestamp`, `webhook-signature` = HMAC-SHA256), with a **per-run secret returned once** in the `202` response. SSRF guard on the URL (public HTTPS hosts only) |
+| **Telegram replies** | Not a webhook: our backend calls Telegram's `sendMessage` API. The calls go through the same outbox, so they are retried when Telegram is unreachable |
 | **Outbox** | A SQLite table written in the **same transaction** as the run state. A dispatcher thread claims due rows, delivers them, and retries with growing delays (e.g. 10 s, 1 min, 5 min, 30 min, 2 h), then marks them **dead**. **At-least-once** delivery; the `webhook-id` lets receivers drop duplicates |
 | **Visibility** | `GET /research/{id}/deliveries` lists attempts (status, HTTP code, time, never payload secrets). The UI shows them on the run |
 
@@ -402,7 +410,7 @@ Agent behavior, not only the answer:
 - **SSRF guard** on every outbound fetch the backend makes from external input: `read_result` pages and `callback_url`. It resolves the host and refuses private, loopback and link-local addresses, re-checks after redirects, and caps size and time.
 - **Agents cannot write:** the tools only search and read. Only the deterministic indexing service writes to the index.
 - **Workspace isolation:** the workspace id is a random 128-bit value created by the browser and used as a capability. All document queries filter by it. Expired workspaces are purged.
-- **Webhooks:** Telegram secret header + chat allowlist + `update_id` duplicate check. Outbound deliveries are signed, and secrets never appear in logs or the deliveries list.
+- **Webhooks:** Telegram secret header + chat allowlist + `update_id` duplicate check. Outbound webhook deliveries are signed, and secrets never appear in logs or the deliveries list.
 - **Secrets are set by the user on Railway:** `GOOGLE_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`. They are never printed, and never placed in a cloud-session environment.
 - **Carry-over:** RFC 9457, CORS order, Ruff `S`, bound SQL, logs with ids, sizes and counters only, privacy notice (questions go to Gemini, queries to search engines and Wikipedia).
 
@@ -419,7 +427,7 @@ Final_project/
 ├── backend/               → Railway service backend
 │   ├── app/
 │   │   ├── domain/          run, report, evidence, document, outbox, ports
-│   │   ├── application/     research service, supervisor, workers/, tools/,
+│   │   ├── application/     run service, supervisor, workers/, tools/,
 │   │   │                    indexing/, retrieval/, outbox/, report parser, guards
 │   │   ├── prompts/         supervisor + one per worker, VERSION
 │   │   ├── infrastructure/  gemini, searxng, wikipedia, chroma, embedder, sqlite, telegram, http (SSRF guard)
