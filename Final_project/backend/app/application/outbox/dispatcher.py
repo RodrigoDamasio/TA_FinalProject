@@ -20,7 +20,7 @@ from app.domain.ports import (
 )
 from app.domain.run import ResearchRun
 
-from .payloads import callback_body, telegram_text, unix
+from .payloads import TelegramTexts, callback_body, unix
 from .signing import callback_secret, sign
 
 logger = logging.getLogger("app.outbox")
@@ -61,7 +61,7 @@ class OutboxDispatcher:
         if msg.kind == "telegram":
             chat = str(msg.payload.get("chat_id", msg.target))
             return self._telegram.send_message(
-                chat, telegram_text(msg, run, self.web_url(msg.run_id))
+                chat, TelegramTexts(self._front).for_message(msg, run)
             )
         assert run is not None  # noqa: S101 — callbacks always belong to a run
         body = callback_body(msg, run, self._view(run), self._base, self.web_url(run.id))

@@ -8,7 +8,7 @@ from datetime import UTC, datetime, timedelta
 from fakes import FakeClock, FakeTelegram, FakeWebhookSender
 
 from app.application.outbox.dispatcher import OutboxDispatcher
-from app.application.outbox.payloads import telegram_text
+from app.application.outbox.payloads import TelegramTexts
 from app.application.outbox.signing import callback_secret, sign, verify
 from app.domain.outbox import (
     EVENT_ACCEPTED,
@@ -107,14 +107,14 @@ def test_telegram_messages_and_texts(tmp_path):
     d.process_due()
     assert ("7", "Hi") in telegram.sent
     chat, text = next(x for x in telegram.sent if x[0] == "42")
-    assert text.startswith("# T\n\nSummary.") and f"?run={run.id}" in text  # no parsed report
+    assert "# T\n\nSummary." in text and f"?run={run.id}" in text  # no parsed report
     accepted = OutboxMessage.new(run.id, "telegram", EVENT_ACCEPTED, "42", {"chat_id": "42"})
-    assert telegram_text(accepted, run, "https://ui/x").startswith("Working on it.")
+    assert TelegramTexts("https://ui").for_message(accepted, run).startswith("Working on it.")
     failed = ResearchRun.create("Another question here", 5, False, False)
     failed.start()
     failed.fail("boom")
     done = OutboxMessage.new(failed.id, "telegram", "research.failed", "42")
-    assert "could not be completed (boom)" in telegram_text(done, failed, "u")
+    assert "the research failed: boom" in TelegramTexts("u").for_message(done, failed)
 
 
 def test_a_message_whose_run_was_deleted_is_not_delivered(tmp_path):
