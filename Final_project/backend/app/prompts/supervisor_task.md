@@ -4,8 +4,8 @@
 # Earlier research by this assistant (may be outdated)
 {memories}
 
-# Sources found so far
-{sources}
+# Evidence found so far
+{evidence}
 
 # Conversation so far
 {transcript}

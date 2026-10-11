@@ -19,37 +19,29 @@ from app.domain.errors import (
     LLMRequestRejected,
     ProtocolError,
 )
+from app.domain.evidence import EvidenceChunk, EvidenceRef, SourceKind
 from app.domain.ports import (
     AssistantMessage,
     LLMClient,
     LLMRequest,
     MemoryStore,
+    Retriever,
     RunRepository,
-    SourceDraft,
     UserMessage,
 )
 from app.domain.protocol import parse_decision
 from app.domain.run import ResearchRun, RunStatus
-from app.domain.transcript import CallMeta, Decision, Delegation, Source, WorkerResult
+from app.domain.transcript import CallMeta, Decision, Delegation, ToolCallRecord, WorkerResult
 
 from .budget import CallBudget
-from .context import (
-    has_sources_section,
-    memory_block,
-    source_list,
-    sources_section,
-    transcript_view,
-)
+from .citations import cited_numbers, clean_citations
+from .context import evidence_list, memory_block, transcript_view
 from .memory import memory_from_run
 from .prompts import PromptLibrary
+from .report import parse_report, snippets_for
 from .security import DataFence, OutputValidator, canary_for
-from .workers.base import (
-    StepCounter,
-    WorkerContext,
-    WorkerOutput,
-    WorkerRegistry,
-    clean_citations,
-)
+from .tools.base import ToolContext, ToolMemo, ToolRegistry
+from .workers.base import StepCounter, WorkerContext, WorkerOutput, WorkerRegistry
 
 logger = logging.getLogger("app.supervisor")
 
@@ -65,6 +57,8 @@ class LoopSettings:
     supervisor_context_tokens: int = 6000
     worker_context_chars: int = 17_500
     memory_limit: int = 3
+    budget_per_iteration: int = 3  # v1.1: budget = 3 × iterations left + 5
+    budget_base: int = 5
 
 
 class Supervisor:
@@ -77,9 +71,13 @@ class Supervisor:
         secret: bytes,
         settings: LoopSettings,
         memory: MemoryStore | None = None,
+        *,
+        tools: ToolRegistry,
+        retriever: Retriever,
     ) -> None:
         self.runs, self._llm_for, self.registry = runs, llm_for, registry
         self.prompts, self._secret, self.s, self.memory = prompts, secret, settings, memory
+        self.tools, self.retriever = tools, retriever
         self.canary = canary_for(secret)
         self.output = OutputValidator(self.canary)
 
@@ -90,7 +88,9 @@ class Supervisor:
         if run.status is not RunStatus.QUEUED:
             return  # cancelled or already handled
         lock = threading.Lock()
-        budget = CallBudget(2 * max(run.iteration_limit - run.iteration, 1) + 3)
+        left = max(run.iteration_limit - run.iteration, 1)
+        budget = CallBudget(self.s.budget_per_iteration * left + self.s.budget_base)
+        memo: ToolMemo = {}  # run-wide tool memo (v1.1)
         llm = self._llm_for(budget)
         fence = DataFence(self._secret, run.question)
         run.models = {
@@ -106,7 +106,7 @@ class Supervisor:
                     self.memory.recall(run.question, self.s.memory_limit, run.question)
                 )
                 self._save(run, lock)
-            self._loop(run, llm, budget, fence, lock)
+            self._loop(run, llm, budget, fence, lock, memo)
         except (LLMError, BudgetExceeded) as err:
             self._degrade(run, _why(err))
         except CanaryLeak as err:
@@ -144,6 +144,7 @@ class Supervisor:
         budget: CallBudget,
         fence: DataFence,
         lock: threading.Lock,
+        memo: ToolMemo,
     ) -> None:
         while run.status is RunStatus.RUNNING:
             if run.iteration >= run.iteration_limit:
@@ -161,7 +162,7 @@ class Supervisor:
             if decision.final is not None:
                 self._propose(run, decision.final, forced=False, degraded=False)
                 return None
-            self._run_workers(run, decision.delegations, llm, fence, lock)
+            self._run_workers(run, decision.delegations, llm, fence, lock, memo)
         return None
 
     def _system(self) -> str:
@@ -180,7 +181,7 @@ class Supervisor:
         return self.prompts.supervisor_task(
             question=fence.wrap(run.question, "question"),
             memories=memory_block(run, fence),
-            sources=source_list(run),
+            evidence=evidence_list(run),
             transcript=transcript_view(run, fence, self.s.supervisor_context_tokens),
             iterations_left=left,
             last_hint=" This is your last one: reply with FINAL." if left == 1 else "",
@@ -241,15 +242,48 @@ class Supervisor:
         llm: LLMClient,
         fence: DataFence,
         lock: threading.Lock,
+        memo: ToolMemo,
     ) -> None:
         results = {
             name: r for name in self.registry.names if (r := run.latest_result(name)) is not None
         }
-        snapshot = list(run.sources)
+        history: dict[str, tuple[WorkerResult, ...]] = {}
+        for e in run.transcript:
+            if e.result is not None and not e.result.failed:
+                history[e.result.worker] = (*history.get(e.result.worker, ()), e.result)
+        snapshot = list(run.evidence)
 
-        def register(drafts: list[SourceDraft]) -> list[Source]:
+        def add_evidence(chunks: list[EvidenceChunk]) -> list[EvidenceRef]:
             with lock:
-                return run.add_sources(drafts)
+                return run.add_evidence(chunks)
+
+        def evidence_by_n(n: int) -> EvidenceRef | None:
+            with lock:
+                return run.evidence_by_n(n)
+
+        def evidence_count() -> int:
+            with lock:
+                return len(run.evidence)
+
+        def record_tool_call(record: ToolCallRecord, meta: CallMeta) -> None:
+            with lock:
+                run.record_tool_call(record, meta)
+                self._save_locked(run)
+
+        read_scopes = (
+            [*([f"ws:{run.workspace_id}"] if run.workspace_id else []), "demo"]
+            if SourceKind.DOCUMENTS in run.sources
+            else []
+        )
+        tool_ctx = ToolContext(
+            run.id,
+            f"run:{run.id}",
+            read_scopes,
+            add_evidence,
+            evidence_by_n,
+            fence,
+            evidence_count=evidence_count,
+        )
 
         def one(d: Delegation) -> tuple[Delegation, WorkerOutput, CallMeta, bool]:
             previous = run.previous_result(d)
@@ -259,16 +293,24 @@ class Supervisor:
             with lock:
                 run.agent_started(d.worker, d.task)
                 self._save_locked(run)
+            tools = (
+                self.tools.box(tool_ctx, run.sources, memo) if d.worker == "researcher" else None
+            )
             ctx = WorkerContext(
-                run.id,
-                run.question,
-                {k: v for k, v in results.items() if k in worker.needs},
-                list(snapshot),
-                fence,
-                register,
-                self.s.worker_model,
-                self.canary,
-                self.s.worker_context_chars,
+                run_id=run.id,
+                question=run.question,
+                depth=run.depth,
+                sources=run.sources,
+                results={k: v for k, v in results.items() if k in worker.needs},
+                evidence=list(snapshot),
+                fence=fence,
+                tools=tools,
+                retriever=self.retriever,
+                record_tool_call=record_tool_call,
+                model=self.s.worker_model,
+                canary=self.canary,
+                context_chars=self.s.worker_context_chars,
+                history={k: v for k, v in history.items() if k in worker.needs},
             )
             counter = StepCounter(llm, self.output)
             try:
@@ -329,17 +371,21 @@ class Supervisor:
         return None
 
     def _propose(self, run: ResearchRun, text: str, *, forced: bool, degraded: bool) -> None:
-        text, _, unknown = clean_citations(text, {s.n for s in run.sources})
+        text, _, unknown = clean_citations(text, {r.n for r in run.evidence})
         if unknown:
             run.notice(
-                f"Removed {len(unknown)} citation(s) to unknown sources from the final answer.",
+                f"Removed {len(unknown)} citation(s) to unknown evidence from the final answer.",
                 "unknown_citation",
             )
         text, redacted = self.output.clean(text)
         if redacted:
             run.notice("Sensitive-looking data was redacted from the answer.", "redacted")
-        if not has_sources_section(text) and (section := sources_section(run, text)):
-            text = f"{text.rstrip()}\n\n{section}"
+        snippets = snippets_for(run.evidence, cited_numbers(text), self.retriever.get)
+        run.set_report(
+            parse_report(
+                text, run.evidence, question=run.question, depth=run.depth, snippets=snippets
+            )
+        )
         run.propose_final(
             text, forced=forced, degraded=degraded, approval_timeout_min=self.s.approval_timeout_min
         )

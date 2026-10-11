@@ -20,7 +20,8 @@ The evaluator will look at **how the agents use their tools**, so agent and tool
    - Sections marked 🔒 in `BACKEND_PLAN.md` are **shared contracts**: types, ports, config, schemas, tables.
    - **§4 says which files your task owns.** Change only those.
    - A contract change follows **§22**: describe it in the PR, don't make it.
-5. The detailed plan for your area under `Final_project/plans/`, once it exists.
+5. The detailed plan for your area under `Final_project/plans/`.
+6. **Implementing an area?** The contracts are code since tag `contracts-v1`. `BACKEND_PLAN.md` §25 lists the **stub** each owner replaces. Endpoints not implemented yet raise `FeatureNotReady` (501): remove those uses in your area. Keep the full suite green.
 
 ## Repository layout
 

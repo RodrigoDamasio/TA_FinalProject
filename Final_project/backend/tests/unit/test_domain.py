@@ -5,7 +5,8 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from app.domain.errors import InvalidTransition
-from app.domain.ports import SourceDraft, TokenUsage
+from app.domain.evidence import EvidenceChunk, SourceKind
+from app.domain.ports import TokenUsage
 from app.domain.run import ResearchRun, RunStatus, run_from_dict, run_to_dict
 from app.domain.transcript import CallMeta, Decision, Delegation, WorkerResult
 
@@ -49,16 +50,21 @@ def test_decisions_and_results_build_the_transcript_and_totals():
 
 
 # D2
-def test_sources_are_deduplicated_and_numbered_across_rounds():
+def _chunk(cid: str, title: str) -> EvidenceChunk:
+    return EvidenceChunk(
+        cid, "run:r", SourceKind.WEB, f"https://w/{cid}", title, f"https://w/{cid}",
+        None, None, None, None, 0, "text", "h", "t",
+    )  # fmt: skip
+
+
+def test_evidence_is_deduplicated_and_numbered_across_rounds():
     run = new_run()
-    a = run.add_sources(
-        [SourceDraft("A", "https://w/a", "x"), SourceDraft("B", "https://w/b", "y")]
-    )
-    b = run.add_sources(
-        [SourceDraft("B", "https://w/b", "y"), SourceDraft("C", "https://w/c", "z")]
-    )
-    assert [s.n for s in a] == [1, 2] and [s.n for s in b] == [2, 3]
-    assert [s.title for s in run.sources] == ["A", "B", "C"]
+    a = run.add_evidence([_chunk("a", "A"), _chunk("b", "B")])
+    b = run.add_evidence([_chunk("b", "B"), _chunk("c", "C")])
+    assert [r.n for r in a] == [1, 2] and [r.n for r in b] == [2, 3]
+    assert [r.title for r in run.evidence] == ["A", "B", "C"]
+    assert run.evidence_by_n(3).chunk_id == "c" and run.evidence_by_n(4) is None
+    assert run.events[-1].type == "evidence_added" and run.events[-1].data["total"] == 3
 
 
 # D3

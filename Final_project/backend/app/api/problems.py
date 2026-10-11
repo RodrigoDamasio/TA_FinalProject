@@ -15,9 +15,16 @@ from starlette.responses import Response
 
 from app.config import get_settings
 from app.domain.errors import (
+    DemoReadOnly,
+    DocumentNotFound,
+    FeatureNotReady,
+    FileTooLarge,
+    IndexingBusy,
     InputTooLarge,
+    InvalidCallbackUrl,
     InvalidField,
     InvalidTransition,
+    InvalidWorkspace,
     LLMQuotaExceeded,
     LLMRequestRejected,
     LLMTimeout,
@@ -25,6 +32,9 @@ from app.domain.errors import (
     QueueFull,
     RunNotFound,
     SampleNotFound,
+    UnsupportedMediaType,
+    WebhookUnauthorized,
+    WorkspaceQuotaExceeded,
 )
 
 from .guards import RateLimited
@@ -104,8 +114,8 @@ INVALID_TRANSITION = _p(
 INPUT_TOO_LARGE = _p(
     "input-too-large",
     413,
-    "The task is too long.",
-    "The task is longer than the server accepts. `detail` states the limit.",
+    "The question is too long.",
+    "The question is longer than the server accepts. `detail` states the limit.",
 )
 RATE_LIMITED = _p(
     "rate-limited",
@@ -133,6 +143,63 @@ WAIT_TIMEOUT = _p(
     "The run is still going.",
     "`?wait=true` gave up waiting. The run continues: follow the `Location` header.",
 )
+INVALID_WORKSPACE = _p(
+    "invalid-workspace",
+    400,
+    "Missing or invalid workspace.",
+    "Document requests need an `X-Workspace-Id` header: a lowercase UUIDv4 created by the "
+    "browser. It identifies a private workspace that expires after 24 hours.",
+)
+DOCUMENT_NOT_FOUND = _p(
+    "document-not-found",
+    404,
+    "Document not found.",
+    "No document with this id in your workspace or the demo library.",
+)
+DEMO_READ_ONLY = _p(
+    "demo-read-only", 409, "The demo library is read-only.", "Demo documents cannot be deleted."
+)
+UNSUPPORTED_MEDIA_TYPE = _p(
+    "unsupported-media-type",
+    415,
+    "Unsupported file type.",
+    "Only Markdown (.md), plain text (.txt) and PDF (.pdf) files are accepted. The type is "
+    "checked by content, not only by the file name.",
+)
+FILE_TOO_LARGE = _p(
+    "file-too-large", 413, "The file is too large.", "`detail` states the size limit."
+)
+WORKSPACE_QUOTA_EXCEEDED = _p(
+    "workspace-quota-exceeded",
+    507,
+    "The workspace is full.",
+    "The workspace reached its document count or size limit. Delete a document first.",
+)
+INDEXING_BUSY = _p(
+    "indexing-busy",
+    503,
+    "Too many documents are being indexed.",
+    "The indexing queue is full. Retry after the `Retry-After` delay.",
+)
+INVALID_CALLBACK_URL = _p(
+    "invalid-callback-url",
+    422,
+    "The callback URL is not allowed.",
+    "callback_url must be a public HTTPS address on port 443, without credentials. "
+    "Private, loopback and link-local addresses are refused (SSRF protection).",
+)
+WEBHOOK_UNAUTHORIZED = _p(
+    "webhook-unauthorized",
+    401,
+    "Webhook not authorized.",
+    "The request did not carry the expected webhook secret header.",
+)
+FEATURE_NOT_READY = _p(
+    "feature-not-ready",
+    501,
+    "Not implemented yet.",
+    "This endpoint is part of the API contract but its implementation is still in progress.",
+)
 INTERNAL_ERROR = _p(
     "internal-error",
     500,
@@ -145,7 +212,9 @@ CATALOG = {
     for p in (
         VALIDATION_ERROR, MALFORMED_REQUEST, RUN_NOT_FOUND, SAMPLE_NOT_FOUND, INVALID_TRANSITION,
         INPUT_TOO_LARGE, RATE_LIMITED, LLM_QUOTA_EXHAUSTED, LLM_UNAVAILABLE, WAIT_TIMEOUT,
-        INTERNAL_ERROR,
+        INVALID_WORKSPACE, DOCUMENT_NOT_FOUND, DEMO_READ_ONLY, UNSUPPORTED_MEDIA_TYPE,
+        FILE_TOO_LARGE, WORKSPACE_QUOTA_EXCEEDED, INDEXING_BUSY, INVALID_CALLBACK_URL,
+        WEBHOOK_UNAUTHORIZED, FEATURE_NOT_READY, INTERNAL_ERROR,
     )
 }  # fmt: skip
 
@@ -264,6 +333,15 @@ async def _wait_timeout_handler(request: Request, exc: Exception) -> Response:
     )
 
 
+async def _invalid_callback_handler(request: Request, exc: Exception) -> Response:
+    return problem_response(
+        request,
+        INVALID_CALLBACK_URL,
+        detail=str(exc),
+        errors=[FieldError(detail=str(exc), pointer="#/callback_url")],
+    )
+
+
 async def _rate_limited_handler(request: Request, exc: Exception) -> Response:
     assert isinstance(exc, RateLimited)  # noqa: S101 — narrows the type
     return problem_response(
@@ -327,6 +405,16 @@ def register_problem_handlers(app: FastAPI) -> None:
     app.add_exception_handler(LLMRequestRejected, _unavailable_handler)
     app.add_exception_handler(QueueFull, _simple(LLM_UNAVAILABLE, retry_after=30))
     app.add_exception_handler(WaitTimeout, _wait_timeout_handler)
+    app.add_exception_handler(InvalidWorkspace, _simple(INVALID_WORKSPACE))
+    app.add_exception_handler(DocumentNotFound, _simple(DOCUMENT_NOT_FOUND))
+    app.add_exception_handler(DemoReadOnly, _simple(DEMO_READ_ONLY))
+    app.add_exception_handler(UnsupportedMediaType, _simple(UNSUPPORTED_MEDIA_TYPE))
+    app.add_exception_handler(FileTooLarge, _simple(FILE_TOO_LARGE))
+    app.add_exception_handler(WorkspaceQuotaExceeded, _simple(WORKSPACE_QUOTA_EXCEEDED))
+    app.add_exception_handler(IndexingBusy, _simple(INDEXING_BUSY, retry_after=30))
+    app.add_exception_handler(InvalidCallbackUrl, _invalid_callback_handler)
+    app.add_exception_handler(WebhookUnauthorized, _simple(WEBHOOK_UNAUTHORIZED))
+    app.add_exception_handler(FeatureNotReady, _simple(FEATURE_NOT_READY))
     app.add_exception_handler(StarletteHTTPException, _http_exception_handler)
 
 

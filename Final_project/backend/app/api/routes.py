@@ -4,17 +4,24 @@ import asyncio
 import logging
 from collections.abc import AsyncIterable
 from typing import Any
+from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, Header, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from starlette.concurrency import run_in_threadpool
 
+from app.application.runs import SubmitCommand
+from app.application.views import research_view
+from app.domain.documents import valid_workspace_id
+from app.domain.errors import InvalidWorkspace
+from app.domain.evidence import REQUESTABLE_SOURCES
+from app.domain.outbox import Channel
 from app.domain.run import ResearchRun
 
 from .dependencies import Container, get_container
 from .problems import PROBLEM_RESPONSE, WaitTimeout
-from .schemas import Accepted, RejectRequest, ResearchRequest, run_view
+from .schemas import Accepted, RejectRequest, ResearchRequest
 
 router = APIRouter()
 logger = logging.getLogger("app.api")
@@ -31,7 +38,7 @@ def _client(request: Request) -> str:
 
 
 def _view(c: Container, run: ResearchRun) -> dict[str, Any]:
-    return run_view(run, c.pricing, demo=c.settings.fake)
+    return research_view(run, c.pricing, demo=c.settings.fake)
 
 
 # ---- observability ---------------------------------------------------------------------------
@@ -87,17 +94,31 @@ def start_research(
     request: Request,
     response: Response,
     wait: bool = Query(False, description="Block until the run ends (needs no approval)."),
+    x_workspace_id: str | None = Header(None),
     c: Container = Depends(get_container),
 ) -> Accepted | dict[str, Any]:
     """Start research on a question. Async by default (202 + Location + SSE events); with
-    `?wait=true` the finished run is returned (200)."""
+    `?wait=true` the finished run is returned (200) in the assignment's shape:
+    `report`, `metadata`, `conversation_history`."""
     if wait and body.require_approval:
         raise _field_error("#/require_approval", "Must be false when wait=true.")
-    c.service.check_input(body.question, body.max_iterations)  # free checks first
-    c.limiter.check(_client(request))  # only requests that would start a run count
-    run = c.service.submit(
-        body.question, body.max_iterations, body.require_approval, body.use_memory
+    if x_workspace_id is not None and not valid_workspace_id(x_workspace_id):
+        raise InvalidWorkspace()
+    cmd = SubmitCommand(
+        question=body.question,
+        depth=body.depth,
+        sources=frozenset(body.sources) if body.sources is not None else REQUESTABLE_SOURCES,
+        max_iterations=body.max_iterations,
+        require_approval=body.require_approval,
+        use_memory=body.use_memory,
+        workspace_id=x_workspace_id,
+        channel=Channel.API if body.callback_url else Channel.WEB,
+        callback_url=str(body.callback_url) if body.callback_url else None,
+        client_key=_client(request),
     )
+    c.service.check_command(cmd)  # free checks first
+    c.limiter.check(_client(request))  # only requests that would start a run count
+    run = c.service.submit(cmd)
     status_url = f"/research/{run.id}"
     response.headers["Location"] = status_url
     if wait:
@@ -111,6 +132,8 @@ def start_research(
         status=run.status.value,
         status_url=status_url,
         events_url=f"{status_url}/events",
+        web_url=c.dispatcher.web_url(run.id),
+        callback_secret=c.callback_secret(run.id) if cmd.callback_url else None,
     )
 
 
@@ -171,6 +194,33 @@ def reject(
 ) -> dict[str, Any]:
     feedback = body.feedback.strip() if body and body.feedback else None
     return _view(c, c.service.reject(run_id, feedback or None))
+
+
+@router.get("/research/{run_id}/deliveries", responses=_problems(404), tags=["research"])
+def deliveries(run_id: str, c: Container = Depends(get_container)) -> list[dict[str, Any]]:
+    """Webhook delivery attempts (no payloads, no secrets, host only)."""
+    c.service.get(run_id)  # 404 for unknown runs
+    return [
+        {
+            "id": m.id,
+            "kind": m.kind,
+            "event": m.event,
+            "target_host": urlsplit(m.target).hostname if m.kind == "callback" else "telegram",
+            "status": m.status.value,
+            "attempts": m.attempts,
+            "last_status": m.last_status,
+            "last_error": m.last_error,
+            "next_attempt_at": m.next_attempt_at if m.status.value == "pending" else None,
+            "delivered_at": m.delivered_at,
+        }
+        for m in c.outbox.for_run(run_id)
+    ]
+
+
+@router.get("/tools", tags=["agents"])
+def tools(c: Container = Depends(get_container)) -> list[dict[str, Any]]:
+    """The tools the Researcher can be offered (per run, filtered by `sources`)."""
+    return c.tools.specs()
 
 
 # ---- samples -------------------------------------------------------------------------------

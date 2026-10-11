@@ -4,8 +4,11 @@
 # Your assignment from the Supervisor
 {task}
 
-# Research notes
+# Research findings
 {notes}
+
+# Evidence
+{evidence}
 
 # Review of the previous draft (fix every issue listed)
 {review}
@@ -16,8 +19,11 @@
 # Previous draft
 {previous_draft}
 
-# Write the answer
-- Markdown with a short title (##), a direct answer first, then sections or a table if they help.
-- Keep the [n] citations from the notes on the facts they support; never invent citations or facts that are not in the notes.
+# Depth
+{guidance}
+
+# Write the report
+- Markdown: a title line starting with "# ", then a short summary paragraph, then sections that each start with "## ".
+- Put [E<n>] after the facts it supports, using only the evidence ids above. Never invent citations or facts.
 - Neutral, balanced language; present trade-offs fairly.
-- About 250 to 500 words. Do not add a Sources section (the Supervisor adds it).
+- Do not add a Sources or References section: references are built from your citations.

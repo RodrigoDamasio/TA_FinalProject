@@ -885,6 +885,13 @@ The M5 rules are kept. New ones:
 | 1′ (2026-10-11) | Copy the M4 RAG files in the foundation step | Copied **later**: at step 3 (adapted to `EvidenceChunk`) or by the RAG implementation (step 4) | The M4 files depend on M4's own domain (`Chunk` with `codebase`, `Language`, `ModelsLoading`). Copied unadapted, they would break the tests and the architecture rules. Their dependencies (`chromadb`, `fastembed`, `numpy`) are already pinned and installed |
 | 1′ | Keep the M5 sample runs | **Removed**, along with `eval/results.json`, `eval/report.md` and `DEPLOY.md`. `samples/runs/index.json` is `[]` | They are Module 5's outputs in Module 5's response shape. This project records its own samples in step 6 |
 | 1′ | — | Settings `TASK_MIN_CHARS` / `TASK_MAX_CHARS` renamed `QUESTION_MIN_CHARS` / `QUESTION_MAX_CHARS`. The fence label and prompt placeholder `user_task` became `question`. Prompt prose is otherwise unchanged (the agent plans rewrite it) | Part of the `task` → `question` rename. The worker **TASK** (`Delegation.task`, `TranscriptEntry.task`) keeps its name |
+| 3 (2026-10-11) | — | **Stub implementations** of every owned area, wired so a full `LLM_MODE=fake` run works end to end (§25). Endpoints not implemented yet answer **501 `feature-not-ready`** (`FeatureNotReady`); remove its uses when implementing | Lets each cloud session replace one area while the rest keeps working |
+| 3 | `ToolContext` per §10.2 | Additive field `evidence_count: Callable[[], int]` | Tools need it to report how many evidence numbers are **new** (`new=` in the RESULT line) |
+| 3 | `parse_report` placement | Called by the Supervisor in `_propose` with snippets from `snippets_for`; `run.set_report` before `propose_final` (v1.1) | As specified; listed so SUPERVISOR keeps it |
+| 3 | `sources=[]` | An explicit empty list is **rejected** (422 `#/sources`); only a missing field means all sources | Found by a test: the route treated `[]` like `None` |
+| 3 | `check_url(allow_private=True)` | Skips the host, port and IP rules (scheme and credential rules still apply) | Tests and the local ngrok receiver need `localhost` and other ports |
+| 3 | Test settings | `SEARCH_MODE`, `EMBED_MODE`, `TELEGRAM_MODE` are forced to fakes/off in `tests/conftest.py` | Their defaults derive from the environment's `LLM_MODE`, so the suite could reach the real SearXNG host |
+| 3 | Telegram completed message | Without a parsed report it sends the start of the final Markdown | Found by a test: it said "could not be completed" |
 
 ## 24. Plan review: accepted changes (contracts v1.1)
 
@@ -938,3 +945,19 @@ The seven detailed plans (PRs #1–#7, merged 2026-10-11) listed their contract 
 | | `OutboxRepository.add(message)` for standalone bot replies (event `bot.reply`, `run_id=""`). `delete_older_than`, `counts()`. A `status` argument on the `mark_*` methods. `OutboxMessage.last_status`. `UpdateLedger.forget_older_than` | WEBHOOKS G2, G4 |
 | | The run → `ResearchView` mapper moves to `application/views.py` (Shared). `samples/webhooks/receiver.py` + README | WEBHOOKS G6, G9 |
 | **Fakes** | `FakeRetriever` in `tests/fakes.py`. The fake LLM is split into `infrastructure/demo/` (one file per agent, owned by that agent), so parallel sessions never edit the same file | WRITER 7–8, REVIEWER, RESEARCHER G6 |
+
+## 25. Step 3 result: contracts as code (tag `contracts-v1`)
+
+Every 🔒 section and v1.1 change is implemented. Each owned area has a **stub** that follows its plan where the plan is exact, and is simple elsewhere. Each owner replaces its stubs, keeps the shared contracts, and keeps the suite green.
+
+| Owner | Stub today | Replace with (plan) |
+|---|---|---|
+| RESEARCHER | `workers/researcher.py`: tool loop with the cap and the no-tools findings call, citation check | Argument checks, repeat memo (run-wide `ToolMemo`), weak/repeat flags, evidence-list fallback, final prompts (RESEARCHER_PLAN §3) |
+| SEARXNG | `infrastructure/searxng.py` (one GET), `safe_http.py` (`check_url` + `StubPageFetcher`), `html_extract.py` (tag strip), `tools/web.py`, `tools/wikipedia.py` | Cache + breaker, full SSRF guard with `SafeHttpClient` / `SafeHttpFetcher`, trafilatura, URL normalization (SEARXNG_TOOL_PLAN §3) |
+| RAG | `indexing/simple.py` (paragraph chunks), `retrieval/simple.py` (vector only), `hashing_embedder.py`, `memory_vector_store.py`, `tools/documents.py`, `api/documents.py` (501) | M4 chunkers + PDF, hybrid retrieval with BM25 per scope, fastembed + Chroma, `DocumentService`, demo library, hybrid memory (RAG_PLAN §3) |
+| WRITER | `application/report.py` (`parse_report`, `reference_label`, `snippets_for`), `workers/writer.py`, `infrastructure/demo/writer.py` | The full parser rules, evidence ranking and budgets, final prompt (WRITER_PLAN §3) |
+| REVIEWER | `workers/reviewer.py` (M5), `workers/fact_checker.py` (M5 shape on evidence), `demo/reviewer.py` | The checklist, retrieval per claim, `needs_revision`, new schemas (REVIEWER_PLAN §3) |
+| SUPERVISOR | `supervisor.py` (M5 loop + tools, evidence, reports), `context.py`, M5 prompts | The new prompts, depth/sources inputs, revision rule, memory display (SUPERVISOR_PLAN §3) |
+| WEBHOOKS | `outbox/` (signing exact; dispatcher and texts simple), `telegram.py` (501), `telegram_client.py`, `webhook_sender.py`, `api/webhooks.py` | Telegram commands, allowlist, ledger, per-chat limits, exact texts, claiming and `retry_after`, the receiver sample (WEBHOOKS_PLAN §3) |
+
+**Quality at the tag:** 121 tests, 96 % coverage, Ruff clean. A fake run returns the assignment's response shape: report, metadata, conversation history with `TOOL_CALL` entries, and a signed callback verified end to end.

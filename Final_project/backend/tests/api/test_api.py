@@ -30,10 +30,22 @@ def test_run_async_sync_and_wait_with_approval(api):
     assert body["events_url"] == body["status_url"] + "/events"
     view = a.client.get(body["status_url"]).json()
     assert view["status"] == "completed" and view["final_output"] and view["sample"] is False
-    assert view["meta"]["llm_calls"] == 7 and view["meta"]["generated_by"] == "demo mode (no LLM)"
-    assert view["meta"]["est_cost_usd"] > 0 and view["meta"]["prompt_version"] == "2"
-    assert view["sources"][0].keys() == {"n", "title", "url"}  # no extracts in the API
-    assert view["transcript"][0]["decision"]["action"] == "delegate"
+    meta = view["metadata"]
+    assert meta["llm_calls"] == 8 and meta["generated_by"] == "demo mode (no LLM)"
+    assert meta["est_cost_usd"] > 0 and meta["prompt_version"] == "2" and meta["tool_calls"] == 1
+    assert meta["agents_used"] == ["Researcher", "Writer", "Reviewer"]
+    report = view["report"]
+    assert report["title"] and report["summary"] and len(report["sections"]) == 2
+    assert report["references"][0].startswith("[E1] ")  # the assignment's string form
+    assert set(report["sources"][0]) == {
+        "id", "title", "url", "document_name", "page", "source_kind", "snippet",
+    }  # fmt: skip
+    first = view["conversation_history"][0]
+    assert first["agent"] == "Supervisor" and first["action"] == "DELEGATE"
+    assert first["target_agent"] == "Researcher" and first["task"]
+    tool = view["conversation_history"][1]
+    assert tool["action"] == "TOOL_CALL" and tool["tool"] == "search_web" and tool["evidence"]
+    assert body["web_url"].endswith(f"/?run={body['run_id']}") and body["callback_secret"] is None
 
     sync = a.client.post(
         "/research?wait=true", json={"question": "Explain HTTP caching briefly please."}
@@ -53,7 +65,7 @@ def test_sse_sequence_and_resume(api):
         events = sse(stream.read().decode())
     types = [e for e, _, _ in events]
     assert types[0] == "run_started" and types[-1] == "completed"
-    assert {"agent_started", "decision", "worker_result"} <= set(types)
+    assert {"agent_started", "decision", "worker_result", "tool_call", "report_ready"} <= set(types)
     middle = events[len(events) // 2][2]
     resumed = a.client.get(f"/research/{run_id}/events", headers={"Last-Event-ID": str(middle)})
     again = sse(resumed.text)
@@ -70,7 +82,7 @@ def test_approve_reject_and_conflicts(api):
     assert view["approval"]["expires_at"] and view["final_output"] is None
     r = a.client.post(f"/research/{run_id}/reject", json={"feedback": "Add an example."})
     assert r.status_code == 200 and r.json()["approval"]["revisions"] == 1
-    assert r.json()["transcript"][-3]["kind"] == "decision"
+    assert r.json()["conversation_history"][-3]["action"] == "DELEGATE"
     approved = a.client.post(f"/research/{run_id}/approve").json()
     assert approved["status"] == "completed" and approved["final_output"]
     conflict = a.client.post(f"/research/{run_id}/approve")
@@ -182,7 +194,7 @@ def test_read_endpoints(api):
     assert a.client.get("/samples/rag-vs-finetuning").status_code == 404
     a.run()
     stats = a.client.get("/stats").json()
-    assert stats["runs"] == {"completed": 1} and stats["llm"]["calls_today"] == 7
+    assert stats["runs"] == {"completed": 1} and stats["llm"]["calls_today"] == 8
     assert stats["service"]["service_level"] == "reduced"
     assert stats["run_duration_ms"]["window"] == 1
 

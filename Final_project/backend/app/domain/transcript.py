@@ -1,9 +1,10 @@
-"""The conversation history of a run: Supervisor decisions, worker results, human feedback
-and system notices. It is also the run's audit trail (who decided what, with which model)."""
+"""The conversation history of a run: Supervisor decisions, tool calls, worker results, human
+feedback and system notices. It is also the run's audit trail (who decided what, with which
+model)."""
 
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 
 from .ports import TokenUsage
 
@@ -29,19 +30,11 @@ class Decision:
 
 
 @dataclass(frozen=True)
-class Source:
-    n: int  # citation number, unique within the run
-    title: str
-    url: str
-    extract: str  # the text given to the model; kept for the Fact-Checker, never in the API
-
-
-@dataclass(frozen=True)
 class WorkerResult:
     worker: str
     content: str  # Markdown (Researcher, Writer) or a rendered summary (Reviewer, Fact-Checker)
     data: dict[str, Any] = field(default_factory=dict)  # structured output or {}
-    source_ns: tuple[int, ...] = ()  # sources this result cites
+    evidence_ns: tuple[int, ...] = ()  # evidence numbers this result cites ([E<n>])
     unsourced: bool = False  # the Researcher fell back to model knowledge
     failed: bool = False  # the worker could not produce a valid result
 
@@ -70,9 +63,66 @@ class CallMeta:
         )
 
 
+ToolStatus = Literal["ok", "empty", "error", "refused", "capped"]
+
+
+@dataclass(frozen=True)
+class ToolCallRecord:
+    """One tool call by a worker (BACKEND_PLAN §5.2, v1.1 §24): what the transcript, the SSE
+    `tool_call` event and the tool-use evaluation see."""
+
+    worker: str  # "researcher"
+    tool: str  # search_web | search_wikipedia | search_documents | read_result
+    args: dict[str, Any]  # NORMALIZED values, ≤ 500 chars in total
+    status: ToolStatus
+    provider: str | None = None  # "searxng" | "wikipedia" | "documents" | "web-page"
+    fallback: str | None = None  # the provider that answered instead (e.g. "wikipedia")
+    results: int = 0  # hits returned by the provider
+    evidence_ns: tuple[int, ...] = ()  # evidence numbers given to the model
+    error: str | None = None  # short reason, never a stack trace
+    duration_ms: int = 0
+    weak: bool = False  # v1.1: few or off-topic results (rewrite metric)
+    repeat: bool = False  # v1.1: the same normalized call again (answered from the memo)
+
+
+def tool_to_dict(t: ToolCallRecord) -> dict[str, Any]:
+    return {
+        "worker": t.worker,
+        "tool": t.tool,
+        "args": dict(t.args),
+        "status": t.status,
+        "provider": t.provider,
+        "fallback": t.fallback,
+        "results": t.results,
+        "evidence_ns": list(t.evidence_ns),
+        "error": t.error,
+        "duration_ms": t.duration_ms,
+        "weak": t.weak,
+        "repeat": t.repeat,
+    }
+
+
+def tool_from_dict(d: dict[str, Any]) -> ToolCallRecord:
+    return ToolCallRecord(
+        d["worker"],
+        d["tool"],
+        dict(d["args"]),
+        d["status"],
+        d["provider"],
+        d["fallback"],
+        d["results"],
+        tuple(d["evidence_ns"]),
+        d["error"],
+        d["duration_ms"],
+        d.get("weak", False),
+        d.get("repeat", False),
+    )
+
+
 class EntryKind(StrEnum):
     DECISION = "decision"
     WORKER_RESULT = "worker_result"
+    TOOL_CALL = "tool_call"
     FEEDBACK = "feedback"
     NOTICE = "notice"
 
@@ -89,6 +139,7 @@ class TranscriptEntry:
     text: str | None = None  # feedback or notice text
     flag: str | None = None  # notices: unsourced, forced, repeated, memory, …
     meta: CallMeta = CallMeta()
+    tool: ToolCallRecord | None = None  # TOOL_CALL entries
 
 
 # ---- (de)serialization: state_json and the public view --------------------------------
@@ -120,6 +171,7 @@ def entry_to_dict(e: TranscriptEntry) -> dict[str, Any]:
         "duration_ms": e.meta.duration_ms,
         "decision": None,
         "result": None,
+        "tool": tool_to_dict(e.tool) if e.tool is not None else None,
     }
     if e.decision is not None:
         d = e.decision
@@ -138,7 +190,7 @@ def entry_to_dict(e: TranscriptEntry) -> dict[str, Any]:
             "worker": r.worker,
             "content": r.content,
             "data": r.data,
-            "sources": list(r.source_ns),
+            "evidence_ns": list(r.evidence_ns),
             "unsourced": r.unsourced,
             "failed": r.failed,
         }
@@ -161,7 +213,7 @@ def entry_from_dict(d: dict[str, Any]) -> TranscriptEntry:
             rd["worker"],
             rd["content"],
             rd["data"],
-            tuple(rd["sources"]),
+            tuple(rd["evidence_ns"]),
             rd["unsourced"],
             rd["failed"],
         )
@@ -179,4 +231,88 @@ def entry_from_dict(d: dict[str, Any]) -> TranscriptEntry:
         d["text"],
         d["flag"],
         meta,
+        tool_from_dict(d["tool"]) if d.get("tool") else None,
     )
+
+
+# ---- public shape: one conversation_history entry (BACKEND_PLAN §14.3) ------------------
+
+DISPLAY_NAMES = {
+    "supervisor": "Supervisor",
+    "researcher": "Researcher",
+    "writer": "Writer",
+    "reviewer": "Reviewer",
+    "fact_checker": "Fact-Checker",
+    "human": "Human",
+    "system": "System",
+}
+
+
+def display_name(agent: str) -> str:
+    return DISPLAY_NAMES.get(agent, agent.replace("_", " ").title())
+
+
+def _labels(ns: tuple[int, ...] | list[int]) -> list[str]:
+    return [f"E{n}" for n in ns]
+
+
+def history_entry(e: TranscriptEntry) -> dict[str, Any]:
+    """The same dict is the SSE event data and the conversation_history item."""
+    out: dict[str, Any] = {
+        "seq": e.seq,
+        "iteration": e.iteration,
+        "agent": display_name(e.agent),
+        "model": e.meta.model,
+        "llm_calls": e.meta.real_calls,
+        "cached": e.meta.cached,
+        "duration_ms": e.meta.duration_ms,
+        "tokens": _usage_dict(e.meta.usage),
+    }
+    if e.kind is EntryKind.DECISION and e.decision is not None:
+        d = e.decision
+        if d.final is not None:
+            out |= {"action": "FINAL", "reason": d.reason, "forced": d.forced}
+        else:
+            first = d.delegations[0] if d.delegations else None
+            out |= {
+                "action": "DELEGATE",
+                "target_agent": display_name(first.worker) if first else None,
+                "task": first.task if first else None,
+                "delegations": [
+                    {"target_agent": display_name(x.worker), "task": x.task} for x in d.delegations
+                ],
+                "reason": d.reason,
+                "repaired": d.repaired,
+            }
+    elif e.kind is EntryKind.TOOL_CALL and e.tool is not None:
+        t = e.tool
+        out |= {
+            "action": "TOOL_CALL",
+            "tool": t.tool,
+            "args": dict(t.args),
+            "status": t.status,
+            "provider": t.provider,
+            "fallback": t.fallback,
+            "results": t.results,
+            "evidence": _labels(t.evidence_ns),
+            "error": t.error,
+            "weak": t.weak,
+            "repeat": t.repeat,
+            "duration_ms": t.duration_ms,
+        }
+    elif e.kind is EntryKind.WORKER_RESULT and e.result is not None:
+        r = e.result
+        out |= {
+            "action": "RESULT",
+            "task": e.task,
+            "content": r.content,
+            "evidence": _labels(r.evidence_ns),
+            "data": r.data,
+            "failed": r.failed,
+            "unsourced": r.unsourced,
+        }
+    elif e.kind is EntryKind.FEEDBACK:
+        out |= {"action": "FEEDBACK", "text": e.text}
+    else:
+        out |= {"action": "NOTICE", "text": e.text, "flag": e.flag}
+    return out

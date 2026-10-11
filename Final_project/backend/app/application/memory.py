@@ -12,7 +12,7 @@ from .retrieval.bm25 import BM25Index
 
 RECALL_WINDOW = 500
 SUMMARY_CHARS = 600
-_MARKDOWN = re.compile(r"[#*_`>|]+|\[\d{1,3}\]")
+_MARKDOWN = re.compile(r"[#*_`>|]+|\[E?\d{1,4}\]")
 _LINK = re.compile(r"\[([^\]]+)\]\([^)]+\)")
 
 
@@ -28,9 +28,14 @@ def summarize(markdown: str, limit: int = SUMMARY_CHARS) -> str:
 
 
 def memory_from_run(run: ResearchRun) -> Memory:
-    cited = {n for e in run.transcript if e.result is not None for n in e.result.source_ns}
-    titles = [s.title for s in run.sources if s.n in cited] or [s.title for s in run.sources]
-    return Memory(run.id, run.question, summarize(run.final_output or ""), titles[:5], now_iso())
+    """What a completed run leaves behind (public: SUPERVISOR records, RAG decides storage)."""
+    if run.report is not None:
+        titles = [r.title for r in run.report.references]
+        summary = run.report.summary or summarize(run.final_output or "")
+    else:
+        titles = [r.title for r in run.evidence]
+        summary = summarize(run.final_output or "")
+    return Memory(run.id, run.question, summary[:SUMMARY_CHARS], titles[:5], now_iso())
 
 
 class BM25Memory:

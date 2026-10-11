@@ -1,6 +1,7 @@
-"""RunService: the use cases behind the HTTP API — submit a question, read it, approve or reject
-its answer, and the housekeeping (approval expiry, retention, restart recovery).
-Every check that can reject a request for free runs before anything is queued."""
+"""RunService ("the Run service", PLAN §3): the use cases behind every channel (web, API,
+Telegram): submit a question, read it, approve or reject its answer, and the housekeeping
+(approval expiry, retention, restart recovery). No LLM calls. Every check that can reject a
+request for free runs before anything is queued (BACKEND_PLAN §13)."""
 
 import logging
 import time
@@ -8,14 +9,40 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from app.domain.errors import InputTooLarge, InvalidField, QueueFull
-from app.domain.ports import JobRunner, MemoryRepository, RunRepository
+from app.domain.depth import PROFILES, Depth
+from app.domain.errors import (
+    FetchRefused,
+    InputTooLarge,
+    InvalidCallbackUrl,
+    InvalidField,
+    QueueFull,
+)
+from app.domain.evidence import REQUESTABLE_SOURCES, SourceKind
+from app.domain.outbox import EVENT_ACCEPTED, Channel, OutboxMessage, Subscriber
+from app.domain.ports import Indexer, JobRunner, MemoryRepository, RunRepository
 from app.domain.run import ResearchRun, RunStatus
 
 from .security import InputValidator
 from .supervisor import Supervisor
 
 logger = logging.getLogger("app.runs")
+
+
+@dataclass(frozen=True)
+class SubmitCommand:
+    """RunService.submit input (BACKEND_PLAN §13). Built by every channel adapter."""
+
+    question: str
+    depth: Depth = Depth.DETAILED
+    sources: frozenset[SourceKind] = REQUESTABLE_SOURCES
+    max_iterations: int | None = None  # None → the depth's default
+    require_approval: bool = False  # forced False unless channel == web
+    use_memory: bool = True
+    workspace_id: str | None = None
+    channel: Channel = Channel.WEB
+    callback_url: str | None = None
+    telegram_chat_id: str | None = None
+    client_key: str = "unknown"  # rate-limit key: IP or "tg:<chat>"
 
 
 @dataclass(frozen=True)
@@ -38,10 +65,14 @@ class RunService:
         limits: RunLimits,
         ensure_llm_available: Callable[[], None] = lambda: None,
         memories: MemoryRepository | None = None,
+        *,
+        url_check: Callable[[str], None] = lambda url: None,  # raises FetchRefused (v1.1)
+        indexer: Indexer | None = None,  # v1.1: removes the evidence of deleted runs
     ) -> None:
         self.runs, self.runner, self.supervisor, self.limits = runs, runner, supervisor, limits
         self._ensure_llm = ensure_llm_available  # raises LLMQuotaExceeded (service level)
         self._memories = memories
+        self._url_check, self._indexer = url_check, indexer
         self._input = InputValidator()
 
     # ---- submit ----------------------------------------------------------------------------
@@ -66,16 +97,50 @@ class RunService:
             )
         return clean, iterations, self._input.check(clean)
 
-    def submit(
-        self, question: str, max_iterations: int | None, require_approval: bool, use_memory: bool
-    ) -> ResearchRun:
-        clean, iterations, patterns = self.check_input(question, max_iterations)
+    def check_command(self, cmd: SubmitCommand) -> tuple[str, int, list[str]]:
+        """Free checks for a whole command: input, sources, callback URL."""
+        iterations = cmd.max_iterations or PROFILES[cmd.depth].default_max_iterations
+        clean, iterations, patterns = self.check_input(cmd.question, iterations)
+        if not cmd.sources or not cmd.sources <= REQUESTABLE_SOURCES:
+            raise InvalidField("Choose at least one of: web, wikipedia, documents.", "#/sources")
+        if cmd.callback_url:
+            try:
+                self._url_check(cmd.callback_url)
+            except FetchRefused as err:
+                raise InvalidCallbackUrl(err.reason) from err
+        return clean, iterations, patterns
+
+    def submit(self, cmd: SubmitCommand) -> ResearchRun:
+        clean, iterations, patterns = self.check_command(cmd)
         self._ensure_llm()
         if not self.runner.has_capacity():
             raise QueueFull()
+        subscribers = []
+        if cmd.callback_url:
+            subscribers.append(Subscriber("callback", cmd.callback_url))
+        if cmd.telegram_chat_id:
+            subscribers.append(Subscriber("telegram", cmd.telegram_chat_id))
         run = ResearchRun.create(
-            clean, iterations, require_approval, use_memory and self.limits.memory_enabled
+            clean,
+            iterations,
+            cmd.require_approval and cmd.channel is Channel.WEB,
+            cmd.use_memory and self.limits.memory_enabled,
+            depth=cmd.depth,
+            sources=cmd.sources,
+            workspace_id=cmd.workspace_id,
+            channel=cmd.channel,
+            subscribers=subscribers,
         )
+        if cmd.telegram_chat_id:  # "working on it", committed with the run (one transaction)
+            run.queue_outbox(
+                OutboxMessage.new(
+                    run.id,
+                    "telegram",
+                    EVENT_ACCEPTED,
+                    cmd.telegram_chat_id,
+                    {"chat_id": cmd.telegram_chat_id},
+                )
+            )
         if patterns:
             run.notice(
                 "The question contains phrases often used in prompt-injection attempts "
@@ -87,11 +152,13 @@ class RunService:
         self._queue(run)
         # Never log the question text: ids, sizes and flags only.
         logger.info(
-            "run=%s submitted chars=%d iterations=%d approval=%s memory=%s",
+            "run=%s submitted channel=%s depth=%s chars=%d iterations=%d approval=%s memory=%s",
             run.id,
+            run.channel.value,
+            run.depth.value,
             len(clean),
             iterations,
-            require_approval,
+            run.require_approval,
             run.use_memory,
         )
         return self.runs.get(run.id)
@@ -160,7 +227,11 @@ class RunService:
                 self.runs.save(run)
                 expired += 1
         cutoff = (now - timedelta(days=self.limits.retention_days)).isoformat(timespec="seconds")
-        deleted = len(self.runs.delete_older_than(cutoff))
+        deleted_ids = self.runs.delete_older_than(cutoff)
+        if self._indexer is not None:  # v1.1: their evidence goes too
+            for run_id in deleted_ids:
+                self._indexer.remove(f"run:{run_id}")
+        deleted = len(deleted_ids)
         forgotten = self._memories.delete_older_than(cutoff) if self._memories else 0
         if expired or deleted or forgotten:
             logger.info("sweep expired=%d deleted=%d forgotten=%d", expired, deleted, forgotten)

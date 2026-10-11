@@ -12,6 +12,9 @@ from app.infrastructure.fake_wikipedia import FakeWikipedia
 TEST_SETTINGS = {
     "llm_mode": "fake",
     "wiki_mode": "fake",
+    "search_mode": "fake",  # 0 network: never derive it from the environment's LLM_MODE
+    "embed_mode": "fake",
+    "telegram_mode": "off",
     "runner_mode": "inline",
     "prompt_secret": "test-secret",
     "rate_limit_runs_per_minute": 1000,
@@ -34,11 +37,13 @@ class Harness:
     llm: FakeLLM
     wiki: KnowledgeSource
 
-    def submit(self, task: str = "When should I use RAG instead of fine-tuning?", **kw):
+    def submit(self, question: str = "When should I use RAG instead of fine-tuning?", **kw):
+        from app.application.runs import SubmitCommand
+
         kw.setdefault("max_iterations", None)
         kw.setdefault("require_approval", False)
         kw.setdefault("use_memory", False)
-        return self.container.service.submit(task, **kw)
+        return self.container.service.submit(SubmitCommand(question, **kw))
 
     def get(self, run_id: str):
         return self.container.service.get(run_id)
@@ -51,12 +56,19 @@ class Harness:
 def harness(tmp_path):
     count = {"n": 0}
 
-    def make(llm: FakeLLM | None = None, wiki: KnowledgeSource | None = None, **settings):
+    def make(
+        llm: FakeLLM | None = None,
+        wiki: KnowledgeSource | None = None,
+        ports: dict | None = None,
+        **settings,
+    ):
         count["n"] += 1
         folder = tmp_path / f"h{count['n']}"
         llm = llm or FakeLLM()
         wiki = wiki or FakeWikipedia()
-        container = build_container(make_settings(folder, **settings), llm=llm, knowledge=wiki)
+        container = build_container(
+            make_settings(folder, **settings), llm=llm, knowledge=wiki, **(ports or {})
+        )
         return Harness(container, llm, wiki)
 
     return make
@@ -82,11 +94,12 @@ def api(tmp_path):
         llm: FakeLLM | None = None,
         wiki: KnowledgeSource | None = None,
         raise_errors: bool = True,
+        ports: dict | None = None,
         **settings,
     ) -> Api:
         llm = llm or FakeLLM()
         s = make_settings(tmp_path / f"api{len(clients)}", **settings)
-        container = build_container(s, llm=llm, knowledge=wiki or FakeWikipedia())
+        container = build_container(s, llm=llm, knowledge=wiki or FakeWikipedia(), **(ports or {}))
         client = TestClient(
             create_app(s, container), raise_server_exceptions=raise_errors
         ).__enter__()

@@ -4,11 +4,11 @@
 # Your assignment from the Supervisor
 {task}
 
-# Sources
-{sources}
+# Tools available in this run
+{tools}
+Tool calls allowed: {cap}.
 
-# Write research notes
-- Bullet points grouped under short headings; facts only, no padding.
-- Put the citation [n] after every fact, where n is the number of the source block it comes from. Never cite a number that is not in the sources above.
-- End with a line "Gaps:" listing what the sources do not cover (or "none").
-- At most about 350 words.
+# Evidence already gathered in this run (titles only)
+{known_evidence}
+
+Call a tool now, or, if the evidence above already covers the assignment, write your findings.

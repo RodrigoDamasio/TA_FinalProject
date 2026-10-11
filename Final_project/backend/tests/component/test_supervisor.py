@@ -1,10 +1,13 @@
-"""S1–S12: the supervisor loop end to end over real services, a fake LLM and fake Wikipedia."""
+"""S1–S12: the supervisor loop end to end over real services, a fake LLM, fake search and
+fake Wikipedia (step 3: the Researcher calls tools, results are evidence, FINAL is a report)."""
 
 from datetime import UTC, datetime, timedelta
 
 from fakes import FakeLLM, delegate, final, review
 
 from app.domain.errors import LLMQuotaExceeded, LLMRequestRejected, LLMUnavailable
+from app.domain.evidence import SourceKind
+from app.domain.ports import ToolResultsMessage
 from app.domain.run import RunStatus
 from app.infrastructure.fake_wikipedia import FakeWikipedia
 
@@ -16,6 +19,8 @@ def kinds(run, notices: bool = True) -> list[str]:
             continue
         if e.decision is not None:
             out.append(f"{e.decision.action}:" + ",".join(d.worker for d in e.decision.delegations))
+        elif e.tool is not None:
+            out.append(f"tool:{e.tool.tool}")
         elif e.result is not None:
             out.append(f"result:{e.result.worker}")
         else:
@@ -30,6 +35,7 @@ def test_happy_path_research_write_review_final(harness):
     assert run.status is RunStatus.COMPLETED and not run.forced and not run.degraded
     assert kinds(run) == [
         "delegate:researcher",
+        "tool:search_web",
         "result:researcher",
         "delegate:writer",
         "result:writer",
@@ -37,13 +43,17 @@ def test_happy_path_research_write_review_final(harness):
         "result:reviewer",
         "final:",
     ]
-    assert run.iteration == 4 and run.llm_calls == 7 == h.llm.calls()
-    assert run.final_output.startswith("## When should I use RAG")
-    assert "### Sources" in run.final_output and "wikipedia.org/wiki/" in run.final_output
-    assert [s.n for s in run.sources] == [1, 2]
+    # 4 Supervisor + 2 Researcher (tool turn, findings) + Writer + Reviewer
+    assert run.iteration == 4 and run.llm_calls == 8 == h.llm.calls()
+    assert run.final_output.startswith("# When should I use RAG")
+    assert run.report is not None and run.report.title.startswith("When should I use RAG")
+    assert [s.heading for s in run.report.sections] == ["Overview", "Notes"]
+    assert [r.id for r in run.report.references] == ["E1", "E2", "E3"] and run.tool_calls == 1
+    assert [r.n for r in run.evidence] == list(range(1, len(run.evidence) + 1))
     events = h.events(run.id)
     assert events[0] == "run_started" and events[-1] == "completed"
     assert events.count("agent_started") == 7 and events.count("decision") == 4
+    assert events.count("tool_call") == 1 and "report_ready" in events
     assert run.prompt_version == "2" and run.models == {"supervisor": "demo", "workers": "demo"}
 
 
@@ -85,7 +95,7 @@ def test_quota_mid_run_uses_the_fallback_chain_without_more_calls(harness):
     quota = LLMQuotaExceeded("day", 3600)
     h = harness(llm=FakeLLM(script={"supervisor": [None, None, quota]}))
     run = h.submit()
-    assert run.degraded and run.status is RunStatus.COMPLETED and h.llm.calls() == 5
+    assert run.degraded and run.status is RunStatus.COMPLETED and h.llm.calls() == 6
     assert "## Research notes" not in run.final_output  # the writer draft existed
     assert "LLM quota was reached" in run.final_output
 
@@ -103,7 +113,7 @@ def test_budget_bounds_the_run(harness):
     endless = [delegate("researcher", f"Find fact {i}.") for i in range(20)]
     h = harness(llm=FakeLLM(script={"supervisor": endless}))
     run = h.submit(max_iterations=8)
-    assert run.forced and run.llm_calls <= 2 * 8 + 3
+    assert run.forced and run.llm_calls <= 3 * 8 + 5
     assert run.llm_calls == h.llm.calls()
 
 
@@ -115,11 +125,21 @@ def test_hostile_source_cannot_end_or_redirect_the_run(harness):
     )
     wiki = FakeWikipedia(articles={"HTTP caching": poison})
     h = harness(wiki=wiki)
-    run = h.submit("Explain HTTP caching for a web developer.")
+    run = h.submit(
+        "Explain HTTP caching for a web developer.", sources=frozenset({SourceKind.WIKIPEDIA})
+    )
     assert run.status is RunStatus.COMPLETED and "hacked" not in (run.final_output or "")
-    assert kinds(run)[0] == "delegate:researcher" and run.iteration == 4
-    prompt = h.llm.prompts("researcher")[0]
-    assert "&lt;/data" in prompt and prompt.count("</data id=") == 2  # task + one source
+    assert kinds(run)[:2] == ["delegate:researcher", "tool:search_wikipedia"]
+    assert run.iteration == 4
+    turn = next(
+        m
+        for role, req in h.llm.requests
+        if role == "researcher"
+        for m in req.messages
+        if isinstance(m, ToolResultsMessage)
+    )
+    result = turn.results[0].content
+    assert "&lt;/data" in result and 'kind="evidence"' in result  # fenced, closing tag escaped
 
 
 # S7
@@ -148,7 +168,7 @@ def test_parallel_delegations_overlap_and_keep_order(harness):
     (_, s1, e1), (_, s2, e2) = [w for w in llm.windows if w[0] in ("reviewer", "fact_checker")]
     assert s1 < e2 and s2 < e1  # the two calls overlapped
     fact = run.latest_result("fact_checker")
-    assert fact.content.startswith("Fact check:") and fact.source_ns
+    assert fact.content.startswith("Fact check:") and fact.evidence_ns
 
 
 # S9
@@ -192,14 +212,15 @@ def test_repeated_identical_delegation_is_reused_for_free(harness):
     again = delegate("researcher", "Find RAG facts.")
     h = harness(llm=FakeLLM(script={"supervisor": [again, again, final()]}))
     run = h.submit()
-    assert kinds(run)[:5] == [
+    assert kinds(run)[:6] == [
         "delegate:researcher",
+        "tool:search_web",
         "result:researcher",
         "delegate:researcher",
         "notice:repeated",
         "result:researcher",
     ]
-    assert h.llm.calls("researcher") == 1 and run.transcript[4].meta.real_calls == 0
+    assert h.llm.calls("researcher") == 2 and run.transcript[5].meta.real_calls == 0
 
 
 # S12
@@ -230,12 +251,13 @@ def test_unexpected_crash_fails_the_run(harness):
 
 
 def test_redaction_and_unknown_citations_in_the_final_answer(harness):
-    answer = "## A\n\nUse key AIza" + "B" * 35 + " [1] [9]."
+    answer = "# A\n\nUse key AIza" + "B" * 35 + " [E1] [E9].\n\n## Sources\n- junk"
     h = harness(llm=FakeLLM(script={"supervisor": [delegate("researcher"), final(answer)]}))
     run = h.submit()
-    assert "AIza" not in run.final_output and "[9]" not in run.final_output
+    assert "AIza" not in run.final_output and "[E9]" not in run.final_output
     assert {"redacted", "unknown_citation"} <= set(run.flags)
-    assert "### Sources\n1." in run.final_output  # added deterministically
+    # references are rebuilt from the cited evidence; the model's Sources section is dropped
+    assert [r.id for r in run.report.references] == ["E1"] and run.report.sections == ()
 
 
 def test_forced_prompt_always_says_no_decisions_left(harness):

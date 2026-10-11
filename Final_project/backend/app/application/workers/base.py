@@ -1,44 +1,43 @@
 """The Worker interface (the lab's "accept task + context, return result"), the registry,
-and helpers shared by the workers."""
+and helpers shared by the workers (BACKEND_PLAN §10.1, v1.1 §24)."""
 
 import json
-import re
 import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Protocol
 
+from app.application.citations import clean_citations  # noqa: F401 — re-exported for workers
 from app.application.security import DataFence, OutputValidator
+from app.application.tools.base import ToolBox
+from app.domain.depth import Depth
 from app.domain.errors import LLMBadResponse
-from app.domain.ports import LLMClient, LLMRequest, LLMResponse, SourceDraft, TokenUsage
-from app.domain.transcript import CallMeta, Source, WorkerResult
-
-CITATION = re.compile(r"\[(\d{1,3})\]")
-_CITATION_LIST = re.compile(r"\[(\d{1,3}(?:\s*,\s*\d{1,3})+)\]")
-
-
-def split_citations(text: str) -> str:
-    """'[1, 2]' → '[1][2]' (models often group citations)."""
-    return _CITATION_LIST.sub(
-        lambda m: "".join(f"[{n.strip()}]" for n in m.group(1).split(",")), text
-    )
+from app.domain.evidence import EvidenceRef, SourceKind
+from app.domain.ports import LLMClient, LLMRequest, LLMResponse, Retriever, TokenUsage
+from app.domain.transcript import CallMeta, ToolCallRecord, WorkerResult
 
 
 @dataclass(frozen=True)
 class WorkerContext:
-    """Built by the app, not the model: the user task, the latest result of each worker
-    this one needs, the run's sources, and the tools to fence untrusted text."""
+    """Built by the app, not the model: the question, the latest result of each worker this
+    one needs, the run's evidence, the tools it may call, read-only retrieval, and the fence
+    for untrusted text."""
 
     run_id: str
     question: str
-    results: dict[str, WorkerResult]
-    sources: list[Source]
+    depth: Depth
+    sources: frozenset[SourceKind]
+    results: dict[str, WorkerResult]  # latest result of each worker this one needs
+    evidence: list[EvidenceRef]  # snapshot of the run's evidence
     fence: DataFence
-    register_sources: Callable[[list[SourceDraft]], list[Source]]
+    tools: ToolBox | None  # offered tools already filtered by `sources` (None: no tools)
+    retriever: Retriever  # read-only: Writer and Fact-Checker load evidence text with it
+    record_tool_call: Callable[[ToolCallRecord, CallMeta], None]  # thread-safe, emits SSE
     model: str | None
     canary: str
     context_chars: int  # character budget for the worker's variable inputs
+    history: dict[str, tuple[WorkerResult, ...]] = field(default_factory=dict)  # v1.1
 
 
 @dataclass
@@ -90,6 +89,8 @@ class StepCounter:
         self._output.check_canary(response.text)
         if response.parsed is not None:
             self._output.check_canary(json.dumps(response.parsed))
+        for call in response.tool_calls:  # v1.1: arguments leave the system (search engines)
+            self._output.check_canary(json.dumps(call.args))
         with self._lock:
             if response.cached:
                 self.cached += 1
@@ -115,24 +116,6 @@ def truncation(response: LLMResponse, worker: str) -> list[tuple[str, str]]:
     if response.finish_reason != "max_tokens":
         return []
     return [(f"The {worker}'s answer was cut off at the output limit.", "truncated")]
-
-
-def clean_citations(text: str, valid: set[int]) -> tuple[str, tuple[int, ...], list[int]]:
-    """Drop [n] markers that point to no known source. Returns (text, cited, unknown)."""
-    cited: list[int] = []
-    unknown: list[int] = []
-
-    def keep(m: re.Match[str]) -> str:
-        n = int(m.group(1))
-        if n in valid:
-            if n not in cited:
-                cited.append(n)
-            return m.group(0)
-        unknown.append(n)
-        return ""
-
-    out = CITATION.sub(keep, split_citations(text))
-    return out, tuple(sorted(cited)), unknown
 
 
 def trim(text: str, max_chars: int) -> str:

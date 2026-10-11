@@ -1,8 +1,10 @@
-"""Fact-Checker (extension): checks each cited sentence of the latest draft against the text
-of the source it cites (structured JSON)."""
+"""Fact-Checker: checks each cited sentence of the latest draft against the text of the
+evidence it cites (structured JSON). Step 3 version: REVIEWER_PLAN §3 redesigns it around
+retrieval per claim and `needs_revision`. Owner: REVIEWER."""
 
 import re
 
+from app.application.citations import cited_numbers
 from app.application.prompts import PromptLibrary
 from app.application.structured import StructuredCaller
 from app.application.tracing import Tracer
@@ -10,7 +12,7 @@ from app.domain.ports import LLMClient
 from app.domain.schemas import FactCheck, FactCheckLLM
 from app.domain.transcript import WorkerResult
 
-from .base import CITATION, WorkerContext, WorkerOutput
+from .base import WorkerContext, WorkerOutput
 
 MAX_SENTENCES = 12
 _SENTENCE_END = re.compile(r"(?<=[.!?])\s+|\n+")
@@ -20,7 +22,7 @@ def cited_sentences(draft: str, limit: int = MAX_SENTENCES) -> list[tuple[str, l
     out = []
     for piece in _SENTENCE_END.split(draft):
         sentence = piece.strip(" -*#>\t")
-        numbers = [int(n) for n in CITATION.findall(sentence)]
+        numbers = cited_numbers(sentence)
         if numbers and len(sentence) > 15:
             out.append((sentence, sorted(set(numbers))))
         if len(out) == limit:
@@ -45,7 +47,7 @@ class FactChecker:
     name = "fact_checker"
     title = "Fact-Checker"
     description = (
-        "checks each cited sentence of the latest draft against the source text it cites; "
+        "checks each cited sentence of the latest draft against the evidence it cites; "
         "can run in parallel with the reviewer"
     )
     needs = frozenset({"writer"})
@@ -60,7 +62,8 @@ class FactChecker:
             text = "There is no draft with cited sentences to check yet."
             return WorkerOutput(WorkerResult(self.name, text, failed=True))
         cited = sorted({n for _, ns in sentences for n in ns})
-        by_n = {s.n: s for s in ctx.sources if s.n in cited}
+        by_n = {r.n: r for r in ctx.evidence if r.n in cited}
+        texts = {c.id: c.text for c in ctx.retriever.get([r.chunk_id for r in by_n.values()])}
         per_source = max(1000, ctx.context_chars // max(1, len(by_n)))
         f = ctx.fence
         listed = "\n".join(
@@ -68,10 +71,11 @@ class FactChecker:
         )
         sources = (
             "\n\n".join(
-                f.wrap(s.extract[:per_source], "wikipedia", n=s.n, title=s.title)
-                for s in by_n.values()
+                f.wrap(texts[r.chunk_id][:per_source], "evidence", ref=r.label, title=r.title)
+                for r in by_n.values()
+                if r.chunk_id in texts
             )
-            or "(the cited sources are not available)"
+            or "(the cited evidence is not available)"
         )
         user = self._prompts.worker_task(
             "fact_checker_task",

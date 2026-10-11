@@ -8,7 +8,17 @@ from pathlib import Path
 from app.application.prompts import PromptLibrary, placeholders
 
 APP = Path(__file__).resolve().parents[1] / "app"
-LIBRARIES = ("google", "sqlite3", "httpx", "subprocess")
+LIBRARIES = (
+    "google",
+    "sqlite3",
+    "httpx",
+    "httpcore",
+    "chromadb",
+    "fastembed",
+    "pypdf",
+    "trafilatura",
+    "subprocess",
+)
 WEB_AND_IO = {"fastapi", "starlette", *LIBRARIES}
 
 
@@ -51,13 +61,40 @@ def test_libraries_stay_in_their_modules():
             for lib in LIBRARIES:
                 if module == lib or module.startswith(lib + "."):
                     where[lib].add(str(path.relative_to(APP)))
-    assert where == {
+    allowed = {
         "google": {"infrastructure/gemini_client.py"},
         "sqlite3": {"infrastructure/database.py"},
-        # the Gemini adapter catches httpx timeouts raised by the SDK
-        "httpx": {"infrastructure/wikipedia.py", "infrastructure/gemini_client.py"},
+        # BACKEND_PLAN §19.3 (the Gemini adapter catches httpx timeouts raised by the SDK)
+        "httpx": {
+            "infrastructure/gemini_client.py",
+            "infrastructure/wikipedia.py",
+            "infrastructure/searxng.py",
+            "infrastructure/safe_http.py",
+            "infrastructure/telegram_client.py",
+            "infrastructure/webhook_sender.py",
+        },
+        "httpcore": {"infrastructure/safe_http.py"},
+        "chromadb": {"infrastructure/chroma_store.py"},
+        "fastembed": {"infrastructure/fastembed_models.py"},
+        "pypdf": {"infrastructure/pdf_extract.py"},
+        "trafilatura": {"infrastructure/html_extract.py"},
         "subprocess": set(),  # nothing is ever executed
     }
+    for lib, files in where.items():
+        assert files <= allowed[lib], (lib, files - allowed[lib])
+    assert where["google"] == allowed["google"] and where["sqlite3"] == allowed["sqlite3"]
+
+
+def test_workers_reach_evidence_only_through_tools_and_the_retriever():
+    """BACKEND_PLAN §19.3: no worker imports indexing, retrieval or a vector store."""
+    banned = {
+        "app.application.indexing",
+        "app.application.retrieval",
+        "app.infrastructure",
+        "chromadb",
+        "fastembed",
+    }
+    assert offenders("application/workers", banned) == set()
 
 
 def test_sql_lives_only_in_the_sqlite_adapters():
@@ -93,9 +130,9 @@ def test_prompt_files_use_only_known_placeholders():
     library = PromptLibrary()
     known = {
         "persona", "canary", "worker_list", "parallel_rule", "fact_check_hint", "question",
-        "memories", "sources", "transcript", "iterations_left", "last_hint", "parser_error",
-        "task", "notes", "review", "fact_check", "previous_draft", "draft", "sentences",
-        "validation_errors",
+        "memories", "sources", "evidence", "tools", "cap", "known_evidence", "guidance",
+        "transcript", "iterations_left", "last_hint", "parser_error", "task", "notes",
+        "review", "fact_check", "previous_draft", "draft", "sentences", "validation_errors",
     }  # fmt: skip
     root = APP / "prompts"
     for path in root.rglob("*.md"):

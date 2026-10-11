@@ -1,14 +1,28 @@
-"""Test doubles: a scriptable fake LLM built on the demo client (which already plays every
-role from the real prompts). Override any role per test."""
+"""Test doubles (BACKEND_PLAN §19.2, Shared): a scriptable fake LLM built on the demo client
+(which already plays every role from the real prompts), plus the fakes of every port.
+Extend this file only by ADDING fakes; never change an existing one's behavior."""
 
 import json
 import threading
 import time
 from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from app.domain.ports import LLMRequest, LLMResponse, TokenUsage, UserMessage
-from app.infrastructure.demo_llm import DemoLLMClient
+from app.domain.evidence import EvidenceChunk
+from app.domain.ports import (
+    LLMRequest,
+    LLMResponse,
+    RetrievedChunk,
+    SendResult,
+    TokenUsage,
+    UserMessage,
+)
+from app.infrastructure.demo import DemoLLMClient
+from app.infrastructure.fake_search import FakePageFetcher, FakeWebSearch  # noqa: F401
+from app.infrastructure.fake_telegram import FakeTelegram  # noqa: F401
+from app.infrastructure.hashing_embedder import HashingEmbedder  # noqa: F401
+from app.infrastructure.memory_vector_store import InMemoryVectorStore  # noqa: F401
 
 USAGE = TokenUsage(input=100, output=50)
 ROLES = ("supervisor", "researcher", "writer", "reviewer", "fact_checker")
@@ -64,7 +78,11 @@ class FakeLLM(DemoLLMClient):
             value = item(prompt) if callable(item) else item
             if value is None:
                 response = super().generate(request)
-                return LLMResponse(response.text, [], response.parsed, USAGE, "stop")
+                return LLMResponse(
+                    response.text, response.tool_calls, response.parsed, USAGE, "stop"
+                )
+            if isinstance(value, LLMResponse):
+                return value
             if isinstance(value, dict):
                 return LLMResponse(json.dumps(value), [], value, USAGE, "stop")
             return LLMResponse(value, [], None, USAGE, "stop")
@@ -86,7 +104,7 @@ class FakeLLM(DemoLLMClient):
         return [req.system for r, req in self.requests if r == role]
 
 
-RAG_TASK = "Topics: Retrieval-augmented generation; Fine-tuning\nFind facts about RAG and tuning."
+RAG_TASK = "Find facts about retrieval-augmented generation and fine-tuning."
 
 
 def delegate(
@@ -103,3 +121,74 @@ def final(text: str = "## Answer\n\nThe answer [1].", reason: str = "Done.") -> 
 
 def review(verdict: str = "approve", issues: list | None = None, flags: list | None = None):
     return {"verdict": verdict, "issues": issues or [], "balance_flags": flags or []}
+
+
+# ---- §19.2 fakes ------------------------------------------------------------------------------
+
+
+class ScriptedLLM:
+    """Returns queued LLMResponse objects in order (text, tool calls, finish reasons) and
+    records every request, so tests can assert offered tools and prompt shapes."""
+
+    def __init__(self, responses: list[LLMResponse]) -> None:
+        self.responses = list(responses)
+        self.requests: list[LLMRequest] = []
+
+    def generate(self, request: LLMRequest) -> LLMResponse:
+        self.requests.append(request)
+        if not self.responses:
+            raise AssertionError("ScriptedLLM: no response left")
+        return self.responses.pop(0)
+
+
+def text_response(text: str, finish: str = "stop") -> LLMResponse:
+    return LLMResponse(text, [], None, USAGE, finish)  # type: ignore[arg-type]
+
+
+class FakeRetriever:
+    """Retriever over a dict of chunks: `search` returns them in a set order (or raises)."""
+
+    def __init__(self, chunks: list[EvidenceChunk] | None = None, fail: bool = False) -> None:
+        self.chunks = {c.id: c for c in chunks or []}
+        self.fail = fail
+        self.searches: list[tuple[str, list[str], int]] = []
+
+    def search(
+        self, query: str, scopes: list[str], k: int, source_keys: list[str] | None = None
+    ) -> list[RetrievedChunk]:
+        self.searches.append((query, scopes, k))
+        if self.fail:
+            raise RuntimeError("retrieval failed")
+        hits = [
+            c
+            for c in self.chunks.values()
+            if c.scope in scopes and (source_keys is None or c.source_key in source_keys)
+        ]
+        return [RetrievedChunk(c, 1.0 - i / 100) for i, c in enumerate(hits[:k])]
+
+    def get(self, chunk_ids: list[str]) -> list[EvidenceChunk]:
+        return [self.chunks[i] for i in chunk_ids if i in self.chunks]
+
+
+class FakeWebhookSender:
+    """Records POSTs; `results` (consumed in order) or `result` decide the outcome."""
+
+    def __init__(self, result: SendResult | None = None, results: list | None = None) -> None:
+        self.result = result or SendResult(True, 200)
+        self.results = list(results or [])
+        self.posts: list[tuple[str, bytes, dict[str, str]]] = []
+
+    def post(self, url: str, body: bytes, headers: dict[str, str]) -> SendResult:
+        self.posts.append((url, body, dict(headers)))
+        return self.results.pop(0) if self.results else self.result
+
+
+class FakeClock:
+    def __init__(self, now: datetime | None = None) -> None:
+        self.now = now or datetime(2026, 10, 11, 12, 0, tzinfo=UTC)
+
+    def __call__(self) -> datetime:
+        return self.now
+
+    def advance(self, seconds: float) -> None:
+        self.now += timedelta(seconds=seconds)

@@ -1,8 +1,9 @@
 """ResearchRun: one research question worked on by the Supervisor and its workers.
 
 Every mutation goes through a method that validates it and appends a RunEvent; the
-repository saves the state and its new events in ONE transaction (Lab 3), so the SSE
-stream and GET /research/{id} can never disagree."""
+repository saves the state, its new events AND its new outbox messages in ONE transaction
+(Lab 3 + BACKEND_PLAN §13), so the SSE stream, GET /research/{id} and the notifications can
+never disagree."""
 
 import secrets
 from dataclasses import dataclass, field
@@ -10,18 +11,37 @@ from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any
 
+from .depth import Depth
 from .errors import InvalidTransition
-from .ports import Memory, SourceDraft, TokenUsage
+from .evidence import (
+    REQUESTABLE_SOURCES,
+    EvidenceChunk,
+    EvidenceRef,
+    SourceKind,
+    ref_from_dict,
+    ref_to_dict,
+)
+from .outbox import (
+    EVENT_CANCELLED,
+    EVENT_COMPLETED,
+    EVENT_FAILED,
+    Channel,
+    OutboxMessage,
+    Subscriber,
+)
+from .ports import Memory, TokenUsage
+from .report import Report, report_from_dict, report_to_dict
 from .transcript import (
     CallMeta,
     Decision,
     Delegation,
     EntryKind,
-    Source,
+    ToolCallRecord,
     TranscriptEntry,
     WorkerResult,
     entry_from_dict,
     entry_to_dict,
+    history_entry,
 )
 
 
@@ -65,8 +85,15 @@ class ResearchRun:
     iteration_limit: int
     status: RunStatus = RunStatus.QUEUED
     iteration: int = 0  # Supervisor decisions made (forced call not counted)
+    depth: Depth = Depth.DETAILED
+    sources: frozenset[SourceKind] = REQUESTABLE_SOURCES  # allowed tool families
+    workspace_id: str | None = None
+    channel: Channel = Channel.WEB
+    subscribers: list[Subscriber] = field(default_factory=list)
     transcript: list[TranscriptEntry] = field(default_factory=list)
-    sources: list[Source] = field(default_factory=list)
+    evidence: list[EvidenceRef] = field(default_factory=list)  # numbered, order of first use
+    tool_calls: int = 0
+    report: Report | None = None
     draft: str | None = None  # FINAL waiting for approval
     approval_expires_at: str | None = None
     final_output: str | None = None
@@ -86,6 +113,7 @@ class ResearchRun:
     finished_at: str | None = None
     updated_at: str = field(default_factory=now_iso)
     events: list[RunEvent] = field(default_factory=list)  # new, not yet persisted
+    outbox: list[OutboxMessage] = field(default_factory=list)  # new, not yet persisted
 
     @classmethod
     def create(
@@ -95,6 +123,12 @@ class ResearchRun:
         require_approval: bool,
         use_memory: bool,
         flags: list[str] | None = None,
+        *,
+        depth: Depth = Depth.DETAILED,
+        sources: frozenset[SourceKind] = REQUESTABLE_SOURCES,
+        workspace_id: str | None = None,
+        channel: Channel = Channel.WEB,
+        subscribers: list[Subscriber] | None = None,
     ) -> "ResearchRun":
         return cls(
             id="run_" + secrets.token_hex(6),
@@ -104,6 +138,11 @@ class ResearchRun:
             use_memory=use_memory,
             iteration_limit=max_iterations,
             flags=list(flags or []),
+            depth=depth,
+            sources=frozenset(sources),
+            workspace_id=workspace_id,
+            channel=channel,
+            subscribers=list(subscribers or []),
         )
 
     # ---- events ----------------------------------------------------------------------
@@ -116,6 +155,19 @@ class ResearchRun:
         events, self.events = self.events, []
         return events
 
+    def queue_outbox(self, message: OutboxMessage) -> None:
+        self.outbox.append(message)
+
+    def pop_outbox(self) -> list[OutboxMessage]:
+        messages, self.outbox = self.outbox, []
+        return messages
+
+    def _notify(self, event: str) -> None:
+        """One outbox message per subscriber; the body is rendered at send time (v1.1)."""
+        for s in self.subscribers:
+            payload = {"chat_id": s.target} if s.kind == "telegram" else {}
+            self.queue_outbox(OutboxMessage.new(self.id, s.kind, event, s.target, payload))
+
     def _move(self, status: RunStatus, action: str) -> None:
         if status not in _TRANSITIONS.get(self.status, set()):
             raise InvalidTransition(self.status.value, action)
@@ -127,14 +179,17 @@ class ResearchRun:
         if flag not in self.flags:
             self.flags.append(flag)
 
-    def _append(self, kind: EntryKind, agent: str, **fields: Any) -> TranscriptEntry:
+    def _append(
+        self, kind: EntryKind, agent: str, count: bool = True, **fields: Any
+    ) -> TranscriptEntry:
         entry = TranscriptEntry(len(self.transcript) + 1, self.iteration, kind, agent, **fields)
         self.transcript.append(entry)
         meta: CallMeta = entry.meta
-        self.llm_calls += meta.real_calls
-        self.cached_calls += meta.cached_calls
-        self.tokens = self.tokens + meta.usage
-        self._emit(kind.value, **entry_to_dict(entry))
+        if count:  # tool-call metas are display-only (v1.1): the step's result counts them
+            self.llm_calls += meta.real_calls
+            self.cached_calls += meta.cached_calls
+            self.tokens = self.tokens + meta.usage
+        self._emit(kind.value, **history_entry(entry))
         return entry
 
     # ---- lifecycle -----------------------------------------------------------------------
@@ -177,16 +232,39 @@ class ResearchRun:
     def add_flag(self, flag: str) -> None:
         self._flag(flag)
 
-    def add_sources(self, drafts: list[SourceDraft]) -> list[Source]:
-        """Numbers new sources after the existing ones; a known URL keeps its number."""
-        by_url = {s.url: s for s in self.sources}
+    def add_evidence(self, chunks: list[EvidenceChunk]) -> list[EvidenceRef]:
+        """Numbers new chunks after the existing ones; a known chunk keeps its number."""
+        by_id = {r.chunk_id: r for r in self.evidence}
         out = []
-        for d in drafts:
-            if d.url not in by_url:
-                by_url[d.url] = Source(len(self.sources) + 1, d.title, d.url, d.extract)
-                self.sources.append(by_url[d.url])
-            out.append(by_url[d.url])
+        for c in chunks:
+            if c.id not in by_id:
+                ref = EvidenceRef(
+                    len(self.evidence) + 1,
+                    c.id,
+                    c.source_kind,
+                    c.title,
+                    c.url,
+                    c.document_name,
+                    c.page,
+                )
+                by_id[c.id] = ref
+                self.evidence.append(ref)
+            out.append(by_id[c.id])
+        if out:
+            self._emit("evidence_added", count=len(out), total=len(self.evidence))
         return out
+
+    def evidence_by_n(self, n: int) -> EvidenceRef | None:
+        return self.evidence[n - 1] if 1 <= n <= len(self.evidence) else None
+
+    def record_tool_call(self, record: ToolCallRecord, meta: CallMeta) -> None:
+        """A TOOL_CALL entry (SSE `tool_call`). `meta` is display-only, never counted (v1.1)."""
+        self.tool_calls += 1
+        self._append(EntryKind.TOOL_CALL, record.worker, count=False, tool=record, meta=meta)
+
+    def set_report(self, report: Report) -> None:
+        """Called before propose_final (v1.1). The view shows it once the run is completed."""
+        self.report = report
 
     def propose_final(
         self, text: str, *, forced: bool, degraded: bool, approval_timeout_min: int = 30
@@ -209,7 +287,10 @@ class ResearchRun:
     def _complete(self, text: str) -> None:
         self._move(RunStatus.COMPLETED, "complete")
         self.final_output, self.draft, self.approval_expires_at = text, None, None
+        if self.report is not None:
+            self._emit("report_ready", title=self.report.title, sections=len(self.report.sections))
         self._emit("completed", final_output=text, forced=self.forced, degraded=self.degraded)
+        self._notify(EVENT_COMPLETED)
 
     def approve(self) -> None:
         if self.status is not RunStatus.AWAITING_APPROVAL:
@@ -234,11 +315,13 @@ class ResearchRun:
         self._move(RunStatus.CANCELLED, "cancel")
         self.draft, self.approval_expires_at = None, None
         self._emit("cancelled", reason=reason)
+        self._notify(EVENT_CANCELLED)
 
     def fail(self, reason: str) -> None:
         self._move(RunStatus.FAILED, "fail")
         self.error = reason
         self._emit("failed", error=reason)
+        self._notify(EVENT_FAILED)
 
     def approval_expired(self, now: datetime) -> bool:
         return (
@@ -290,10 +373,16 @@ def run_to_dict(run: ResearchRun) -> dict[str, Any]:
         "iteration_limit": run.iteration_limit,
         "status": run.status.value,
         "iteration": run.iteration,
+        "depth": run.depth.value,
+        "sources": sorted(s.value for s in run.sources),
+        "workspace_id": run.workspace_id,
+        "channel": run.channel.value,
+        # Subscriber secrets are never stored (v1.1): only kind and target.
+        "subscribers": [{"kind": s.kind, "target": s.target} for s in run.subscribers],
         "transcript": [entry_to_dict(e) for e in run.transcript],
-        "sources": [
-            {"n": s.n, "title": s.title, "url": s.url, "extract": s.extract} for s in run.sources
-        ],
+        "evidence": [ref_to_dict(r) for r in run.evidence],
+        "tool_calls": run.tool_calls,
+        "report": report_to_dict(run.report) if run.report is not None else None,
         "draft": run.draft,
         "approval_expires_at": run.approval_expires_at,
         "final_output": run.final_output,
@@ -330,8 +419,15 @@ def run_from_dict(d: dict[str, Any]) -> ResearchRun:
         iteration_limit=d["iteration_limit"],
         status=RunStatus(d["status"]),
         iteration=d["iteration"],
+        depth=Depth(d["depth"]),
+        sources=frozenset(SourceKind(x) for x in d["sources"]),
+        workspace_id=d["workspace_id"],
+        channel=Channel(d["channel"]),
+        subscribers=[Subscriber(x["kind"], x["target"]) for x in d["subscribers"]],
         transcript=[entry_from_dict(e) for e in d["transcript"]],
-        sources=[Source(s["n"], s["title"], s["url"], s["extract"]) for s in d["sources"]],
+        evidence=[ref_from_dict(r) for r in d["evidence"]],
+        tool_calls=d["tool_calls"],
+        report=report_from_dict(d["report"]) if d["report"] is not None else None,
         draft=d["draft"],
         approval_expires_at=d["approval_expires_at"],
         final_output=d["final_output"],
