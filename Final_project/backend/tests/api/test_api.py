@@ -32,7 +32,7 @@ def test_run_async_sync_and_wait_with_approval(api):
     assert view["status"] == "completed" and view["final_output"] and view["sample"] is False
     meta = view["metadata"]
     assert meta["llm_calls"] == 8 and meta["generated_by"] == "demo mode (no LLM)"
-    assert meta["est_cost_usd"] > 0 and meta["prompt_version"] == "4" and meta["tool_calls"] == 1
+    assert meta["est_cost_usd"] > 0 and meta["prompt_version"] == "5" and meta["tool_calls"] == 1
     assert meta["agents_used"] == ["Researcher", "Writer", "Reviewer"]
     report = view["report"]
     assert report["title"] and report["summary"] and len(report["sections"]) == 4

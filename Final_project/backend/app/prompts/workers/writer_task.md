@@ -4,6 +4,9 @@
 # Your assignment from the Supervisor
 {task}
 
+# Earlier turns in this chat (context only)
+{earlier_turns}
+
 # Depth
 {guidance}
 

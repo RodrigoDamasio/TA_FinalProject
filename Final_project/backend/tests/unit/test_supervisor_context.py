@@ -296,7 +296,7 @@ def test_supervisor_prompt_files_match_what_the_code_fills():
 
     lib = PromptLibrary()
     assert placeholders(lib.read("supervisor_task.md")) == {
-        "question", "guidance", "sources", "memories", "evidence", "transcript",
+        "earlier_turns", "question", "guidance", "sources", "memories", "evidence", "transcript",
         "iterations_left", "last_hint",
     }  # fmt: skip
     assert placeholders(lib.read("supervisor.md")) == {

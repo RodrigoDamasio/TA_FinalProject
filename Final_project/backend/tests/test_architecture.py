@@ -158,7 +158,7 @@ def test_prompt_files_use_only_known_placeholders():
         "memories", "sources", "evidence", "tools", "cap", "known_evidence", "guidance",
         "transcript", "iterations_left", "last_hint", "parser_error", "task", "notes",
         "review", "fact_check", "previous_draft", "draft", "sentences", "validation_errors",
-        "depth_hint", "word_limit", "tool_log",
+        "depth_hint", "word_limit", "tool_log", "earlier_turns",
     }  # fmt: skip
     root = APP / "prompts"
     for path in root.rglob("*.md"):
@@ -166,4 +166,4 @@ def test_prompt_files_use_only_known_placeholders():
         assert placeholders(text) <= known, path
         if path.parent.name == "workers" and path.stem.endswith("_task"):
             assert "{question}" in text or "{task}" in text, path
-    assert library.version == "4"
+    assert library.version == "5"

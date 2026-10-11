@@ -5,6 +5,7 @@ import json
 import pytest
 
 from app.application.outbox.payloads import (
+    CONTINUE_CHAT,
     FINISHED_EARLY,
     TelegramTexts,
     callback_body,
@@ -81,7 +82,11 @@ def test_completed_text_layout():
         "Sources:",
     ]
     assert lines[5:10] == [f"[E{i}] Source {i} — site{i}.org" for i in range(1, 6)]  # ≤ 5
-    assert lines[10:] == ["", f"Full report: https://ui.example/?run={run.id}"]
+    assert lines[10:] == [
+        "",
+        f"Full report: https://ui.example/?run={run.id}",
+        "Reply to continue this chat, or send /new.",  # v1.2
+    ]
     assert FINISHED_EARLY not in text
 
 
@@ -92,7 +97,7 @@ def test_completed_flags_forced_and_handles_a_missing_report():
     bare = finished(None)
     text = TEXTS.completed(bare)
     assert text.startswith(bare.question + "\n\n# T\n\nSummary.")
-    assert text.endswith(f"Full report: https://ui.example/?run={bare.id}")
+    assert text.endswith(f"Full report: https://ui.example/?run={bare.id}\n{CONTINUE_CHAT}")
 
 
 def test_other_run_events():

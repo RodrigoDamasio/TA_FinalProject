@@ -2,6 +2,10 @@
 a few SQLite writes. Every reply is a `bot.reply` outbox row (delivered with retries by the
 dispatcher), so the webhook answers Telegram at once. `handle` never raises.
 
+Conversations (v1.2): each chat has a current conversation (table chat_conversations); a
+normal message continues it, `/new` starts a new one, and a full or swept conversation is
+replaced by a new one automatically.
+
 Logs: update id, a chat fingerprint, run id and the decision. Never the text.
 Owner: WEBHOOKS."""
 
@@ -11,11 +15,15 @@ import threading
 import time
 from collections import defaultdict, deque
 from collections.abc import Callable, Iterable
+from dataclasses import replace
 
 from pydantic import BaseModel, ConfigDict
 
 from app.domain.depth import Depth
 from app.domain.errors import (
+    ConversationBusy,
+    ConversationFull,
+    ConversationNotFound,
     InputTooLarge,
     InvalidField,
     LLMQuotaExceeded,
@@ -24,8 +32,8 @@ from app.domain.errors import (
 )
 from app.domain.evidence import REQUESTABLE_SOURCES, SourceKind
 from app.domain.outbox import EVENT_BOT_REPLY, Channel, OutboxMessage
-from app.domain.ports import OutboxRepository
-from app.domain.run import RunStatus
+from app.domain.ports import ChatConversations, OutboxRepository
+from app.domain.run import ResearchRun, RunStatus
 
 from .outbox.payloads import TelegramTexts
 from .runs import RunService, SubmitCommand
@@ -114,8 +122,9 @@ class TelegramService:
         limiter: ChatLimiter | None = None,
         clock: Callable[[], float] = time.monotonic,
         sources: frozenset[SourceKind] = REQUESTABLE_SOURCES,
+        chats: ChatConversations | None = None,  # v1.2: None → every message is a new chat
     ) -> None:
-        self._runs, self._outbox = runs, outbox
+        self._runs, self._outbox, self._chats = runs, outbox, chats
         self._allowed = frozenset(str(c).strip() for c in allowed_chats if str(c).strip())
         self.texts = texts or TelegramTexts("http://localhost:3000")
         self._limiter = limiter or ChatLimiter(RUNS_PER_MINUTE, self.texts.runs_per_day, clock)
@@ -157,6 +166,11 @@ class TelegramService:
         if command == "start":
             self._reply(chat, self.texts.start())
             return "start"
+        if command == "new":
+            if self._chats is not None:
+                self._chats.clear(chat)
+            self._reply(chat, self.texts.new_chat())
+            return "new_chat"
         if command is not None:
             self._reply(chat, self.texts.help())
             return "help"
@@ -172,6 +186,7 @@ class TelegramService:
 
     def _submit(self, chat: str, text: str, key: str) -> str:
         assert self._runs is not None  # noqa: S101 — checked by `wired` at wiring time
+        conversation = self._chats.get(chat) if self._chats is not None else None
         cmd = SubmitCommand(
             question=text,
             depth=Depth.BRIEF,  # quota: Telegram reports are always brief (Q5)
@@ -184,11 +199,17 @@ class TelegramService:
             callback_url=None,
             telegram_chat_id=chat,
             client_key=key,
+            conversation_id=conversation,
         )
         try:
-            run = self._runs.submit(cmd)  # queues research.accepted with the run
+            run = self._submit_turn(chat, cmd)  # queues research.accepted with the run
+        except ConversationBusy:
+            self._reply(chat, self.texts.busy())
+            return "busy"
         except InvalidField:
-            self._reply(chat, self.texts.too_short())
+            limits = self._runs.limits
+            minimum = limits.followup_min_chars if conversation else limits.question_min_chars
+            self._reply(chat, self.texts.too_short(minimum))
             return "too_short"
         except InputTooLarge:
             self._reply(chat, self.texts.too_long(len(text)))
@@ -203,8 +224,28 @@ class TelegramService:
             self._reply(chat, self.texts.unavailable())
             return "unavailable"
         self._limiter.record(key)  # only accepted runs use the allowance
-        logger.info("telegram chat=%s run=%s submitted", chat_fingerprint(chat), run.id)
+        if self._chats is not None:
+            self._chats.set(chat, run.conversation_id)
+        logger.info(
+            "telegram chat=%s run=%s turn=%d submitted", chat_fingerprint(chat), run.id, run.turn
+        )
         return "submitted"
+
+    def _submit_turn(self, chat: str, cmd: SubmitCommand) -> ResearchRun:
+        """Continue the chat's conversation; a swept one, or a full one (with a note), is
+        replaced by a new conversation."""
+        assert self._runs is not None  # noqa: S101
+        if cmd.conversation_id is None:
+            return self._runs.submit(cmd)
+        try:
+            return self._runs.submit(cmd)
+        except ConversationNotFound:
+            pass  # swept by retention: start again silently
+        except ConversationFull:
+            self._reply(
+                chat, self.texts.conversation_full(self._runs.limits.conversation_max_turns)
+            )
+        return self._runs.submit(replace(cmd, conversation_id=None))
 
     # ---- helpers ---------------------------------------------------------------------------
 

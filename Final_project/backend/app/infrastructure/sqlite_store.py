@@ -1,6 +1,6 @@
 """SQLite adapters: runs + events + outbox rows (atomic), memories, the outbox, the Telegram
-update ledger, caches (LLM responses, Wikipedia, search results, pages) and settings. The only
-module with SQL; every value is a bound parameter."""
+update ledger and chat conversations (v1.2), caches (LLM responses, Wikipedia, search results,
+pages) and settings. The only module with SQL; every value is a bound parameter."""
 
 import json
 import secrets
@@ -74,6 +74,13 @@ _OUTBOX_COUNTS = (
 )
 _LEDGER_INSERT = "INSERT OR IGNORE INTO telegram_updates (update_id, received_at) VALUES (?, ?)"
 _LEDGER_OLD = "DELETE FROM telegram_updates WHERE received_at < ?"
+_GET_CHAT = "SELECT conversation_id FROM chat_conversations WHERE chat_id = ?"
+_PUT_CHAT = (
+    "INSERT INTO chat_conversations (chat_id, conversation_id, updated_at) VALUES (?, ?, ?) "
+    "ON CONFLICT(chat_id) DO UPDATE SET conversation_id = excluded.conversation_id, "
+    "updated_at = excluded.updated_at"
+)
+_DELETE_CHAT = "DELETE FROM chat_conversations WHERE chat_id = ?"
 _GET_SEARCH = "SELECT response_json, fetched_at FROM search_cache WHERE key = ?"
 _PUT_SEARCH = (
     "INSERT OR REPLACE INTO search_cache (key, response_json, fetched_at) VALUES (?, ?, ?)"
@@ -365,6 +372,23 @@ class SqliteUpdateLedger(_Store):
     def forget_older_than(self, cutoff_iso: str) -> int:
         with self._lock, self._conn() as conn:
             return conn.execute(_LEDGER_OLD, (cutoff_iso,)).rowcount
+
+
+class SqliteChatConversations(_Store):
+    """v1.2: the current conversation of each Telegram chat; survives restarts."""
+
+    def get(self, chat_id: str) -> str | None:
+        with self._conn() as conn:
+            row = conn.execute(_GET_CHAT, (chat_id,)).fetchone()
+        return row["conversation_id"] if row else None
+
+    def set(self, chat_id: str, conversation_id: str) -> None:
+        with self._lock, self._conn() as conn:
+            conn.execute(_PUT_CHAT, (chat_id, conversation_id, iso(datetime.now(UTC))))
+
+    def clear(self, chat_id: str) -> None:
+        with self._lock, self._conn() as conn:
+            conn.execute(_DELETE_CHAT, (chat_id,))
 
 
 class SqliteSearchCache(_Store):

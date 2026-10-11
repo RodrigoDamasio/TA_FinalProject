@@ -91,8 +91,9 @@ def test_tools_and_health(api):
     tools = a.client.get("/tools").json()
     assert [t["name"] for t in tools] == [
         "search_web", "search_wikipedia", "search_documents", "read_result",
+        "search_conversation",
     ]  # fmt: skip
-    assert {t["family"] for t in tools} == {"web", "wikipedia", "documents"}
+    assert {t["family"] for t in tools} == {"web", "wikipedia", "documents", "conversation"}
     health = a.client.get("/health").json()
     assert health["search"] == {"mode": "fake", "available": True}
     assert health["limits"]["upload_max_bytes"] > 0 and health["limits"]["workspace_max_docs"] > 0

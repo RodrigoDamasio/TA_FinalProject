@@ -169,10 +169,18 @@ class StubMemory:
     def __init__(self, memories: list[Memory] | None = None) -> None:
         self.memories = memories or []
         self.recalls: list[tuple[str, int, str]] = []
+        self.excluded: list[frozenset[str]] = []
         self.recorded: list[Memory] = []
 
-    def recall(self, query: str, limit: int, exclude_question: str) -> list[Memory]:
+    def recall(
+        self,
+        query: str,
+        limit: int,
+        exclude_question: str,
+        exclude_runs: frozenset[str] = frozenset(),
+    ) -> list[Memory]:
         self.recalls.append((query, limit, exclude_question))
+        self.excluded.append(exclude_runs)
         return self.memories[:limit]
 
     def record(self, memory: Memory) -> None:
