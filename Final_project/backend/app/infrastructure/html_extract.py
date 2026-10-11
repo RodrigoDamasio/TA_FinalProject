@@ -1,15 +1,24 @@
-"""Step 3 STUB of HtmlExtractor: strips tags. SEARXNG_TOOL_PLAN §3.8 replaces it with
-trafilatura. Owner: SEARXNG."""
+"""HTML → Markdown with trafilatura (SEARXNG_TOOL_PLAN §3.8): main content only (navigation,
+footers, comments and scripts dropped), tables kept, favoring precision. Input is a page
+already fetched through the SSRF guard; `trafilatura.fetch_url` is never used (an
+architecture test bans it). Nothing is executed or rendered. Owner: SEARXNG."""
 
-import html
-import re
-
-_DROP = re.compile(r"<(script|style|noscript|nav|footer|header)\b.*?</\1>", re.I | re.S)
-_TAG = re.compile(r"<[^>]+>")
+import trafilatura
 
 
-class TagStripExtractor:
-    def html_to_markdown(self, page_html: str, url: str) -> str:
-        text = _TAG.sub("\n", _DROP.sub(" ", page_html))
-        lines = (" ".join(line.split()) for line in html.unescape(text).splitlines())
-        return "\n\n".join(line for line in lines if line)
+class TrafilaturaExtractor:
+    def html_to_markdown(self, html: str, url: str) -> str:
+        if not html.strip():
+            return ""
+        text = trafilatura.extract(
+            html,
+            url=url,
+            output_format="markdown",
+            include_links=False,
+            include_images=False,
+            include_comments=False,
+            include_tables=True,
+            favor_precision=True,
+            deduplicate=True,
+        )
+        return (text or "").strip()

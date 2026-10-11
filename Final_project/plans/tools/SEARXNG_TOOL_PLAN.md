@@ -376,3 +376,17 @@ Coverage ≥ 90 % for the owned files, Ruff clean.
 9. **`read_result` tool** + component tests.
 10. **Wiring notes** for `dependencies.py` (Shared, phase 1): adapters by `SEARCH_MODE`, the `TextExtractor` composite (G5), `url_check` (G7), `ServiceLevel` search flag, `/health` `search` field.
 11. **Full suite, coverage ≥ 90 %, Ruff**; record any deviation in a "Deviations" section here.
+
+## 13. Deviations (implementation, 2026-10-11)
+
+| Plan | Implementation | Why |
+|---|---|---|
+| §3.9: `GuardedTransport` subclasses `httpx.HTTPTransport` and swaps its private `_pool`; a test asserts `_pool` exists | `GuardedTransport(httpx.BaseTransport)` over its own `httpcore.ConnectionPool(network_backend=GuardedBackend(...), retries=0)`, with no private httpx access. The `_pool` test is replaced by checks that the client's transport is a `GuardedTransport` and that `trust_env` is off | The Q4 review decision (BACKEND_PLAN §24.2) |
+| §9: "rebinding (second resolution private) refused at connect" | Resolution happens **once, inside `connect_tcp`**, so check and connect always use the same answer; there's no second resolution inside one connection. The test covers the real risk: a **later** connection whose answer turned private is refused | There's no window between check and connect to test |
+| §9: separate files `test_searxng.py`, `test_tools_web.py`, `test_tools_read_result.py`, `test_tools_wikipedia.py` | The adapter cases are in `tests/integration/test_adapters_v11.py`; the tool cases extend `tests/component/test_tools.py`. New files: `tests/unit/test_safe_http_rules.py`, `tests/unit/test_safe_http_client.py`, `tests/unit/test_web_helpers.py` and `tests/integration/test_html_extract.py` | Those files already held the step-3 stubs' tests and their bench fixture |
+| §9 architecture: ban `fetch_url` | Bans the names `fetch_url` and `fetch_response` anywhere in `app/` and any `from trafilatura import …` (only `trafilatura.extract` through the module) | It also catches aliased imports |
+| §3.6: retrieve top `k` from the page | Retrieves `k + 1`, then drops the snippet's own chunk, so the model still gets `k` new passages | The snippet chunk shares the source key and would otherwise take a slot |
+| WEBHOOKS owns `webhook_sender.py` | Rewritten here to use `SafeHttpClient` with `callback_policy` (https only, no redirects, 64 KiB cap). `dependencies.py` passes `url_check` = `check_url` + `resolve_public` to `RunService` | BACKEND_PLAN §4 and G7 put the guard here. PR #11 (WEBHOOKS) must merge onto this version |
+| — | `GuardedBackend.connect_unix_socket` refuses. Bodies are decoded with the declared charset, else `charset_normalizer` (a trafilatura dependency) | Defense in depth, and non-UTF-8 pages |
+
+**Coverage:** 96% overall, with every owned file at 96% or higher. **Ruff:** clean.

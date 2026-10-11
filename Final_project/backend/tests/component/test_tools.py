@@ -21,7 +21,7 @@ from app.domain.ports import FetchedPage, SourceText
 from app.domain.run import ResearchRun
 from app.domain.transcript import ToolCallRecord
 from app.infrastructure.fake_wikipedia import FakeWikipedia
-from app.infrastructure.html_extract import TagStripExtractor
+from app.infrastructure.html_extract import TrafilaturaExtractor
 
 FENCE = DataFence(b"s", "q")
 
@@ -38,7 +38,7 @@ class Bench:
         self.wiki = SearchWikipediaTool(wiki or FakeWikipedia(), self.indexer, self.retriever)
         self.web = SearchWebTool(search or FakeWebSearch(), self.indexer, self.retriever, self.wiki)
         self.read = ReadResultTool(
-            fetcher or FakePageFetcher(), TagStripExtractor(), self.indexer, self.retriever
+            fetcher or FakePageFetcher(), TrafilaturaExtractor(), self.indexer, self.retriever
         )
         self.docs = SearchDocumentsTool(self.indexer, self.retriever)
 
@@ -114,7 +114,12 @@ def test_search_wikipedia_outcomes():
 
 
 def test_read_result_only_opens_web_evidence_the_run_issued():
-    page = FetchedPage("https://a.org/p", 200, "text/html", "<p>Full page about RAG.</p>")
+    html = (
+        "<html><body><nav>Menu</nav><article><h1>RAG</h1><p>Full page about RAG. Retrieval "
+        "augmented generation fetches passages at query time and grounds the answer.</p><p>It "
+        "keeps answers current without retraining the model weights.</p></article></body></html>"
+    )
+    page = FetchedPage("https://a.org/p", 200, "text/html", html)
     b = Bench(fetcher=FakePageFetcher({"https://a.org/p": page}))
     web = b.indexer.index([SourceText(b.ctx.run_scope, SourceKind.WEB, "https://a.org/p",
                                       "A", "snippet", url="https://a.org/p")])  # fmt: skip
@@ -163,3 +168,76 @@ def test_indexer_and_store_maintenance():
     assert [c.text for c in b.store.iter_chunks("demo")] == ["three"]
     assert b.indexer.remove("demo") == 1 and b.indexer.adopt([], "run:x") == []
     assert b.retriever.search("q", [], 3) == [] and b.retriever.get(["missing"]) == []
+
+
+# ---- SEARXNG_TOOL_PLAN §9 variants -------------------------------------------------------------
+
+
+def test_search_web_fallback_rules():
+    import dataclasses
+
+    b = Bench(search=FakeWebSearch(fail=True))
+    out = b.web.run({"query": "retrieval augmented generation"}, b.ctx)
+    assert (out.record.tool, out.record.provider, out.record.fallback) == (
+        "search_web", "searxng", "wikipedia",
+    )  # fmt: skip
+    assert out.record.status == "ok" and "NOTE Web search is unavailable" in out.content
+    web_only = dataclasses.replace(b.ctx, sources=frozenset({SourceKind.WEB}))
+    assert b.web.run({"query": "rag"}, web_only).record.error == "web search unavailable"
+    both = Bench(search=FakeWebSearch(fail=True), wiki=FakeWikipedia(down=True))
+    down = both.web.run({"query": "rag tools"}, both.ctx)
+    assert down.record.error == "web search and wikipedia unavailable"
+
+
+def test_search_web_retrieves_only_this_calls_sources():
+    b = Bench()
+    old = "retrieval augmented generation fine tuning compared"
+    b.indexer.index([SourceText(b.ctx.run_scope, SourceKind.WEB, "https://old.org/x", "Old", old)])
+    out = b.web.run({"query": "rag fine tuning"}, b.ctx)
+    assert out.record.status == "ok" and all(r.title != "Old" for r in b.run.evidence)
+    assert f'id="{FENCE.nonce}"' in out.content
+
+
+def test_search_wikipedia_keeps_page_ids_and_skips_empty_extracts():
+    articles = {
+        "Retrieval-augmented generation": "== Overview ==\nRetrieval augmented generation "
+        "grounds a model's answer in passages fetched at query time.",
+        "Retrieval (empty)": "   ",
+        "Generation stub": "Generation of text by retrieval augmented models, in short.",
+    }
+    b = Bench(wiki=FakeWikipedia(articles))
+    out = b.wiki.run({"query": "retrieval augmented generation"}, b.ctx)
+    assert out.record.results == 2
+    keys = {c.source_key for c in b.store.iter_chunks(b.ctx.run_scope)}
+    assert keys == {"wikipedia:1", "wikipedia:3"}
+    assert all("== Overview ==" not in c.text for c in b.store.iter_chunks(b.ctx.run_scope))
+
+
+def _web_ref(b, url="https://a.org/p"):
+    snippet = f"a short snippet about rag at {url}"
+    source = SourceText(b.ctx.run_scope, SourceKind.WEB, url, "RAG guide", snippet, url=url)
+    stored = b.indexer.index([source])
+    return b.run.add_evidence(stored)[0]
+
+
+def test_read_result_text_empty_truncated_and_repeatable():
+    para = "Retrieval augmented generation grounds answers in fetched passages. " * 6
+    pages = {
+        "https://a.org/t": FetchedPage("https://a.org/t", 200, "text/plain", para),
+        "https://a.org/e": FetchedPage("https://a.org/e", 200, "text/html", "<html></html>"),
+        "https://a.org/l": FetchedPage(
+            "https://a.org/l", 200, "text/markdown", "\n\n".join([para] * 4)
+        ),
+    }
+    b = Bench(fetcher=FakePageFetcher(pages))
+    b.read._max = 1000
+    plain = b.read.run({"evidence_id": _web_ref(b, "https://a.org/t").label}, b.ctx)
+    assert plain.record.status == "ok" and "fetched passages" in plain.content
+    empty = b.read.run({"evidence_id": _web_ref(b, "https://a.org/e").label}, b.ctx)
+    assert empty.record.status == "empty" and "no readable text" in empty.content
+    ref = _web_ref(b, "https://a.org/l")
+    long = b.read.run({"evidence_id": ref.label}, b.ctx)
+    assert "NOTE The page was truncated." in long.content
+    assert ref.n not in long.record.evidence_ns  # the snippet chunk is excluded
+    again = b.read.run({"evidence_id": ref.label}, b.ctx)
+    assert again.record.evidence_ns == long.record.evidence_ns and "new=0" in again.content

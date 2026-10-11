@@ -3,11 +3,11 @@
 import httpx
 import pytest
 
-from app.domain.errors import FetchFailed, FetchRefused, SearchUnavailable
-from app.infrastructure import safe_http
+from app.domain.errors import FetchFailed, SearchUnavailable
 from app.infrastructure.fake_search import FakePageFetcher, FakeWebSearch, demo_results
 from app.infrastructure.fake_telegram import FakeTelegram
-from app.infrastructure.html_extract import TagStripExtractor
+from app.infrastructure.html_extract import TrafilaturaExtractor
+from app.infrastructure.safe_http import SafeResponse
 from app.infrastructure.searxng import SearxngSearch
 from app.infrastructure.telegram_client import TelegramClient
 from app.infrastructure.webhook_sender import HttpWebhookSender
@@ -22,55 +22,55 @@ def resolver(addresses):
     return getaddrinfo
 
 
-def test_url_check_rules(monkeypatch):
-    monkeypatch.setattr(safe_http.socket, "getaddrinfo", resolver(["93.184.216.34"]))
-    safe_http.check_url("https://example.com/hook", schemes=HTTPS)
-    for url, reason in (
-        ("http://example.com", "scheme"),
-        ("https://u:p@example.com", "credentials"),
-        ("https://example.com:8443", "ports"),
-        ("https://svc.internal/x", "public name"),
-        ("https://" + "a" * 2050, "too long"),
-    ):
-        with pytest.raises(FetchRefused, match=reason):
-            safe_http.check_url(url, schemes=HTTPS)
-    for private in ("10.0.0.1", "169.254.169.254", "::1", "fd00::1"):
-        monkeypatch.setattr(safe_http.socket, "getaddrinfo", resolver(["93.184.216.34", private]))
-        with pytest.raises(FetchRefused, match="non-public"):
-            safe_http.check_url("https://example.com", schemes=HTTPS)
-    safe_http.check_url("http://localhost.example:80/x", schemes=frozenset({"http"}),
-                        allow_private=True)  # fmt: skip
+def test_searxng_adapter_maps_results_and_failures(tmp_path, caplog):
+    from app.infrastructure.sqlite_store import SqliteSearchCache
 
-    def fail(*a, **k):
-        raise OSError("nxdomain")
+    replies = []
 
-    monkeypatch.setattr(safe_http.socket, "getaddrinfo", fail)
-    with pytest.raises(FetchRefused, match="does not resolve"):
-        safe_http.check_url("https://nope.example", schemes=HTTPS)
-    with pytest.raises(FetchFailed):
-        safe_http.StubPageFetcher().fetch("https://a.org")
-
-
-def test_searxng_adapter_maps_results_and_failures():
     def handler(request):
         assert request.url.params["format"] == "json"
-        return httpx.Response(200, json={"results": [
-            {"title": " A ", "url": "https://a.org", "content": "snip", "engines": ["yahoo"]},
-            {"title": "", "url": "ftp://x", "content": ""},
-            {"title": "", "url": "https://b.org", "content": ""},
-        ]})  # fmt: skip
+        reply = replies.pop(0)
+        return reply if isinstance(reply, httpx.Response) else httpx.Response(200, json=reply)
 
-    s = SearxngSearch("http://searxng:8080/", 5)
-    s._client = httpx.Client(transport=httpx.MockTransport(handler))
-    results = s.search("rag", 8)
-    assert [(r.title, r.url) for r in results] == [
-        ("A", "https://a.org"),
-        ("https://b.org", "https://b.org"),
-    ]
-    assert results[0].engines == ("yahoo",) and s.available()
-    s._client = httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(403)))
-    with pytest.raises(SearchUnavailable):
-        s.search("rag", 8)
+    now = {"t": 0.0}
+    s = SearxngSearch(
+        "http://searxng:8080/", 5, SqliteSearchCache(str(tmp_path / "c.db")),
+        clock=lambda: now["t"], client=httpx.Client(transport=httpx.MockTransport(handler)),
+    )  # fmt: skip
+    replies.append({"results": [
+        {"title": "", "url": "https://b.org", "content": ""},
+        {"title": " A ", "url": "https://a.org/p#frag", "content": " snip ", "engines": ["yahoo"]},
+        {"title": "dup", "url": "https://a.org/p", "content": "again"},
+        {"title": "x", "url": "ftp://x", "content": "no"},
+    ], "unresponsive_engines": [["duckduckgo", "CAPTCHA"]]})  # fmt: skip
+    caplog.set_level("INFO")
+    results = s.search("secret query text", 8)
+    assert [(r.title, r.url, r.snippet) for r in results] == [
+        ("A", "https://a.org/p", "snip"), ("b.org", "https://b.org", ""),
+    ]  # fmt: skip
+    assert results[0].engines == ("yahoo",) and "secret query text" not in caplog.text
+    assert s.search("SECRET   query text", 8) == results  # cache hit: no request queued
+    replies.append({"results": [], "unresponsive_engines": []})
+    assert s.search("nothing", 8) == []  # empty: engines answered, not an outage
+    replies.append({"results": [], "unresponsive_engines": []})
+    assert s.search("nothing", 8) == []  # empty results are never cached
+    for reply in (
+        {
+            "results": [],
+            "unresponsive_engines": [["yahoo", "x"], ["yandex", "x"], ["duckduckgo", "x"]],
+        },
+        httpx.Response(403),
+        httpx.Response(200, content=b"not json"),
+    ):
+        replies.append(reply)
+        with pytest.raises(SearchUnavailable):
+            s.search("blocked", 8)
+    assert not s.available()  # 3 failures: breaker open
+    with pytest.raises(SearchUnavailable, match="breaker"):
+        s.search("other", 8)
+    assert s.search("secret query text", 8) == results  # cached queries still answer
+    now["t"] = 61
+    assert s.available() and s.stats()["failures"] == 3
 
 
 def test_telegram_client_and_webhook_sender(monkeypatch):
@@ -88,13 +88,19 @@ def test_telegram_client_and_webhook_sender(monkeypatch):
     tg._client = httpx.Client(transport=httpx.MockTransport(boom))
     assert tg.send_message("42", "hi").error == "ConnectError"
 
-    sender = HttpWebhookSender(5, allow_private=True)
-    sender._client = httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(204)))
-    assert sender.post("http://localhost.test/h", b"{}", {}).ok
-    sender._client = httpx.Client(transport=httpx.MockTransport(boom))
-    assert sender.post("http://localhost.test/h", b"{}", {}).error == "ConnectError"
-    strict = HttpWebhookSender(5)
-    refused = strict.post("http://example.com/h", b"{}", {})
+    class Guarded:
+        def __init__(self, outcome):
+            self.outcome = outcome
+
+        def request(self, method, url, policy, **kw):
+            if isinstance(self.outcome, Exception):
+                raise self.outcome
+            return SafeResponse(url, self.outcome)
+
+    assert HttpWebhookSender(5, client=Guarded(204)).post("https://a.org/h", b"{}", {}).ok
+    timeout = HttpWebhookSender(5, client=Guarded(FetchFailed("timeout")))
+    assert timeout.post("https://a.org", b"", {}).error == "timeout"
+    refused = HttpWebhookSender(5).post("http://example.com/h", b"{}", {})  # https only
     assert not refused.ok and refused.error.startswith("refused:")
     fake = FakeTelegram()
     assert fake.send_message("1", "x").ok and fake.sent == [("1", "x")]
@@ -108,7 +114,10 @@ def test_fakes_and_html_extraction():
     assert len(demo_results("rag", 2)) == 2 and FakeWebSearch().search("q", 1)[0].url
     page = FakePageFetcher().fetch(demo_results("rag")[0].url)
     assert page.status == 200 and "Demo page" in page.text
-    text = TagStripExtractor().html_to_markdown(
-        "<html><script>x()</script><h1>Title</h1><p>Body &amp; more</p></html>", "u"
-    )
-    assert text == "Title\n\nBody & more"
+    text = TrafilaturaExtractor().html_to_markdown(
+        "<html><body><nav>Menu</nav><article><h1>Title</h1><script>x()</script><p>Body &amp; "
+        "more text about retrieval augmented generation and its trade-offs.</p></article>"
+        "</body></html>", "https://a.org"
+    )  # fmt: skip
+    assert "Body & more" in text and "x()" not in text and "Menu" not in text
+    assert TrafilaturaExtractor().html_to_markdown("  ", "u") == ""

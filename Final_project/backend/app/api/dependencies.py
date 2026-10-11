@@ -67,7 +67,7 @@ from app.infrastructure.fake_telegram import FakeTelegram
 from app.infrastructure.fake_wikipedia import FakeWikipedia
 from app.infrastructure.gemini_client import GeminiClient
 from app.infrastructure.hashing_embedder import HashingEmbedder
-from app.infrastructure.html_extract import TagStripExtractor
+from app.infrastructure.html_extract import TrafilaturaExtractor
 from app.infrastructure.llm_decorators import (
     CircuitBreakerLLMClient,
     ConcurrencyLimitedLLMClient,
@@ -77,14 +77,22 @@ from app.infrastructure.llm_decorators import (
 from app.infrastructure.memory_vector_store import InMemoryVectorStore
 from app.infrastructure.pdf_extract import PypdfExtractor
 from app.infrastructure.runner import InlineRunner, ThreadRunner
-from app.infrastructure.safe_http import StubPageFetcher, check_url
+from app.infrastructure.safe_http import (
+    SafeHttpClient,
+    SafeHttpFetcher,
+    callback_policy,
+    check_url,
+    resolve_public,
+)
 from app.infrastructure.samples import SampleStore
 from app.infrastructure.searxng import SearxngSearch
 from app.infrastructure.sqlite_store import (
     SqliteMemoryRepository,
     SqliteOutboxRepository,
+    SqlitePageCache,
     SqliteResponseCache,
     SqliteRunRepository,
+    SqliteSearchCache,
     SqliteSettings,
     SqliteWikiCache,
 )
@@ -95,6 +103,14 @@ from app.infrastructure.wikipedia import WikipediaSource
 from .guards import HourlyRateLimiter, RateLimiter
 
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _check_callback(url: str, allow_private: bool) -> None:
+    """callback_url at submit time: the URL rules, then every resolved address (v1.1 G7).
+    Deliveries are checked again, at connect time, by the guarded sender."""
+    policy = callback_policy(allow_private)
+    parsed = check_url(url, policy)
+    resolve_public(parsed.host, parsed.port or 443, policy)
 
 
 def demo_library_files(path: str) -> list[tuple[str, bytes]]:
@@ -316,10 +332,24 @@ def build_container(
         search = (
             FakeWebSearch()
             if settings.search_mode == "fake"
-            else SearxngSearch(settings.searxng_url, settings.search_timeout_s)
+            else SearxngSearch(
+                settings.searxng_url,
+                settings.search_timeout_s,
+                SqliteSearchCache(db),
+                settings.search_cache_ttl_h * 3600,
+            )
         )
     if fetcher is None:
-        fetcher = FakePageFetcher() if settings.search_mode == "fake" else StubPageFetcher()
+        fetcher = (
+            FakePageFetcher()
+            if settings.search_mode == "fake"
+            else SafeHttpFetcher(
+                SafeHttpClient(
+                    settings.fetch_timeout_s, settings.fetch_max_bytes, settings.fetch_max_redirects
+                ),
+                SqlitePageCache(db),
+            )
+        )
     k, snip = settings.evidence_top_k, settings.evidence_snippet_chars
     wiki_tool = SearchWikipediaTool(
         knowledge, indexer, retriever,
@@ -341,7 +371,7 @@ def build_container(
             SearchDocumentsTool(indexer, retriever, top_k=k, snippet_chars=snip),
             ReadResultTool(
                 fetcher,
-                TagStripExtractor(),
+                TrafilaturaExtractor(),
                 indexer,
                 retriever,
                 max_chars=settings.read_max_chars,
@@ -420,11 +450,7 @@ def build_container(
         ),
         ensure_llm_available,
         memory_store,
-        url_check=lambda url: check_url(
-            url,
-            schemes=frozenset({"http", "https"} if settings.callback_allow_private else {"https"}),
-            allow_private=settings.callback_allow_private,
-        ),
+        url_check=lambda url: _check_callback(url, settings.callback_allow_private),
         indexer=indexer,
     )
     sweep_target["service"] = service

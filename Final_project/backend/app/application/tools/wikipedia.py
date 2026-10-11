@@ -1,5 +1,6 @@
-"""search_wikipedia (step 3 version). SEARXNG_TOOL_PLAN §3.5 refines it (one fetch per hit,
-MediaWiki headings → Markdown). Owner: SEARXNG."""
+"""search_wikipedia (SEARXNG_TOOL_PLAN §3.5): Module 5's Wikipedia client, one page at a time
+(so each extract keeps its page id as `wikipedia:<id>`), MediaWiki headings rewritten to
+Markdown for the chunker, then index → retrieve → number like every tool. Owner: SEARXNG."""
 
 import time
 from typing import Any
@@ -10,7 +11,7 @@ from app.domain.ports import Indexer, KnowledgeSource, Retriever, SourceText, To
 from app.domain.transcript import ToolCallRecord
 
 from .base import ToolContext, ToolOutput, gather, is_weak, render_tool_result
-from .common import normalize_query
+from .common import normalize_query, wiki_headings_to_markdown
 
 SPEC = ToolSpec(
     "search_wikipedia",
@@ -96,21 +97,23 @@ class SearchWikipediaTool:
 
         try:
             hits = self._knowledge.search(query, self._max_pages)
-            drafts = self._knowledge.fetch(hits, self._max_chars) if hits else []
+            pages = [(h, self._knowledge.fetch([h], self._max_chars)) for h in hits]
         except KnowledgeUnavailable:
-            return done("error", error="wikipedia unavailable")
-        if not drafts:
-            return done("empty")
+            error = "web search and wikipedia unavailable" if fallback else "wikipedia unavailable"
+            return done("error", error=error)
         texts = [
             SourceText(
                 ctx.run_scope,
                 SourceKind.WIKIPEDIA,
-                f"wikipedia:{d.url}",
-                d.title,
-                d.extract,
-                url=d.url,
-            )
-            for d in drafts
+                f"wikipedia:{hit.page_id}",
+                d[0].title,
+                wiki_headings_to_markdown(d[0].extract),
+                url=d[0].url,
+            )  # fmt: skip
+            for hit, d in pages
+            if d and d[0].extract.strip()
         ]
+        if not texts:
+            return done("empty")
         gathered = gather(ctx, self._indexer, self._retriever, texts, query, self._k)
-        return done("ok", len(drafts), gathered)
+        return done("ok", len(texts), gathered)

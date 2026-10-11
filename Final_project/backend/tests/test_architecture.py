@@ -85,6 +85,26 @@ def test_libraries_stay_in_their_modules():
     assert where["google"] == allowed["google"] and where["sqlite3"] == allowed["sqlite3"]
 
 
+def test_pages_are_never_fetched_outside_the_ssrf_guard():
+    """SEARXNG_TOOL_PLAN §3.8: trafilatura only extracts; its own downloader bypasses the guard."""
+    names = {"fetch_url", "fetch_response"}
+    used = {
+        f"{p.relative_to(APP)}: {node.attr if isinstance(node, ast.Attribute) else node.id}"
+        for p in APP.rglob("*.py")
+        for node in ast.walk(ast.parse(p.read_text()))
+        if (isinstance(node, ast.Attribute) and node.attr in names)
+        or (isinstance(node, ast.Name) and node.id in names)
+    }
+    imported = {
+        f"{p.relative_to(APP)}: {alias.name}"
+        for p in APP.rglob("*.py")
+        for node in ast.walk(ast.parse(p.read_text()))
+        if isinstance(node, ast.ImportFrom) and (node.module or "").startswith("trafilatura")
+        for alias in node.names
+    }
+    assert used == set() and imported == set()
+
+
 def test_workers_reach_evidence_only_through_tools_and_the_retriever():
     """BACKEND_PLAN §19.3: no worker imports indexing, retrieval or a vector store."""
     banned = {

@@ -1,5 +1,4 @@
-"""search_web and read_result (step 3 version). SEARXNG_TOOL_PLAN §3.3-§3.6 refines them
-(URL normalization, caching, truncation, retrieval query). Owner: SEARXNG.
+"""search_web and read_result (SEARXNG_TOOL_PLAN §3.3-§3.6). Owner: SEARXNG.
 
 Fallback rule (v1.1 §24): only when SearXNG FAILS and `wikipedia` is an allowed source.
 Empty results are reported to the model, which decides what to do."""
@@ -7,7 +6,7 @@ Empty results are reported to the model, which decides what to do."""
 import time
 from typing import Any
 
-from app.domain.errors import FetchFailed, FetchRefused, SearchUnavailable
+from app.domain.errors import FetchFailed, FetchRefused, ModelsLoading, SearchUnavailable
 from app.domain.evidence import SourceKind
 from app.domain.ports import (
     HtmlExtractor,
@@ -20,8 +19,16 @@ from app.domain.ports import (
 )
 from app.domain.transcript import ToolCallRecord
 
-from .base import Gathered, ToolContext, ToolOutput, gather, is_weak, render_tool_result
-from .common import normalize_query, parse_evidence_id
+from .base import (
+    Gathered,
+    ToolContext,
+    ToolOutput,
+    gather,
+    is_weak,
+    number,
+    render_tool_result,
+)
+from .common import cut_at_paragraph, normalize_query, normalize_url, parse_evidence_id
 from .wikipedia import SearchWikipediaTool
 
 SEARCH_SPEC = ToolSpec(
@@ -116,15 +123,23 @@ class SearchWebTool:
             results = self._search.search(query, self._max)
         except SearchUnavailable:
             return self._fallback(ctx, query, started)
-        if not results:
+        if not results:  # engines answered: the model decides (no fallback on empty)
             return self._out(ctx, query, "empty", started)
         texts = [
             SourceText(
-                ctx.run_scope, SourceKind.WEB, r.url, r.title, r.snippet or r.title, url=r.url
-            )
+                ctx.run_scope,
+                SourceKind.WEB,
+                normalize_url(r.url),
+                r.title,
+                r.snippet or r.title,
+                url=r.url,
+            )  # fmt: skip
             for r in results
         ]
-        gathered = gather(ctx, self._indexer, self._retriever, texts, query, self._k)
+        try:
+            gathered = gather(ctx, self._indexer, self._retriever, texts, query, self._k)
+        except ModelsLoading:
+            return self._out(ctx, query, "error", started, error="search index warming up")
         return self._out(ctx, query, "ok", started, gathered, len(results))
 
     def _fallback(self, ctx: ToolContext, query: str, started: float) -> ToolOutput:
@@ -142,6 +157,11 @@ class SearchWebTool:
 
 
 class ReadResultTool:
+    """read_result(evidence_id) (SEARXNG_TOOL_PLAN §3.6): the model can only open a page a
+    search already returned. Fetched through the SSRF guard, extracted, indexed under the
+    SAME source key as its snippet, then the passages closest to what made the model pick it
+    (title + snippet) are returned, the snippet itself excluded."""
+
     name = "read_result"
     family = SourceKind.WEB
     spec = READ_SPEC
@@ -166,7 +186,7 @@ class ReadResultTool:
         n = parse_evidence_id(args.get("evidence_id"))
         label = f"E{n}" if n is not None else str(args.get("evidence_id"))[:20]
 
-        def out(status, gathered=None, results=0, error=None):  # noqa: ANN001, ANN202
+        def out(status, gathered=None, results=0, error=None, note=None):  # noqa: ANN001, ANN202
             blocks = gathered.blocks if gathered else []
             record = ToolCallRecord(
                 "researcher", self.name, {"evidence_id": label}, status, provider="web-page",
@@ -174,12 +194,9 @@ class ReadResultTool:
                 duration_ms=_ms(started),
             )  # fmt: skip
             content = render_tool_result(
-                record,
-                blocks,
-                ctx.fence,
-                new=gathered.new if gathered else 0,
+                record, blocks, ctx.fence, new=gathered.new if gathered else 0, note=note,
                 snippet_chars=self._snippet,
-            )
+            )  # fmt: skip
             return ToolOutput(content, record)
 
         if n is None:
@@ -201,10 +218,18 @@ class ReadResultTool:
             text = page.text
         else:
             return out("error", error=f"unsupported type {page.media_type}")
-        text = text[: self._max]
-        if not text.strip():
-            return out("empty")
-        source = SourceText(ctx.run_scope, SourceKind.WEB, ref.url, ref.title, text, url=ref.url)
-        gathered = gather(ctx, self._indexer, self._retriever, [source], ref.title, self._k + 1)
-        kept = [(r, c) for r, c in gathered.blocks if c.id != ref.chunk_id][: self._k]
-        return out("ok", Gathered(kept, gathered.new), results=len(gathered.blocks))
+        text, truncated = cut_at_paragraph(text.strip(), self._max)
+        if not text:
+            return out("empty", note="The page has no readable text.")
+        key = normalize_url(ref.url)
+        source = SourceText(ctx.run_scope, SourceKind.WEB, key, ref.title, text, url=ref.url)
+        try:
+            stored = self._indexer.index([source])
+            snippet = self._retriever.get([ref.chunk_id])
+            query = f"{ref.title} {snippet[0].text if snippet else ''}".strip()
+            hits = self._retriever.search(query, [ctx.run_scope], self._k + 1, source_keys=[key])
+        except ModelsLoading:
+            return out("error", error="search index warming up")
+        chunks = [h.chunk for h in hits if h.chunk.id != ref.chunk_id][: self._k]
+        note = "The page was truncated." if truncated else None
+        return out("ok", number(ctx, chunks), results=len(stored), note=note)
