@@ -95,6 +95,7 @@ def test_tools_and_health(api):
     assert {t["family"] for t in tools} == {"web", "wikipedia", "documents"}
     health = a.client.get("/health").json()
     assert health["search"] == {"mode": "fake", "available": True}
+    assert health["limits"]["upload_max_bytes"] > 0 and health["limits"]["workspace_max_docs"] > 0
     assert health["outbox"]["pending"] == 0 and health["telegram"] == {
         "mode": "off", "configured": False, "secret_fingerprint": None,
     }  # fmt: skip

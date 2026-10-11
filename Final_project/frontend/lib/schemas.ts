@@ -314,7 +314,7 @@ export const LimitsSchema = z.object({
   max_parallel_delegations: num.optional(),
   approval_timeout_min: num.optional(),
   feedback_max_chars: num,
-  // Not sent by the backend yet (frontend defaults apply, see FRONTEND_PLAN Deviations).
+  // Sent since the frontend merge; optional so older backends still parse.
   upload_max_bytes: num.optional(),
   workspace_max_docs: num.optional(),
   workspace_max_bytes: num.optional(),

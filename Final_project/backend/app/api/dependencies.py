@@ -229,6 +229,9 @@ class Container:
                 "max_parallel_delegations": s.max_parallel_delegations,
                 "approval_timeout_min": s.approval_timeout_min,
                 "feedback_max_chars": 1000,
+                "upload_max_bytes": s.upload_max_bytes,
+                "workspace_max_docs": s.workspace_max_docs,
+                "workspace_max_bytes": s.workspace_max_bytes,
             },
         }
 
