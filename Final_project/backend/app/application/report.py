@@ -316,6 +316,7 @@ def _parse(
         else:
             lead.append(line)
 
+    copied = False  # the summary repeats the first sentence of a section
     if not raw:  # no section headings: first paragraph = summary, the rest = Details
         paragraphs = _paragraphs(lead, body_mask[: len(lead)])
         summary = _join(preamble, paragraphs[0] if paragraphs else "")
@@ -339,11 +340,11 @@ def _parse(
             if _SUMMARY.match(sections[0].heading):
                 summary = sections.pop(0).content
             else:
-                summary = _first_sentence(sections[0].content)
+                summary, copied = _first_sentence(sections[0].content), True
     summary = _cap_summary(_BLANKS.sub("\n\n", summary))
 
     contents = [summary, *(s.content for s in sections)]
-    words = sum(count_words(c) for c in contents)
+    words = sum(count_words(c) for c in contents[copied:])  # copied words count once
     return Report(
         title, summary, tuple(sections), _references(contents, by_n, snippets), depth, words
     )

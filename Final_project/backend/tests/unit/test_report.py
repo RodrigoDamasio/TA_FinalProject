@@ -90,6 +90,7 @@ def test_r7_no_summary_uses_the_first_sentence_of_the_first_section():
     assert r.summary == "RAG retrieves at query time [E1]."
     assert headings(r) == ["Background"]
     assert parse("# T\n\n## S\n\nNo end mark").summary == "No end mark"
+    assert r.word_count == count_words(r.sections[0].content)  # the copy counts once
 
 
 def test_r8_only_h3_headings_are_sections():
