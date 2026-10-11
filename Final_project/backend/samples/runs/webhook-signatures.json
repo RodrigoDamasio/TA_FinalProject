@@ -1,0 +1,772 @@
+{
+  "run_id": "run_ba17f56a6c4f",
+  "status": "completed",
+  "question": "How do Standard Webhooks signatures work, and how should a receiver verify them?",
+  "depth": "detailed",
+  "sources": [
+    "documents",
+    "web"
+  ],
+  "channel": "web",
+  "report": {
+    "title": "Understanding Standard Webhooks Signatures and Receiver Verification Protocols",
+    "summary": "Standard Webhooks provide a unified protocol for sending and verifying HTTP webhooks securely across different API providers and consumers [E11]. Signatures work by cryptographically binding message metadata\u2014specifically a unique message identifier and a Unix timestamp\u2014together with the raw request body into a single concatenated string [E1][E5]. Receivers verify these webhooks by reconstructing this string, testing cryptographic signatures against shared or public keys, validating timestamps to prevent replay attacks, and utilizing message IDs to ensure idempotency [E2][E5].",
+    "sections": [
+      {
+        "heading": "The Anatomy of Standard Webhooks Signatures",
+        "content": "The Standard Webhooks specification relies on a specific string construction to ensure that neither the payload nor the accompanying delivery metadata can be tampered with in transit [E1][E5]. To form the string that gets signed, the sender concatenates the message identifier, the attempt timestamp, and the raw payload body, separated by full stops [E1]. The format is expressed strictly as `msg_id.timestamp.payload` [E1].\n\nTo transmit this data securely, senders include three mandatory headers in the HTTP POST request [E3]. The `webhook-id` header provides a unique identifier for the webhook event, which remains consistent even if the delivery is retried [E3][E5]. The `webhook-timestamp` header records an integer Unix timestamp representing seconds since the epoch [E3]. Finally, the `webhook-signature` header contains a space-delimited list of one or more signatures [E3][E4]. This multi-signature approach supports zero-downtime secret rotation by allowing the sender to sign the message with both a current key and a recently retired key [E3][E4]. The underlying architecture supports both symmetric schemes, such as HMAC-SHA256, and asymmetric cryptographic schemes [E2][E6][E7]."
+      },
+      {
+        "heading": "Essential Receiver Verification Best Practices",
+        "content": "Verifying webhooks requires careful adherence to security and parsing guidelines to prevent common vulnerabilities [E2]. First, receivers must handle the raw HTTP payload directly without parsing and re-serializing the JSON body beforehand [E6]. Even minor formatting changes, such as a stray space or different key ordering introduced during re-serialization, will alter the payload and invalidate the cryptographic signature [E6].\n\nSecond, receivers must protect against replay attacks by inspecting the `webhook-timestamp` header and confirming that it falls within an acceptable tolerance window of the current system time [E2]. Third, duplicate delivery handling should leverage the `webhook-id` header as an idempotency key by caching processed IDs for a short duration, such as five minutes [E2]. Finally, when working with symmetric signatures, developers must use a constant-time comparison function to evaluate the calculated signature against the expected signature, thereby preventing timing attacks and signing oracles [E2]."
+      },
+      {
+        "heading": "Comparing Verification Aspects and Options",
+        "content": "| Verification Aspect | Symmetric Signatures (e.g., HMAC) | Asymmetric Signatures | Key Rotation Handling |\n| :--- | :--- | :--- | :--- |\n| **Primary Mechanism** | Uses a pre-shared secret key to generate and check HMAC values [E7]. | Uses public/private key pairs for signing and verifying [E6][E7]. | Space-delimited list allows testing multiple keys simultaneously [E3][E4]. |\n| **Vulnerability Risk** | Susceptible to timing attacks if non-constant-time comparisons are used [E2]. | Relies heavily on external cryptographic libraries staying up-to-date [E2]. | Compromised keys must still match valid signatures without lowering security [E4]. |\n| **Receiver Action** | Compute local HMAC, then compare using a constant-time algorithm [E2]. | Use a battle-tested cryptographic library to verify public keys [E2]. | Iterate through space-delimited signatures in the header until one matches [E4]. |"
+      },
+      {
+        "heading": "Concrete Examples of the Verification Process",
+        "content": "The verification process can be observed through standard header and payload examples. Suppose a receiver obtains a request with the message ID `msg_2KWPBgLlAfxdpx2AI54pPJ85f4W`, a timestamp of `1674087231`, and a JSON payload [E1][E4]. The raw string to be signed is constructed by joining these elements with full stops: `msg_2KWPBgLlAfxdpx2AI54pPJ85f4W.1674087231.{\"type\":\"contact.created\",\"timestamp\":\"2022-11-03T20:26:10.344522Z\",\"data\":{\"id\":\"1f81eb52-5198-4599-803e-771906343485\"}}` [E1].\n\nThe incoming `webhook-signature` header provides multiple signatures, such as `v1,K5oZfzN95Z9UVu1EsfQmfVNQhnkZ2pj9o9NDN/H/pI4=` signed with the current key and `v1a,hnO3f9T8Ytu9HwrXslvumlUpqtNVqkhqw/enGzPCXe5BdqzCInXqYXFymVJaA7AZdpXwVLPo3mNl8EM+m7TBAg==` signed with an old key [E4]. The receiver extracts the raw request body, reconstructs the message string, computes the expected signature using the shared secret or public key, and iterates through the space-delimited list in the header to find a match using a constant-time comparison [E2][E4]."
+      },
+      {
+        "heading": "Practical Implications and Migration Considerations",
+        "content": "Adopting Standard Webhooks does not require a disruptive overhaul of existing infrastructure. Organizations can run Standard Webhooks in tandem with legacy webhook implementations by sending the new `webhook-signature`, `webhook-id`, and `webhook-timestamp` headers alongside existing custom headers, and even reusing current signing secrets [E9].\n\nThere are, however, certain operational gaps to note. While the specification outlines rigorous architectural guidelines, it does not mandate specific language-specific code snippets or library function names for signature verification [Gaps]. Developers must implement the cryptographic hashing logic using language-appropriate libraries while adhering strictly to raw body handling and constant-time comparison requirements [E2][E6]."
+      }
+    ],
+    "references": [
+      "[E11] standard-webhooks-spec.md \u2014 Standard Webhooks specification",
+      "[E1] standard-webhooks-spec.md \u2014 Standard Webhooks specification",
+      "[E5] standard-webhooks-spec.md \u2014 Standard Webhooks specification",
+      "[E2] standard-webhooks-spec.md \u2014 Standard Webhooks specification",
+      "[E3] standard-webhooks-spec.md \u2014 Standard Webhooks specification",
+      "[E4] standard-webhooks-spec.md \u2014 Standard Webhooks specification",
+      "[E6] standard-webhooks-spec.md \u2014 Standard Webhooks specification",
+      "[E7] standard-webhooks-spec.md \u2014 Standard Webhooks specification",
+      "[E9] standard-webhooks-spec.md \u2014 Standard Webhooks specification"
+    ],
+    "sources": [
+      {
+        "id": "E11",
+        "title": "Standard Webhooks specification",
+        "url": null,
+        "document_name": "standard-webhooks-spec.md",
+        "page": null,
+        "source_kind": "documents",
+        "snippet": "# Standard Webhooks specification ## Open source tools and guidelines for sending webhooks easily, securely and reliably Version: 1.0.0 License: The Apache License, Version 2.0. ## Introduction Webhooks are becoming increasingly popular and are used by many of the world's top companies for sending\u2026"
+      },
+      {
+        "id": "E1",
+        "title": "Standard Webhooks specification",
+        "url": null,
+        "document_name": "standard-webhooks-spec.md",
+        "page": null,
+        "source_kind": "documents",
+        "snippet": "#### Signature scheme As mentioned above, it's important to sign both the body of the webhook and the associated metadata. To achieve this, the message's: ID, timestamp and body are concatenated (delimited by full-stops) and then signed. The content to be signed is therefore:\u2026"
+      },
+      {
+        "id": "E5",
+        "title": "Standard Webhooks specification",
+        "url": null,
+        "document_name": "standard-webhooks-spec.md",
+        "page": null,
+        "source_kind": "documents",
+        "snippet": "#### Webhook metadata In addition to the payload itself, webhook implementations often include two important pieces of metadata: the timestamp of the attempt, and a unique identifier associated with the webhook. A secure signature scheme should verify the authenticity of both the payload, and the\u2026"
+      },
+      {
+        "id": "E2",
+        "title": "Standard Webhooks specification",
+        "url": null,
+        "document_name": "standard-webhooks-spec.md",
+        "page": null,
+        "source_kind": "documents",
+        "snippet": "#### Verifying signatures Verifying signatures is similar to creating them, though there are a few considerations: - When verifying symmetric signatures, use a constant time comparison function to compare the calculated with the expected signature. Failing to do so can expose consumers to\u2026"
+      },
+      {
+        "id": "E3",
+        "title": "Standard Webhooks specification",
+        "url": null,
+        "document_name": "standard-webhooks-spec.md",
+        "page": null,
+        "source_kind": "documents",
+        "snippet": "#### Webhook headers (sending metadata to consumers) As discussed above, the webhook payload should be sent as the body of an HTTP POST request, which means that additional webhook data should be sent as part of the headers. All of the headers should be prefixed with `webhook-` and follow the\u2026"
+      },
+      {
+        "id": "E4",
+        "title": "Standard Webhooks specification",
+        "url": null,
+        "document_name": "standard-webhooks-spec.md",
+        "page": null,
+        "source_kind": "documents",
+        "snippet": "To achieve this, the webhook is signed both using the current key, and using an old key (for a set period of time), and both signatures are sent, space delimited, in the `webhook-signature` header. Webhook consumers can try to verify each signature until one matches. Signing with multiple keys,\u2026"
+      },
+      {
+        "id": "E6",
+        "title": "Standard Webhooks specification",
+        "url": null,
+        "document_name": "standard-webhooks-spec.md",
+        "page": null,
+        "source_kind": "documents",
+        "snippet": "It's important that both the message id and the timestamp not be user controlled, or at the very least not be allowed to include any `.` to prevent certain attacks. Note: while it's OK (and recommended) to minimize the JSON body when serialized for sending, it's important to make sure that the\u2026"
+      },
+      {
+        "id": "E7",
+        "title": "Standard Webhooks specification",
+        "url": null,
+        "document_name": "standard-webhooks-spec.md",
+        "page": null,
+        "source_kind": "documents",
+        "snippet": "### Verifying webhook authenticity Webhooks are just HTTP requests from an unknown source, so verifying the authenticity of webhooks is a requirement for any secure webhook implementation. There are multiple ways to verify the authenticity of webhooks, with some being much better than others. The\u2026"
+      },
+      {
+        "id": "E9",
+        "title": "Standard Webhooks specification",
+        "url": null,
+        "document_name": "standard-webhooks-spec.md",
+        "page": null,
+        "source_kind": "documents",
+        "snippet": "#### Endpoint management API Having an API to add, remove, and list webhook endpoints enables both webhook consumers and third party developers to build automation on top of webhooks. One common use-case, for example, is to have a workflow automation tool automatically add webhook endpoints with\u2026"
+      }
+    ],
+    "depth": "detailed",
+    "word_count": 696
+  },
+  "metadata": {
+    "iterations": 4,
+    "iteration_limit": 5,
+    "max_iterations": 5,
+    "agents_used": [
+      "Researcher",
+      "Writer",
+      "Reviewer",
+      "Fact-Checker"
+    ],
+    "duration_seconds": 49.0,
+    "forced": false,
+    "degraded": false,
+    "llm_calls": 11,
+    "cached_calls": 0,
+    "tool_calls": 2,
+    "evidence": 11,
+    "tokens": {
+      "input": 35122,
+      "output": 6306
+    },
+    "est_cost_usd": 0.006035,
+    "per_agent": {
+      "Supervisor": {
+        "calls": 4,
+        "tokens": 11734,
+        "duration_ms": 12521
+      },
+      "Researcher": {
+        "calls": 3,
+        "tokens": 9180,
+        "duration_ms": 13088
+      },
+      "Writer": {
+        "calls": 1,
+        "tokens": 6653,
+        "duration_ms": 10972
+      },
+      "Reviewer": {
+        "calls": 1,
+        "tokens": 2813,
+        "duration_ms": 3481
+      },
+      "Fact-Checker": {
+        "calls": 2,
+        "tokens": 11048,
+        "duration_ms": 12006
+      }
+    },
+    "grounding": {
+      "checked": 12,
+      "supported": 12,
+      "unsupported": 0,
+      "contradicted": 0,
+      "supported_ratio": 1.0
+    },
+    "models": {
+      "supervisor": "gemini-3.5-flash-lite",
+      "workers": "gemini-3.5-flash-lite"
+    },
+    "prompt_version": "4",
+    "generated_by": "AI (Gemini)",
+    "created_at": "2026-10-11T14:00:34+00:00",
+    "started_at": "2026-10-11T14:00:34+00:00",
+    "finished_at": "2026-10-11T14:01:23+00:00"
+  },
+  "conversation_history": [
+    {
+      "seq": 1,
+      "iteration": 1,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 1790,
+      "tokens": {
+        "input": 1312,
+        "output": 74,
+        "thinking": 0
+      },
+      "action": "DELEGATE",
+      "target_agent": "Researcher",
+      "task": "Research the mechanism of Standard Webhooks signatures (e.g., standardwebhooks.com, HMAC-SHA256, headers like webhook-id, webhook-timestamp, webhook-signature) and best practices for receiver verification.",
+      "delegations": [
+        {
+          "target_agent": "Researcher",
+          "task": "Research the mechanism of Standard Webhooks signatures (e.g., standardwebhooks.com, HMAC-SHA256, headers like webhook-id, webhook-timestamp, webhook-signature) and best practices for receiver verification."
+        }
+      ],
+      "reason": "Start by researching how Standard Webhooks signatures work and how receivers verify them.",
+      "repaired": false
+    },
+    {
+      "seq": 2,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 158,
+      "tokens": {
+        "input": 1301,
+        "output": 28,
+        "thinking": 0
+      },
+      "action": "TOOL_CALL",
+      "tool": "search_documents",
+      "args": {
+        "query": "standard webhooks signatures webhook-id webhook-timestamp webhook-signature"
+      },
+      "status": "ok",
+      "provider": "documents",
+      "fallback": null,
+      "results": 6,
+      "evidence": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6"
+      ],
+      "error": null,
+      "weak": false,
+      "repeat": false
+    },
+    {
+      "seq": 3,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 112,
+      "tokens": {
+        "input": 3043,
+        "output": 22,
+        "thinking": 0
+      },
+      "action": "TOOL_CALL",
+      "tool": "search_documents",
+      "args": {
+        "query": "standard webhooks verification steps code example"
+      },
+      "status": "ok",
+      "provider": "documents",
+      "fallback": null,
+      "results": 6,
+      "evidence": [
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E6"
+      ],
+      "error": null,
+      "weak": false,
+      "repeat": false
+    },
+    {
+      "seq": 4,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 3,
+      "cached": false,
+      "duration_ms": 13088,
+      "tokens": {
+        "input": 8779,
+        "output": 401,
+        "thinking": 0
+      },
+      "action": "RESULT",
+      "task": "Research the mechanism of Standard Webhooks signatures (e.g., standardwebhooks.com, HMAC-SHA256, headers like webhook-id, webhook-timestamp, webhook-signature) and best practices for receiver verification.",
+      "content": "### Signature Mechanism\n- **Concatenated Components**: Standard Webhooks sign both the message metadata and the body together. The string to sign is formed by concatenating the message ID, timestamp, and payload, delimited by full stops: `msg_id.timestamp.payload` [E1].\n- **Headers Used**: \n  - `webhook-id`: A unique identifier for the webhook attempt [E3][E5].\n  - `webhook-timestamp`: An integer Unix timestamp (seconds since epoch) [E3].\n  - `webhook-signature`: A space-delimited list of signatures (supporting zero-downtime secret rotation by including signatures from both current and old keys) [E3][E4].\n- **Cryptographic Schemes**: Supports both symmetric (e.g., HMAC-SHA256) and asymmetric signatures [E2][E6][E7].\n\n### Receiver Best Practices\n- **Constant-Time Comparison**: When verifying symmetric signatures, use a constant-time comparison function to prevent timing attacks and signing oracles [E2].\n- **Replay Protection**: Verify that the `webhook-timestamp` falls within an acceptable tolerance window of the current time [E2].\n- **Idempotency**: Use the `webhook-id` header as an idempotency key (e.g., caching IDs for a short duration like 5 minutes) to avoid processing duplicate webhook deliveries [E2].\n- **Raw Payload Handling**: Avoid parsing and re-serializing the JSON body prior to verification, as minor formatting changes will break the cryptographic signature [E6].\n\n### Gaps\n- Specific language-specific code snippets or library function names for signature verification.",
+      "evidence": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7"
+      ],
+      "data": {
+        "tool_calls": 2,
+        "capped": false,
+        "tools": {
+          "search_documents": 2
+        },
+        "queries": [
+          "standard webhooks signatures webhook-id webhook-timestamp webhook-signature",
+          "standard webhooks verification steps code example"
+        ],
+        "fallbacks": 0,
+        "repeats": 0,
+        "rewrites": 0,
+        "evidence_seen": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "evidence_cited": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "summary": "researcher used search_documents \u00d72 \u00b7 11 evidence, 7 cited"
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 5,
+      "iteration": 2,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 3053,
+      "tokens": {
+        "input": 1789,
+        "output": 99,
+        "thinking": 0
+      },
+      "action": "DELEGATE",
+      "target_agent": "Writer",
+      "task": "Write a detailed report (600-1000 words, 4-6 sections) answering how Standard Webhooks signatures work and how a receiver should verify them, based on the research findings (E1-E11). Include a table comparing verification aspects or options, concrete examples of the verification process, and follow the required structure.",
+      "delegations": [
+        {
+          "target_agent": "Writer",
+          "task": "Write a detailed report (600-1000 words, 4-6 sections) answering how Standard Webhooks signatures work and how a receiver should verify them, based on the research findings (E1-E11). Include a table comparing verification aspects or options, concrete examples of the verification process, and follow the required structure."
+        }
+      ],
+      "reason": "We have solid research findings; now we need the initial draft from the writer.",
+      "repaired": false
+    },
+    {
+      "seq": 6,
+      "iteration": 2,
+      "agent": "Writer",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 10972,
+      "tokens": {
+        "input": 4183,
+        "output": 1365,
+        "thinking": 1105
+      },
+      "action": "RESULT",
+      "task": "Write a detailed report (600-1000 words, 4-6 sections) answering how Standard Webhooks signatures work and how a receiver should verify them, based on the research findings (E1-E11). Include a table comparing verification aspects or options, concrete examples of the verification process, and follow the required structure.",
+      "content": "# Understanding Standard Webhooks Signatures and Receiver Verification Protocols\n\nStandard Webhooks provide a unified protocol for sending and verifying HTTP webhooks securely across different API providers and consumers [E11]. Signatures work by cryptographically binding message metadata\u2014specifically a unique message identifier and a Unix timestamp\u2014together with the raw request body into a single concatenated string [E1][E5]. Receivers verify these webhooks by reconstructing this string, testing cryptographic signatures against shared or public keys, validating timestamps to prevent replay attacks, and utilizing message IDs to ensure idempotency [E2][E5].\n\n## The Anatomy of Standard Webhooks Signatures\n\nThe Standard Webhooks specification relies on a specific string construction to ensure that neither the payload nor the accompanying delivery metadata can be tampered with in transit [E1][E5]. To form the string that gets signed, the sender concatenates the message identifier, the attempt timestamp, and the raw payload body, separated by full stops [E1]. The format is expressed strictly as `msg_id.timestamp.payload` [E1]. \n\nTo transmit this data securely, senders include three mandatory headers in the HTTP POST request [E3]. The `webhook-id` header provides a unique identifier for the webhook event, which remains consistent even if the delivery is retried [E3][E5]. The `webhook-timestamp` header records an integer Unix timestamp representing seconds since the epoch [E3]. Finally, the `webhook-signature` header contains a space-delimited list of one or more signatures [E3][E4]. This multi-signature approach supports zero-downtime secret rotation by allowing the sender to sign the message with both a current key and a recently retired key [E3][E4]. The underlying architecture supports both symmetric schemes, such as HMAC-SHA256, and asymmetric cryptographic schemes [E2][E6][E7].\n\n## Essential Receiver Verification Best Practices\n\nVerifying webhooks requires careful adherence to security and parsing guidelines to prevent common vulnerabilities [E2]. First, receivers must handle the raw HTTP payload directly without parsing and re-serializing the JSON body beforehand [E6]. Even minor formatting changes, such as a stray space or different key ordering introduced during re-serialization, will alter the payload and invalidate the cryptographic signature [E6].\n\nSecond, receivers must protect against replay attacks by inspecting the `webhook-timestamp` header and confirming that it falls within an acceptable tolerance window of the current system time [E2]. Third, duplicate delivery handling should leverage the `webhook-id` header as an idempotency key by caching processed IDs for a short duration, such as five minutes [E2]. Finally, when working with symmetric signatures, developers must use a constant-time comparison function to evaluate the calculated signature against the expected signature, thereby preventing timing attacks and signing oracles [E2].\n\n## Comparing Verification Aspects and Options\n\n| Verification Aspect | Symmetric Signatures (e.g., HMAC) | Asymmetric Signatures | Key Rotation Handling |\n| :--- | :--- | :--- | :--- |\n| **Primary Mechanism** | Uses a pre-shared secret key to generate and check HMAC values [E7]. | Uses public/private key pairs for signing and verifying [E6][E7]. | Space-delimited list allows testing multiple keys simultaneously [E3][E4]. |\n| **Vulnerability Risk** | Susceptible to timing attacks if non-constant-time comparisons are used [E2]. | Relies heavily on external cryptographic libraries staying up-to-date [E2]. | Compromised keys must still match valid signatures without lowering security [E4]. |\n| **Receiver Action** | Compute local HMAC, then compare using a constant-time algorithm [E2]. | Use a battle-tested cryptographic library to verify public keys [E2]. | Iterate through space-delimited signatures in the header until one matches [E4]. |\n\n## Concrete Examples of the Verification Process\n\nThe verification process can be observed through standard header and payload examples. Suppose a receiver obtains a request with the message ID `msg_2KWPBgLlAfxdpx2AI54pPJ85f4W`, a timestamp of `1674087231`, and a JSON payload [E1][E4]. The raw string to be signed is constructed by joining these elements with full stops: `msg_2KWPBgLlAfxdpx2AI54pPJ85f4W.1674087231.{\"type\":\"contact.created\",\"timestamp\":\"2022-11-03T20:26:10.344522Z\",\"data\":{\"id\":\"1f81eb52-5198-4599-803e-771906343485\"}}` [E1].\n\nThe incoming `webhook-signature` header provides multiple signatures, such as `v1,K5oZfzN95Z9UVu1EsfQmfVNQhnkZ2pj9o9NDN/H/pI4=` signed with the current key and `v1a,hnO3f9T8Ytu9HwrXslvumlUpqtNVqkhqw/enGzPCXe5BdqzCInXqYXFymVJaA7AZdpXwVLPo3mNl8EM+m7TBAg==` signed with an old key [E4]. The receiver extracts the raw request body, reconstructs the message string, computes the expected signature using the shared secret or public key, and iterates through the space-delimited list in the header to find a match using a constant-time comparison [E2][E4].\n\n## Practical Implications and Migration Considerations\n\nAdopting Standard Webhooks does not require a disruptive overhaul of existing infrastructure. Organizations can run Standard Webhooks in tandem with legacy webhook implementations by sending the new `webhook-signature`, `webhook-id`, and `webhook-timestamp` headers alongside existing custom headers, and even reusing current signing secrets [E9]. \n\nThere are, however, certain operational gaps to note. While the specification outlines rigorous architectural guidelines, it does not mandate specific language-specific code snippets or library function names for signature verification [Gaps]. Developers must implement the cryptographic hashing logic using language-appropriate libraries while adhering strictly to raw body handling and constant-time comparison requirements [E2][E6].",
+      "evidence": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E9",
+        "E11"
+      ],
+      "data": {
+        "words": 696,
+        "sections": 5
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 7,
+      "iteration": 3,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 1427,
+      "tokens": {
+        "input": 3297,
+        "output": 86,
+        "thinking": 85
+      },
+      "action": "DELEGATE",
+      "target_agent": "Reviewer",
+      "task": "Review the draft against the research question, depth, structure, and evidence coverage. Return approve or revise with issues.",
+      "delegations": [
+        {
+          "target_agent": "Reviewer",
+          "task": "Review the draft against the research question, depth, structure, and evidence coverage. Return approve or revise with issues."
+        },
+        {
+          "target_agent": "Fact-Checker",
+          "task": "Check each cited sentence of the draft against the evidence it cites. Return supported/unsupported/contradicted per claim and needs_revision."
+        }
+      ],
+      "reason": "Review and fact check the writer's draft in parallel.",
+      "repaired": false
+    },
+    {
+      "seq": 8,
+      "iteration": 3,
+      "agent": "Reviewer",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 3481,
+      "tokens": {
+        "input": 2787,
+        "output": 26,
+        "thinking": 0
+      },
+      "action": "RESULT",
+      "task": "Review the draft against the research question, depth, structure, and evidence coverage. Return approve or revise with issues.",
+      "content": "Verdict: APPROVE\nIssues: none\nBalance: none\nChecks: 696 words (600\u20131000) \u00b7 5 sections (4\u20136) \u00b7 0 of 12 paragraphs uncited \u00b7 0 unknown citations",
+      "evidence": [],
+      "data": {
+        "verdict": "approve",
+        "issues": [],
+        "balance_flags": [],
+        "checks": {
+          "words": 696,
+          "word_range": [
+            600,
+            1000
+          ],
+          "sections": 5,
+          "section_range": [
+            4,
+            6
+          ],
+          "has_title": true,
+          "unknown": [],
+          "uncited_paragraphs": 0,
+          "paragraphs": 12
+        },
+        "verdict_overridden": false
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 9,
+      "iteration": 3,
+      "agent": "Fact-Checker",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 2,
+      "cached": false,
+      "duration_ms": 12006,
+      "tokens": {
+        "input": 9400,
+        "output": 1648,
+        "thinking": 0
+      },
+      "action": "RESULT",
+      "task": "Check each cited sentence of the draft against the evidence it cites. Return supported/unsupported/contradicted per claim and needs_revision.",
+      "content": "Fact check: 12 of 27 cited sentences checked: 12 supported, 0 unsupported, 0 contradicted. No revision needed.",
+      "evidence": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6",
+        "E7",
+        "E9",
+        "E11"
+      ],
+      "data": {
+        "claims": [
+          {
+            "claim": "C1",
+            "section": null,
+            "sentence": "Standard Webhooks provide a unified protocol for sending and verifying HTTP webhooks securely across different API providers and consumers [E11].",
+            "cited": [
+              "E11"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E11"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C2",
+            "section": null,
+            "sentence": "Signatures work by cryptographically binding message metadata\u2014specifically a unique message identifier and a Unix timestamp\u2014together with the raw request body into a single concatenated string [E1][E5].",
+            "cited": [
+              "E1",
+              "E5"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E1",
+              "E5"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C3",
+            "section": "The Anatomy of Standard Webhooks Signatures",
+            "sentence": "The Standard Webhooks specification relies on a specific string construction to ensure that neither the payload nor the accompanying delivery metadata can be tampered with in transit [E1][E5].",
+            "cited": [
+              "E1",
+              "E5"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E1",
+              "E5"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C4",
+            "section": "The Anatomy of Standard Webhooks Signatures",
+            "sentence": "The underlying architecture supports both symmetric schemes, such as HMAC-SHA256, and asymmetric cryptographic schemes [E2][E6][E7].",
+            "cited": [
+              "E2",
+              "E6",
+              "E7"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E2",
+              "E6",
+              "E7"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C5",
+            "section": "Essential Receiver Verification Best Practices",
+            "sentence": "Verifying webhooks requires careful adherence to security and parsing guidelines to prevent common vulnerabilities [E2].",
+            "cited": [
+              "E2"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E2"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C6",
+            "section": "Essential Receiver Verification Best Practices",
+            "sentence": "First, receivers must handle the raw HTTP payload directly without parsing and re-serializing the JSON body beforehand [E6].",
+            "cited": [
+              "E6"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E6"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C7",
+            "section": "Comparing Verification Aspects and Options",
+            "sentence": "**Primary Mechanism** \u00b7 Uses a pre-shared secret key to generate and check HMAC values [E7]. \u00b7 Uses public/private key pairs for signing and verifying [E6][E7]. \u00b7 Space-delimited list allows testing multiple keys simultaneously [E3][E4].",
+            "cited": [
+              "E3",
+              "E4",
+              "E6",
+              "E7"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E3",
+              "E4"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C8",
+            "section": "Comparing Verification Aspects and Options",
+            "sentence": "**Vulnerability Risk** \u00b7 Susceptible to timing attacks if non-constant-time comparisons are used [E2]. \u00b7 Relies heavily on external cryptographic libraries staying up-to-date [E2]. \u00b7 Compromised keys must still match valid signatures without lowering security [E4].",
+            "cited": [
+              "E2",
+              "E4"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E2",
+              "E4"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C9",
+            "section": "Concrete Examples of the Verification Process",
+            "sentence": "Suppose a receiver obtains a request with the message ID `msg_2KWPBgLlAfxdpx2AI54pPJ85f4W`, a timestamp of `1674087231`, and a JSON payload [E1][E4].",
+            "cited": [
+              "E1",
+              "E4"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E1",
+              "E4"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C10",
+            "section": "Concrete Examples of the Verification Process",
+            "sentence": "The raw string to be signed is constructed by joining these elements with full stops: `msg_2KWPBgLlAfxdpx2AI54pPJ85f4W.1674087231.{\"type\":\"contact.created\",\"timestamp\":\"2022-11-03T20:26:10.344522Z\",\"data\":{\"id\":\"1f81eb52-5198-4599-803e-771906343485\"}}` [E1].",
+            "cited": [
+              "E1"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E1"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C11",
+            "section": "Practical Implications and Migration Considerations",
+            "sentence": "Organizations can run Standard Webhooks in tandem with legacy webhook implementations by sending the new `webhook-signature`, `webhook-id`, and `webhook-timestamp` headers alongside existing custom headers, and even reusing current signing secrets [E9].",
+            "cited": [
+              "E9"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E9"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C12",
+            "section": "Practical Implications and Migration Considerations",
+            "sentence": "Developers must implement the cryptographic hashing logic using language-appropriate libraries while adhering strictly to raw body handling and constant-time comparison requirements [E2][E6].",
+            "cited": [
+              "E2",
+              "E6"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E2",
+              "E6"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          }
+        ],
+        "stats": {
+          "cited_sentences": 27,
+          "checked": 12,
+          "skipped": 0,
+          "supported": 12,
+          "unsupported": 0,
+          "contradicted": 0,
+          "miscited": 0,
+          "supported_ratio": 1.0
+        },
+        "needs_revision": false
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 10,
+      "iteration": 4,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 6251,
+      "tokens": {
+        "input": 3575,
+        "output": 1396,
+        "thinking": 21
+      },
+      "action": "FINAL",
+      "reason": "The draft has been fully approved by the reviewer and fact-checked with complete support, meeting all length and structural requirements.",
+      "forced": false
+    }
+  ],
+  "final_output": "# Understanding Standard Webhooks Signatures and Receiver Verification Protocols\n\nStandard Webhooks provide a unified protocol for sending and verifying HTTP webhooks securely across different API providers and consumers [E11]. Signatures work by cryptographically binding message metadata\u2014specifically a unique message identifier and a Unix timestamp\u2014together with the raw request body into a single concatenated string [E1][E5]. Receivers verify these webhooks by reconstructing this string, testing cryptographic signatures against shared or public keys, validating timestamps to prevent replay attacks, and utilizing message IDs to ensure idempotency [E2][E5].\n\n## The Anatomy of Standard Webhooks Signatures\n\nThe Standard Webhooks specification relies on a specific string construction to ensure that neither the payload nor the accompanying delivery metadata can be tampered with in transit [E1][E5]. To form the string that gets signed, the sender concatenates the message identifier, the attempt timestamp, and the raw payload body, separated by full stops [E1]. The format is expressed strictly as `msg_id.timestamp.payload` [E1]. \n\nTo transmit this data securely, senders include three mandatory headers in the HTTP POST request [E3]. The `webhook-id` header provides a unique identifier for the webhook event, which remains consistent even if the delivery is retried [E3][E5]. The `webhook-timestamp` header records an integer Unix timestamp representing seconds since the epoch [E3]. Finally, the `webhook-signature` header contains a space-delimited list of one or more signatures [E3][E4]. This multi-signature approach supports zero-downtime secret rotation by allowing the sender to sign the message with both a current key and a recently retired key [E3][E4]. The underlying architecture supports both symmetric schemes, such as HMAC-SHA256, and asymmetric cryptographic schemes [E2][E6][E7].\n\n## Essential Receiver Verification Best Practices\n\nVerifying webhooks requires careful adherence to security and parsing guidelines to prevent common vulnerabilities [E2]. First, receivers must handle the raw HTTP payload directly without parsing and re-serializing the JSON body beforehand [E6]. Even minor formatting changes, such as a stray space or different key ordering introduced during re-serialization, will alter the payload and invalidate the cryptographic signature [E6].\n\nSecond, receivers must protect against replay attacks by inspecting the `webhook-timestamp` header and confirming that it falls within an acceptable tolerance window of the current system time [E2]. Third, duplicate delivery handling should leverage the `webhook-id` header as an idempotency key by caching processed IDs for a short duration, such as five minutes [E2]. Finally, when working with symmetric signatures, developers must use a constant-time comparison function to evaluate the calculated signature against the expected signature, thereby preventing timing attacks and signing oracles [E2].\n\n## Comparing Verification Aspects and Options\n\n| Verification Aspect | Symmetric Signatures (e.g., HMAC) | Asymmetric Signatures | Key Rotation Handling |\n| :--- | :--- | :--- | :--- |\n| **Primary Mechanism** | Uses a pre-shared secret key to generate and check HMAC values [E7]. | Uses public/private key pairs for signing and verifying [E6][E7]. | Space-delimited list allows testing multiple keys simultaneously [E3][E4]. |\n| **Vulnerability Risk** | Susceptible to timing attacks if non-constant-time comparisons are used [E2]. | Relies heavily on external cryptographic libraries staying up-to-date [E2]. | Compromised keys must still match valid signatures without lowering security [E4]. |\n| **Receiver Action** | Compute local HMAC, then compare using a constant-time algorithm [E2]. | Use a battle-tested cryptographic library to verify public keys [E2]. | Iterate through space-delimited signatures in the header until one matches [E4]. |\n\n## Concrete Examples of the Verification Process\n\nThe verification process can be observed through standard header and payload examples. Suppose a receiver obtains a request with the message ID `msg_2KWPBgLlAfxdpx2AI54pPJ85f4W`, a timestamp of `1674087231`, and a JSON payload [E1][E4]. The raw string to be signed is constructed by joining these elements with full stops: `msg_2KWPBgLlAfxdpx2AI54pPJ85f4W.1674087231.{\"type\":\"contact.created\",\"timestamp\":\"2022-11-03T20:26:10.344522Z\",\"data\":{\"id\":\"1f81eb52-5198-4599-803e-771906343485\"}}` [E1].\n\nThe incoming `webhook-signature` header provides multiple signatures, such as `v1,K5oZfzN95Z9UVu1EsfQmfVNQhnkZ2pj9o9NDN/H/pI4=` signed with the current key and `v1a,hnO3f9T8Ytu9HwrXslvumlUpqtNVqkhqw/enGzPCXe5BdqzCInXqYXFymVJaA7AZdpXwVLPo3mNl8EM+m7TBAg==` signed with an old key [E4]. The receiver extracts the raw request body, reconstructs the message string, computes the expected signature using the shared secret or public key, and iterates through the space-delimited list in the header to find a match using a constant-time comparison [E2][E4].\n\n## Practical Implications and Migration Considerations\n\nAdopting Standard Webhooks does not require a disruptive overhaul of existing infrastructure. Organizations can run Standard Webhooks in tandem with legacy webhook implementations by sending the new `webhook-signature`, `webhook-id`, and `webhook-timestamp` headers alongside existing custom headers, and even reusing current signing secrets [E9]. \n\nThere are, however, certain operational gaps to note. While the specification outlines rigorous architectural guidelines, it does not mandate specific language-specific code snippets or library function names for signature verification [Gaps]. Developers must implement the cryptographic hashing logic using language-appropriate libraries while adhering strictly to raw body handling and constant-time comparison requirements [E2][E6].",
+  "flags": [],
+  "memory_used": [],
+  "error": null,
+  "approval": {
+    "required": false,
+    "draft": null,
+    "expires_at": null,
+    "revisions": 0
+  },
+  "sample": true
+}

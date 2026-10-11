@@ -1,0 +1,700 @@
+{
+  "run_id": "run_d4e5a090b0af",
+  "status": "completed",
+  "question": "Summarize the history of the Python programming language.",
+  "depth": "brief",
+  "sources": [
+    "wikipedia"
+  ],
+  "channel": "web",
+  "report": {
+    "title": "A Brief History of the Python Programming Language",
+    "summary": "Python was conceived in the late 1980s by Guido van Rossum at Centrum Wiskunde & Informatica (CWI) in the Netherlands as a successor to the ABC programming language [E8][E9]. Implementation started in December 1989 with the goals of supporting exception handling and interfacing with the Amoeba operating system [E8][E9]. The language was named after the British television show *Monty Python's Flying Circus* [E8][E9].",
+    "sections": [
+      {
+        "heading": "Early Releases and Major Versions",
+        "content": "Van Rossum released Python version 0.9.0 in 1991, followed by version 0.9.1 published to alt.sources in February 1991 [E7][E8]. Early editions already featured classes with inheritance, exception handling, functions, and core datatypes like lists, dictionaries, and strings [E7].\n\nPython 2.0 launched on October 16, 2000, introducing significant additions such as list comprehensions, a cycle-detecting garbage collector, and Unicode support alongside a more transparent development process [E8][E9]. Subsequently, Python 3.0 was released on December 3, 2008, as a major revision that was not completely backward-compatible with earlier versions [E9][E11]."
+      },
+      {
+        "heading": "Governance and Modern Development",
+        "content": "For decades, Van Rossum guided the project as Python's \"Benevolent Dictator for Life\" (BDFL) until announcing his permanent departure from the role on July 12, 2018 [E8][E9]. In January 2019, active core developers elected a five-member Steering Council to lead the project [E8]. Python operates on an annual release cycle and a five-year support policy [E11], continually evolving to incorporate features like optional static typing and new built-in types [E11][E10]."
+      }
+    ],
+    "references": [
+      "[E8] Python (programming language) (Wikipedia) \u2014 https://en.wikipedia.org/wiki/Python_(programming_language)",
+      "[E9] History of Python (Wikipedia) \u2014 https://en.wikipedia.org/wiki/History_of_Python",
+      "[E7] History of Python (Wikipedia) \u2014 https://en.wikipedia.org/wiki/History_of_Python",
+      "[E11] Python (programming language) (Wikipedia) \u2014 https://en.wikipedia.org/wiki/Python_(programming_language)",
+      "[E10] Python (programming language) (Wikipedia) \u2014 https://en.wikipedia.org/wiki/Python_(programming_language)"
+    ],
+    "sources": [
+      {
+        "id": "E8",
+        "title": "Python (programming language)",
+        "url": "https://en.wikipedia.org/wiki/Python_(programming_language)",
+        "document_name": null,
+        "page": null,
+        "source_kind": "wikipedia",
+        "snippet": "## History Python was conceived in the late 1980s by Guido van Rossum at Centrum Wiskunde & Informatica (CWI) in the Netherlands. It was designed as a successor to the ABC programming language, which was inspired by SETL, capable of exception handling and interfacing with the Amoeba operating\u2026"
+      },
+      {
+        "id": "E9",
+        "title": "History of Python",
+        "url": "https://en.wikipedia.org/wiki/History_of_Python",
+        "document_name": null,
+        "page": null,
+        "source_kind": "wikipedia",
+        "snippet": "The programming language Python was conceived in the late 1980s, and its implementation was started in December 1989 by Guido van Rossum at CWI in the Netherlands as a successor to ABC capable of exception handling and interfacing with the Amoeba operating system. Van Rossum was Python's principal\u2026"
+      },
+      {
+        "id": "E7",
+        "title": "History of Python",
+        "url": "https://en.wikipedia.org/wiki/History_of_Python",
+        "document_name": null,
+        "page": null,
+        "source_kind": "wikipedia",
+        "snippet": "## Early history Van Rossum first published the code (for Python version 0.9.1) to alt.sources in February 1991. Several features of the language were already present at this stage, among them classes with inheritance, exception handling, functions, and various core datatypes such as list, dict,\u2026"
+      },
+      {
+        "id": "E11",
+        "title": "Python (programming language)",
+        "url": "https://en.wikipedia.org/wiki/Python_(programming_language)",
+        "document_name": null,
+        "page": null,
+        "source_kind": "wikipedia",
+        "snippet": "Python is a high-level, general-purpose programming language that emphasizes code readability, simplicity, and ease-of-writing with the use of significant indentation, an extensive (\"batteries-included\") standard library, and garbage collection. Python supports multiple programming paradigms but\u2026"
+      },
+      {
+        "id": "E10",
+        "title": "Python (programming language)",
+        "url": "https://en.wikipedia.org/wiki/Python_(programming_language)",
+        "document_name": null,
+        "page": null,
+        "source_kind": "wikipedia",
+        "snippet": "Python 3.11 is, since October 2026, the oldest supported branch. Python 3.15 adds e.g. frozendict and sentinel built-in types, and a new soft keyword, lazy, for lazy imports. Releases receive two years of full support followed by three years of security support."
+      }
+    ],
+    "depth": "brief",
+    "word_count": 216
+  },
+  "metadata": {
+    "iterations": 4,
+    "iteration_limit": 4,
+    "max_iterations": 4,
+    "agents_used": [
+      "Researcher",
+      "Writer",
+      "Reviewer",
+      "Fact-Checker"
+    ],
+    "duration_seconds": 46.0,
+    "forced": false,
+    "degraded": false,
+    "llm_calls": 12,
+    "cached_calls": 0,
+    "tool_calls": 3,
+    "evidence": 12,
+    "tokens": {
+      "input": 30038,
+      "output": 4106
+    },
+    "est_cost_usd": 0.004646,
+    "per_agent": {
+      "Supervisor": {
+        "calls": 4,
+        "tokens": 8767,
+        "duration_ms": 9407
+      },
+      "Researcher": {
+        "calls": 4,
+        "tokens": 9471,
+        "duration_ms": 16661
+      },
+      "Writer": {
+        "calls": 1,
+        "tokens": 5898,
+        "duration_ms": 7129
+      },
+      "Reviewer": {
+        "calls": 1,
+        "tokens": 1885,
+        "duration_ms": 3769
+      },
+      "Fact-Checker": {
+        "calls": 2,
+        "tokens": 8123,
+        "duration_ms": 12573
+      }
+    },
+    "grounding": {
+      "checked": 10,
+      "supported": 10,
+      "unsupported": 0,
+      "contradicted": 0,
+      "supported_ratio": 1.0
+    },
+    "models": {
+      "supervisor": "gemini-3.5-flash-lite",
+      "workers": "gemini-3.5-flash-lite"
+    },
+    "prompt_version": "4",
+    "generated_by": "AI (Gemini)",
+    "created_at": "2026-10-11T13:59:04+00:00",
+    "started_at": "2026-10-11T13:59:04+00:00",
+    "finished_at": "2026-10-11T13:59:50+00:00"
+  },
+  "conversation_history": [
+    {
+      "seq": 1,
+      "iteration": 1,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 1204,
+      "tokens": {
+        "input": 1283,
+        "output": 54,
+        "thinking": 56
+      },
+      "action": "DELEGATE",
+      "target_agent": "Researcher",
+      "task": "Search Wikipedia for the history, creation, and major milestones of the Python programming language, including its creator Guido van Rossum and release years.",
+      "delegations": [
+        {
+          "target_agent": "Researcher",
+          "task": "Search Wikipedia for the history, creation, and major milestones of the Python programming language, including its creator Guido van Rossum and release years."
+        }
+      ],
+      "reason": "Start by gathering key historical facts about the Python programming language from Wikipedia.",
+      "repaired": false
+    },
+    {
+      "seq": 2,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 2048,
+      "tokens": {
+        "input": 851,
+        "output": 25,
+        "thinking": 0
+      },
+      "action": "TOOL_CALL",
+      "tool": "search_wikipedia",
+      "args": {
+        "query": "python programming language history guido van rossum release milestones"
+      },
+      "status": "ok",
+      "provider": "wikipedia",
+      "fallback": null,
+      "results": 3,
+      "evidence": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6"
+      ],
+      "error": null,
+      "weak": false,
+      "repeat": false
+    },
+    {
+      "seq": 3,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 129,
+      "tokens": {
+        "input": 2271,
+        "output": 26,
+        "thinking": 0
+      },
+      "action": "TOOL_CALL",
+      "tool": "search_wikipedia",
+      "args": {
+        "query": "python programming language\" creator history guido van rossum"
+      },
+      "status": "empty",
+      "provider": "wikipedia",
+      "fallback": null,
+      "results": 0,
+      "evidence": [],
+      "error": null,
+      "weak": false,
+      "repeat": false
+    },
+    {
+      "seq": 4,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 2110,
+      "tokens": {
+        "input": 2361,
+        "output": 20,
+        "thinking": 0
+      },
+      "action": "TOOL_CALL",
+      "tool": "search_wikipedia",
+      "args": {
+        "query": "python programming language history wikipedia"
+      },
+      "status": "ok",
+      "provider": "wikipedia",
+      "fallback": null,
+      "results": 3,
+      "evidence": [
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12"
+      ],
+      "error": null,
+      "weak": false,
+      "repeat": false
+    },
+    {
+      "seq": 5,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 4,
+      "cached": false,
+      "duration_ms": 16661,
+      "tokens": {
+        "input": 9007,
+        "output": 464,
+        "thinking": 0
+      },
+      "action": "RESULT",
+      "task": "Search Wikipedia for the history, creation, and major milestones of the Python programming language, including its creator Guido van Rossum and release years.",
+      "content": "### Origins and Creation\n- Python was conceived in the late 1980s by Guido van Rossum at Centrum Wiskunde & Informatica (CWI) in the Netherlands as a successor to the ABC programming language [E8][E9].\n- Implementation began in December 1989 [E8][E9]. It was designed to support exception handling and interfacing with the Amoeba operating system [E8][E9], and was named after the BBC TV show *Monty Python's Flying Circus* [E9].\n\n### Early Releases and Development\n- Guido van Rossum first released Python version 0.9.0 in 1991, followed by version 0.9.1 published to alt.sources in February 1991 [E7][E8].\n- Early features included classes with inheritance, exception handling, functions, and core datatypes like lists, dictionaries, and strings, alongside a module and exception model inspired by Modula-3 [E7].\n- Python 2.0 was released on October 16, 2000, introducing list comprehensions, a cycle-detecting garbage collector, Unicode support, and a more transparent community-backed development process [E9].\n- Python 3.0 was released in 2008 as a major revision that was not completely backward-compatible with earlier versions [E11].\n\n### Leadership\n- Guido van Rossum led the project as Python's \"Benevolent Dictator for Life\" (BDFL) until July 12, 2018 [E8][E9].\n- In January 2019, active core developers elected a five-member Steering Council to lead the project [E8].\n\nGaps:\n- Detailed history of Python 3 minor version milestones beyond general release notes and support policies.",
+      "evidence": [
+        "E7",
+        "E8",
+        "E9",
+        "E11"
+      ],
+      "data": {
+        "tool_calls": 3,
+        "capped": true,
+        "tools": {
+          "search_wikipedia": 3
+        },
+        "queries": [
+          "python programming language history guido van rossum release milestones",
+          "python programming language\" creator history guido van rossum",
+          "python programming language history wikipedia"
+        ],
+        "fallbacks": 0,
+        "repeats": 0,
+        "rewrites": 1,
+        "evidence_seen": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "evidence_cited": [
+          7,
+          8,
+          9,
+          11
+        ],
+        "summary": "researcher used search_wikipedia \u00d73 \u00b7 12 evidence, 4 cited \u00b7 1 query rewrite"
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 6,
+      "iteration": 2,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 3298,
+      "tokens": {
+        "input": 1771,
+        "output": 72,
+        "thinking": 0
+      },
+      "action": "DELEGATE",
+      "target_agent": "Writer",
+      "task": "Write a brief history of the Python programming language (200-400 words, 2-3 sections) based on the gathered findings and evidence E1-E12, ensuring all claims are cited.",
+      "delegations": [
+        {
+          "target_agent": "Writer",
+          "task": "Write a brief history of the Python programming language (200-400 words, 2-3 sections) based on the gathered findings and evidence E1-E12, ensuring all claims are cited."
+        }
+      ],
+      "reason": "Delegate the drafting of the report to the writer based on the gathered research.",
+      "repaired": false
+    },
+    {
+      "seq": 7,
+      "iteration": 2,
+      "agent": "Writer",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 7129,
+      "tokens": {
+        "input": 4433,
+        "output": 417,
+        "thinking": 1048
+      },
+      "action": "RESULT",
+      "task": "Write a brief history of the Python programming language (200-400 words, 2-3 sections) based on the gathered findings and evidence E1-E12, ensuring all claims are cited.",
+      "content": "# A Brief History of the Python Programming Language\n\nPython was conceived in the late 1980s by Guido van Rossum at Centrum Wiskunde & Informatica (CWI) in the Netherlands as a successor to the ABC programming language [E8][E9]. Implementation started in December 1989 with the goals of supporting exception handling and interfacing with the Amoeba operating system [E8][E9]. The language was named after the British television show *Monty Python's Flying Circus* [E8][E9].\n\n## Early Releases and Major Versions\n\nVan Rossum released Python version 0.9.0 in 1991, followed by version 0.9.1 published to alt.sources in February 1991 [E7][E8]. Early editions already featured classes with inheritance, exception handling, functions, and core datatypes like lists, dictionaries, and strings [E7]. \n\nPython 2.0 launched on October 16, 2000, introducing significant additions such as list comprehensions, a cycle-detecting garbage collector, and Unicode support alongside a more transparent development process [E8][E9]. Subsequently, Python 3.0 was released on December 3, 2008, as a major revision that was not completely backward-compatible with earlier versions [E9][E11].\n\n## Governance and Modern Development\n\nFor decades, Van Rossum guided the project as Python's \"Benevolent Dictator for Life\" (BDFL) until announcing his permanent departure from the role on July 12, 2018 [E8][E9]. In January 2019, active core developers elected a five-member Steering Council to lead the project [E8]. Python operates on an annual release cycle and a five-year support policy [E11], continually evolving to incorporate features like optional static typing and new built-in types [E11][E10].",
+      "evidence": [
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11"
+      ],
+      "data": {
+        "words": 216,
+        "sections": 2
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 8,
+      "iteration": 3,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 1067,
+      "tokens": {
+        "input": 2303,
+        "output": 108,
+        "thinking": 67
+      },
+      "action": "DELEGATE",
+      "target_agent": "Reviewer",
+      "task": "Review the draft for the brief history of Python against the instructions (200-400 words, 2-3 sections, cited claims). Return approve or revise with issues.",
+      "delegations": [
+        {
+          "target_agent": "Reviewer",
+          "task": "Review the draft for the brief history of Python against the instructions (200-400 words, 2-3 sections, cited claims). Return approve or revise with issues."
+        },
+        {
+          "target_agent": "Fact-Checker",
+          "task": "Check each cited sentence in the draft against the evidence E1-E12. Return supported/unsupported/contradicted per claim and needs_revision."
+        }
+      ],
+      "reason": "Review the draft for task fit, depth, structure, and factual accuracy.",
+      "repaired": false
+    },
+    {
+      "seq": 9,
+      "iteration": 3,
+      "agent": "Reviewer",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 3769,
+      "tokens": {
+        "input": 1859,
+        "output": 26,
+        "thinking": 0
+      },
+      "action": "RESULT",
+      "task": "Review the draft for the brief history of Python against the instructions (200-400 words, 2-3 sections, cited claims). Return approve or revise with issues.",
+      "content": "Verdict: APPROVE\nIssues: none\nBalance: none\nChecks: 216 words (200\u2013400) \u00b7 2 sections (2\u20133) \u00b7 0 of 4 paragraphs uncited \u00b7 0 unknown citations",
+      "evidence": [],
+      "data": {
+        "verdict": "approve",
+        "issues": [],
+        "balance_flags": [],
+        "checks": {
+          "words": 216,
+          "word_range": [
+            200,
+            400
+          ],
+          "sections": 2,
+          "section_range": [
+            2,
+            3
+          ],
+          "has_title": true,
+          "unknown": [],
+          "uncited_paragraphs": 0,
+          "paragraphs": 4
+        },
+        "verdict_overridden": false
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 10,
+      "iteration": 3,
+      "agent": "Fact-Checker",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 2,
+      "cached": false,
+      "duration_ms": 12573,
+      "tokens": {
+        "input": 6779,
+        "output": 1344,
+        "thinking": 0
+      },
+      "action": "RESULT",
+      "task": "Check each cited sentence in the draft against the evidence E1-E12. Return supported/unsupported/contradicted per claim and needs_revision.",
+      "content": "Fact check: 10 of 10 cited sentences checked: 10 supported, 0 unsupported, 0 contradicted. No revision needed.",
+      "evidence": [
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11"
+      ],
+      "data": {
+        "claims": [
+          {
+            "claim": "C1",
+            "section": null,
+            "sentence": "Python was conceived in the late 1980s by Guido van Rossum at Centrum Wiskunde & Informatica (CWI) in the Netherlands as a successor to the ABC programming language [E8][E9].",
+            "cited": [
+              "E8",
+              "E9"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E8",
+              "E9"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C2",
+            "section": null,
+            "sentence": "Implementation started in December 1989 with the goals of supporting exception handling and interfacing with the Amoeba operating system [E8][E9].",
+            "cited": [
+              "E8",
+              "E9"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E8",
+              "E9"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C3",
+            "section": null,
+            "sentence": "The language was named after the British television show *Monty Python's Flying Circus* [E8][E9].",
+            "cited": [
+              "E8",
+              "E9"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E8",
+              "E9"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C4",
+            "section": "Early Releases and Major Versions",
+            "sentence": "Van Rossum released Python version 0.9.0 in 1991, followed by version 0.9.1 published to alt.sources in February 1991 [E7][E8].",
+            "cited": [
+              "E7",
+              "E8"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E7",
+              "E8"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C5",
+            "section": "Early Releases and Major Versions",
+            "sentence": "Early editions already featured classes with inheritance, exception handling, functions, and core datatypes like lists, dictionaries, and strings [E7].",
+            "cited": [
+              "E7"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E7"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C6",
+            "section": "Early Releases and Major Versions",
+            "sentence": "Python 2.0 launched on October 16, 2000, introducing significant additions such as list comprehensions, a cycle-detecting garbage collector, and Unicode support alongside a more transparent development process [E8][E9].",
+            "cited": [
+              "E8",
+              "E9"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E8",
+              "E9"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C7",
+            "section": "Early Releases and Major Versions",
+            "sentence": "Subsequently, Python 3.0 was released on December 3, 2008, as a major revision that was not completely backward-compatible with earlier versions [E9][E11].",
+            "cited": [
+              "E9",
+              "E11"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E9",
+              "E11"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C8",
+            "section": "Governance and Modern Development",
+            "sentence": "For decades, Van Rossum guided the project as Python's \"Benevolent Dictator for Life\" (BDFL) until announcing his permanent departure from the role on July 12, 2018 [E8][E9].",
+            "cited": [
+              "E8",
+              "E9"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E8",
+              "E9"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C9",
+            "section": "Governance and Modern Development",
+            "sentence": "In January 2019, active core developers elected a five-member Steering Council to lead the project [E8].",
+            "cited": [
+              "E8"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E8"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C10",
+            "section": "Governance and Modern Development",
+            "sentence": "Python operates on an annual release cycle and a five-year support policy [E11], continually evolving to incorporate features like optional static typing and new built-in types [E11][E10].",
+            "cited": [
+              "E10",
+              "E11"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E10",
+              "E11"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          }
+        ],
+        "stats": {
+          "cited_sentences": 10,
+          "checked": 10,
+          "skipped": 0,
+          "supported": 10,
+          "unsupported": 0,
+          "contradicted": 0,
+          "miscited": 0,
+          "supported_ratio": 1.0
+        },
+        "needs_revision": false
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 11,
+      "iteration": 4,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 3838,
+      "tokens": {
+        "input": 2603,
+        "output": 450,
+        "thinking": 0
+      },
+      "action": "FINAL",
+      "reason": "The draft has been successfully reviewed and fact-checked with no issues found, and all constraints for a brief summary have been met.",
+      "forced": false
+    }
+  ],
+  "final_output": "# A Brief History of the Python Programming Language\n\nPython was conceived in the late 1980s by Guido van Rossum at Centrum Wiskunde & Informatica (CWI) in the Netherlands as a successor to the ABC programming language [E8][E9]. Implementation started in December 1989 with the goals of supporting exception handling and interfacing with the Amoeba operating system [E8][E9]. The language was named after the British television show *Monty Python's Flying Circus* [E8][E9].\n\n## Early Releases and Major Versions\n\nVan Rossum released Python version 0.9.0 in 1991, followed by version 0.9.1 published to alt.sources in February 1991 [E7][E8]. Early editions already featured classes with inheritance, exception handling, functions, and core datatypes like lists, dictionaries, and strings [E7]. \n\nPython 2.0 launched on October 16, 2000, introducing significant additions such as list comprehensions, a cycle-detecting garbage collector, and Unicode support alongside a more transparent development process [E8][E9]. Subsequently, Python 3.0 was released on December 3, 2008, as a major revision that was not completely backward-compatible with earlier versions [E9][E11].\n\n## Governance and Modern Development\n\nFor decades, Van Rossum guided the project as Python's \"Benevolent Dictator for Life\" (BDFL) until announcing his permanent departure from the role on July 12, 2018 [E8][E9]. In January 2019, active core developers elected a five-member Steering Council to lead the project [E8]. Python operates on an annual release cycle and a five-year support policy [E11], continually evolving to incorporate features like optional static typing and new built-in types [E11][E10].",
+  "flags": [],
+  "memory_used": [],
+  "error": null,
+  "approval": {
+    "required": false,
+    "draft": null,
+    "expires_at": null,
+    "revisions": 0
+  },
+  "sample": true
+}

@@ -1,0 +1,683 @@
+{
+  "run_id": "run_5c9069c882a0",
+  "status": "completed",
+  "question": "Compare SQLite and PostgreSQL for a small web app.",
+  "depth": "brief",
+  "sources": [
+    "web",
+    "wikipedia"
+  ],
+  "channel": "web",
+  "report": {
+    "title": "Comparing SQLite and PostgreSQL for Small Web Applications",
+    "summary": "Choosing between SQLite and PostgreSQL for a small web app depends primarily on your concurrency needs and your tolerance for operational overhead. SQLite is an embedded library stored in a single file that requires zero configuration, making it exceptionally easy to deploy [E6][E11]. PostgreSQL is a traditional client-server database that offers robust performance for complex, high-concurrency workloads [E1][E11].",
+    "sections": [
+      {
+        "heading": "Concurrency and Performance",
+        "content": "PostgreSQL excels in environments requiring heavy write concurrency. It uses true Multi-Version Concurrency Control (MVCC) to support many concurrent writers without blocking readers, and it handles larger datasets and intricate queries effectively [E1][E11].\n\nSQLite operates as an embedded library with in-process calls that achieve microsecond read latencies [E11]. While Write-Ahead Logging (WAL) allows concurrent reads, SQLite limits write concurrency to a single writer at a time [E11]. For a small web app with modest write volumes, this performance is often more than sufficient."
+      },
+      {
+        "heading": "Hosting and Operational Complexity",
+        "content": "SQLite eliminates an entire class of operational work. Because the database is just a file, it requires no separate server process, network port configuration, user management, or database administrator [E6][E11]. While traditional deployments relied solely on local files, modern tools like Litestream enable straightforward backups to cloud storage [E8][E9].\n\nPostgreSQL runs as a dedicated database daemon that requires active server installation and ongoing maintenance [E11]. Administrators must manage roles, tune configuration files, and monitor parameters like autovacuum and WAL [E11]. If your small web app aims to minimize infrastructure management, SQLite offers a compelling advantage [E12]."
+      }
+    ],
+    "references": [
+      "[E6] SQLite - Wikipedia \u2014 https://en.wikipedia.org/wiki/SQLite",
+      "[E11] SQLite vs PostgreSQL: Feature Comparison, Pros/Cons, and Verdict \u2014 https://devops-daily.com/comparisons/sqlite-vs-postgresql",
+      "[E1] SQLite vs PostgreSQL: A Detailed Comparison - DataCamp \u2014 https://www.datacamp.com/blog/sqlite-vs-postgresql-detailed-comparison",
+      "[E8] SQLite vs PostgreSQL: Feature Comparison, Pros/Cons, and Verdict \u2014 https://devops-daily.com/comparisons/sqlite-vs-postgresql",
+      "[E9] SQLite vs PostgreSQL: Feature Comparison, Pros/Cons, and Verdict \u2014 https://devops-daily.com/comparisons/sqlite-vs-postgresql",
+      "[E12] SQLite vs PostgreSQL: Feature Comparison, Pros/Cons, and Verdict \u2014 https://devops-daily.com/comparisons/sqlite-vs-postgresql"
+    ],
+    "sources": [
+      {
+        "id": "E6",
+        "title": "SQLite - Wikipedia",
+        "url": "https://en.wikipedia.org/wiki/SQLite",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "Design SQLite was designed to allow the program to be operated without installing a database management system or requiring a database administrator. Unlike client\u2013server database management systems, the SQLite engine has no standalone processes with which the application program communicates."
+      },
+      {
+        "id": "E11",
+        "title": "SQLite vs PostgreSQL: Feature Comparison, Pros/Cons, and Verdict",
+        "url": "https://devops-daily.com/comparisons/sqlite-vs-postgresql",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "## Feature Comparison | Feature | SQLite | PostgreSQL | |---|---|---| | Design | | | | Architecture | Embedded library linked into your application; no separate server process | Client-server over TCP or Unix socket; runs as a dedicated database process | | Deployment | | | | Setup & Operations |\u2026"
+      },
+      {
+        "id": "E1",
+        "title": "SQLite vs PostgreSQL: A Detailed Comparison - DataCamp",
+        "url": "https://www.datacamp.com/blog/sqlite-vs-postgresql-detailed-comparison",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "PostgreSQL exhibits a significantly greater capacity for performance compared to SQLite, particularly for server and web-based workloads that involve larger data sets, intricate queries, and high levels of concurrency."
+      },
+      {
+        "id": "E8",
+        "title": "SQLite vs PostgreSQL: Feature Comparison, Pros/Cons, and Verdict",
+        "url": "https://devops-daily.com/comparisons/sqlite-vs-postgresql",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "# SQLitevsPostgreSQL An honest comparison of SQLite and PostgreSQL for production workloads. Covers architecture, type systems, extensibility, concurrency, and the modern SQLite ecosystem (Litestream, LiteFS, Turso) that has expanded where SQLite makes sense. SQLite and PostgreSQL sit at opposite\u2026"
+      },
+      {
+        "id": "E9",
+        "title": "SQLite vs PostgreSQL: Feature Comparison, Pros/Cons, and Verdict",
+        "url": "https://devops-daily.com/comparisons/sqlite-vs-postgresql",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "SQLite has also had a serious decade, quietly. STRICT tables, window functions, UPSERT, generated columns, FTS5 full-text search, and the JSON1 extension narrowed most of the feature gap with server databases. The bigger shift has been the ecosystem: Litestream streams the WAL to S3 for continuous\u2026"
+      },
+      {
+        "id": "E12",
+        "title": "SQLite vs PostgreSQL: Feature Comparison, Pros/Cons, and Verdict",
+        "url": "https://devops-daily.com/comparisons/sqlite-vs-postgresql",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "#### Our Recommendation Pick SQLite when operational simplicity, single-host read performance, or embeddability drive your decision. Pick PostgreSQL when concurrent writes, advanced data types, or the extension ecosystem (pgvector, PostGIS, TimescaleDB) are central to your app. ## Frequently Asked\u2026"
+      }
+    ],
+    "depth": "brief",
+    "word_count": 227
+  },
+  "metadata": {
+    "iterations": 4,
+    "iteration_limit": 4,
+    "max_iterations": 4,
+    "agents_used": [
+      "Researcher",
+      "Writer",
+      "Reviewer",
+      "Fact-Checker"
+    ],
+    "duration_seconds": 43.0,
+    "forced": false,
+    "degraded": false,
+    "llm_calls": 11,
+    "cached_calls": 0,
+    "tool_calls": 2,
+    "evidence": 12,
+    "tokens": {
+      "input": 23868,
+      "output": 3896
+    },
+    "est_cost_usd": 0.003945,
+    "per_agent": {
+      "Supervisor": {
+        "calls": 4,
+        "tokens": 8202,
+        "duration_ms": 9264
+      },
+      "Researcher": {
+        "calls": 3,
+        "tokens": 6171,
+        "duration_ms": 12349
+      },
+      "Writer": {
+        "calls": 1,
+        "tokens": 4592,
+        "duration_ms": 8615
+      },
+      "Reviewer": {
+        "calls": 1,
+        "tokens": 1742,
+        "duration_ms": 3865
+      },
+      "Fact-Checker": {
+        "calls": 2,
+        "tokens": 7057,
+        "duration_ms": 12830
+      }
+    },
+    "grounding": {
+      "checked": 10,
+      "supported": 10,
+      "unsupported": 0,
+      "contradicted": 0,
+      "supported_ratio": 1.0
+    },
+    "models": {
+      "supervisor": "gemini-3.5-flash-lite",
+      "workers": "gemini-3.5-flash-lite"
+    },
+    "prompt_version": "4",
+    "generated_by": "AI (Gemini)",
+    "created_at": "2026-10-11T14:01:23+00:00",
+    "started_at": "2026-10-11T14:01:23+00:00",
+    "finished_at": "2026-10-11T14:02:06+00:00"
+  },
+  "conversation_history": [
+    {
+      "seq": 1,
+      "iteration": 1,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 1158,
+      "tokens": {
+        "input": 1299,
+        "output": 43,
+        "thinking": 59
+      },
+      "action": "DELEGATE",
+      "target_agent": "Researcher",
+      "task": "Compare SQLite and PostgreSQL performance, concurrency, hosting, and operational complexity for small web applications.",
+      "delegations": [
+        {
+          "target_agent": "Researcher",
+          "task": "Compare SQLite and PostgreSQL performance, concurrency, hosting, and operational complexity for small web applications."
+        }
+      ],
+      "reason": "Gather key differences between SQLite and PostgreSQL for a small web app.",
+      "repaired": false
+    },
+    {
+      "seq": 2,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 1433,
+      "tokens": {
+        "input": 1069,
+        "output": 24,
+        "thinking": 0
+      },
+      "action": "TOOL_CALL",
+      "tool": "search_web",
+      "args": {
+        "query": "sqlite vs postgresql small web application performance concurrency hosting"
+      },
+      "status": "ok",
+      "provider": "searxng",
+      "fallback": null,
+      "results": 8,
+      "evidence": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6"
+      ],
+      "error": null,
+      "weak": false,
+      "repeat": false
+    },
+    {
+      "seq": 3,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 1561,
+      "tokens": {
+        "input": 1790,
+        "output": 19,
+        "thinking": 0
+      },
+      "action": "TOOL_CALL",
+      "tool": "read_result",
+      "args": {
+        "evidence_id": "E5"
+      },
+      "status": "ok",
+      "provider": "web-page",
+      "fallback": null,
+      "results": 13,
+      "evidence": [
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12"
+      ],
+      "error": null,
+      "weak": false,
+      "repeat": false
+    },
+    {
+      "seq": 4,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 3,
+      "cached": false,
+      "duration_ms": 12349,
+      "tokens": {
+        "input": 5902,
+        "output": 269,
+        "thinking": 0
+      },
+      "action": "RESULT",
+      "task": "Compare SQLite and PostgreSQL performance, concurrency, hosting, and operational complexity for small web applications.",
+      "content": "### Performance and Concurrency\n- **SQLite:** Operates as an embedded library with microsecond read latencies due to in-process calls [E11]. It allows concurrent reads via WAL (Write-Ahead Logging), but write concurrency is limited to a single writer at a time [E11].\n- **PostgreSQL:** Uses a client-server architecture with true MVCC (Multi-Version Concurrency Control), supporting many concurrent writers without blocking readers [E11]. It handles larger datasets, complex queries, and high write concurrency much better [E1].\n\n### Hosting and Operational Complexity\n- **SQLite:** Features zero configuration where the database is stored in a single file, requiring no separate server process, database administrator, user management, or network port configuration [E6][E11]. Modern extensions like Litestream or LiteFS enable backups and replication [E8][E9].\n- **PostgreSQL:** Runs as a dedicated database daemon requiring server installation, configuration tuning, role management, and ongoing maintenance of parameters like WAL and autovacuum [E11].\n\nGaps: none",
+      "evidence": [
+        "E1",
+        "E6",
+        "E8",
+        "E9",
+        "E11"
+      ],
+      "data": {
+        "tool_calls": 2,
+        "capped": false,
+        "tools": {
+          "search_web": 1,
+          "read_result": 1
+        },
+        "queries": [
+          "sqlite vs postgresql small web application performance concurrency hosting"
+        ],
+        "fallbacks": 0,
+        "repeats": 0,
+        "rewrites": 0,
+        "evidence_seen": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "evidence_cited": [
+          1,
+          6,
+          8,
+          9,
+          11
+        ],
+        "summary": "researcher used search_web \u00d71, read_result \u00d71 \u00b7 12 evidence, 5 cited"
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 5,
+      "iteration": 2,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 3586,
+      "tokens": {
+        "input": 1663,
+        "output": 91,
+        "thinking": 0
+      },
+      "action": "DELEGATE",
+      "target_agent": "Writer",
+      "task": "Write a brief report (200\u2013400 words, 2-3 sections) comparing SQLite and PostgreSQL for a small web app, based on the research findings. Lead with the direct answer, keep only points that change the decision, no tables, and cite evidence [E1] through [E12] as appropriate.",
+      "delegations": [
+        {
+          "target_agent": "Writer",
+          "task": "Write a brief report (200\u2013400 words, 2-3 sections) comparing SQLite and PostgreSQL for a small web app, based on the research findings. Lead with the direct answer, keep only points that change the decision, no tables, and cite evidence [E1] through [E12] as appropriate."
+        }
+      ],
+      "reason": "Write the initial draft based on the research findings.",
+      "repaired": false
+    },
+    {
+      "seq": 6,
+      "iteration": 2,
+      "agent": "Writer",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 8615,
+      "tokens": {
+        "input": 2876,
+        "output": 360,
+        "thinking": 1356
+      },
+      "action": "RESULT",
+      "task": "Write a brief report (200\u2013400 words, 2-3 sections) comparing SQLite and PostgreSQL for a small web app, based on the research findings. Lead with the direct answer, keep only points that change the decision, no tables, and cite evidence [E1] through [E12] as appropriate.",
+      "content": "# Comparing SQLite and PostgreSQL for Small Web Applications\n\nChoosing between SQLite and PostgreSQL for a small web app depends primarily on your concurrency needs and your tolerance for operational overhead. SQLite is an embedded library stored in a single file that requires zero configuration, making it exceptionally easy to deploy [E6][E11]. PostgreSQL is a traditional client-server database that offers robust performance for complex, high-concurrency workloads [E1][E11].\n\n## Concurrency and Performance\n\nPostgreSQL excels in environments requiring heavy write concurrency. It uses true Multi-Version Concurrency Control (MVCC) to support many concurrent writers without blocking readers, and it handles larger datasets and intricate queries effectively [E1][E11]. \n\nSQLite operates as an embedded library with in-process calls that achieve microsecond read latencies [E11]. While Write-Ahead Logging (WAL) allows concurrent reads, SQLite limits write concurrency to a single writer at a time [E11]. For a small web app with modest write volumes, this performance is often more than sufficient.\n\n## Hosting and Operational Complexity\n\nSQLite eliminates an entire class of operational work. Because the database is just a file, it requires no separate server process, network port configuration, user management, or database administrator [E6][E11]. While traditional deployments relied solely on local files, modern tools like Litestream enable straightforward backups to cloud storage [E8][E9]. \n\nPostgreSQL runs as a dedicated database daemon that requires active server installation and ongoing maintenance [E11]. Administrators must manage roles, tune configuration files, and monitor parameters like autovacuum and WAL [E11]. If your small web app aims to minimize infrastructure management, SQLite offers a compelling advantage [E12].",
+      "evidence": [
+        "E1",
+        "E6",
+        "E8",
+        "E9",
+        "E11",
+        "E12"
+      ],
+      "data": {
+        "words": 227,
+        "sections": 2
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 7,
+      "iteration": 3,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 843,
+      "tokens": {
+        "input": 2164,
+        "output": 65,
+        "thinking": 0
+      },
+      "action": "DELEGATE",
+      "target_agent": "Reviewer",
+      "task": "Review the draft report against the user prompt, depth instructions, and research findings.",
+      "delegations": [
+        {
+          "target_agent": "Reviewer",
+          "task": "Review the draft report against the user prompt, depth instructions, and research findings."
+        },
+        {
+          "target_agent": "Fact-Checker",
+          "task": "Check each cited sentence of the draft report against the corresponding evidence chunks."
+        }
+      ],
+      "reason": "Review and fact check the writer's draft in parallel.",
+      "repaired": false
+    },
+    {
+      "seq": 8,
+      "iteration": 3,
+      "agent": "Reviewer",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 3865,
+      "tokens": {
+        "input": 1716,
+        "output": 26,
+        "thinking": 0
+      },
+      "action": "RESULT",
+      "task": "Review the draft report against the user prompt, depth instructions, and research findings.",
+      "content": "Verdict: APPROVE\nIssues: none\nBalance: none\nChecks: 227 words (200\u2013400) \u00b7 2 sections (2\u20133) \u00b7 0 of 5 paragraphs uncited \u00b7 0 unknown citations",
+      "evidence": [],
+      "data": {
+        "verdict": "approve",
+        "issues": [],
+        "balance_flags": [],
+        "checks": {
+          "words": 227,
+          "word_range": [
+            200,
+            400
+          ],
+          "sections": 2,
+          "section_range": [
+            2,
+            3
+          ],
+          "has_title": true,
+          "unknown": [],
+          "uncited_paragraphs": 0,
+          "paragraphs": 5
+        },
+        "verdict_overridden": false
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 9,
+      "iteration": 3,
+      "agent": "Fact-Checker",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 2,
+      "cached": false,
+      "duration_ms": 12830,
+      "tokens": {
+        "input": 5820,
+        "output": 1237,
+        "thinking": 0
+      },
+      "action": "RESULT",
+      "task": "Check each cited sentence of the draft report against the corresponding evidence chunks.",
+      "content": "Fact check: 10 of 10 cited sentences checked: 10 supported, 0 unsupported, 0 contradicted. No revision needed.",
+      "evidence": [
+        "E1",
+        "E6",
+        "E8",
+        "E9",
+        "E11",
+        "E12"
+      ],
+      "data": {
+        "claims": [
+          {
+            "claim": "C1",
+            "section": null,
+            "sentence": "SQLite is an embedded library stored in a single file that requires zero configuration, making it exceptionally easy to deploy [E6][E11].",
+            "cited": [
+              "E6",
+              "E11"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E6",
+              "E8",
+              "E11"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C2",
+            "section": null,
+            "sentence": "PostgreSQL is a traditional client-server database that offers robust performance for complex, high-concurrency workloads [E1][E11].",
+            "cited": [
+              "E1",
+              "E11"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E1",
+              "E8",
+              "E11"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C3",
+            "section": "Concurrency and Performance",
+            "sentence": "It uses true Multi-Version Concurrency Control (MVCC) to support many concurrent writers without blocking readers, and it handles larger datasets and intricate queries effectively [E1][E11].",
+            "cited": [
+              "E1",
+              "E11"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E1",
+              "E11"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C4",
+            "section": "Concurrency and Performance",
+            "sentence": "SQLite operates as an embedded library with in-process calls that achieve microsecond read latencies [E11].",
+            "cited": [
+              "E11"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E11"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C5",
+            "section": "Concurrency and Performance",
+            "sentence": "While Write-Ahead Logging (WAL) allows concurrent reads, SQLite limits write concurrency to a single writer at a time [E11].",
+            "cited": [
+              "E11"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E11"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C6",
+            "section": "Hosting and Operational Complexity",
+            "sentence": "Because the database is just a file, it requires no separate server process, network port configuration, user management, or database administrator [E6][E11].",
+            "cited": [
+              "E6",
+              "E11"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E6",
+              "E11"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C7",
+            "section": "Hosting and Operational Complexity",
+            "sentence": "While traditional deployments relied solely on local files, modern tools like Litestream enable straightforward backups to cloud storage [E8][E9].",
+            "cited": [
+              "E8",
+              "E9"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E8",
+              "E9"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C8",
+            "section": "Hosting and Operational Complexity",
+            "sentence": "PostgreSQL runs as a dedicated database daemon that requires active server installation and ongoing maintenance [E11].",
+            "cited": [
+              "E11"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E11"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C9",
+            "section": "Hosting and Operational Complexity",
+            "sentence": "Administrators must manage roles, tune configuration files, and monitor parameters like autovacuum and WAL [E11].",
+            "cited": [
+              "E11"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E11"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C10",
+            "section": "Hosting and Operational Complexity",
+            "sentence": "If your small web app aims to minimize infrastructure management, SQLite offers a compelling advantage [E12].",
+            "cited": [
+              "E12"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E12"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          }
+        ],
+        "stats": {
+          "cited_sentences": 10,
+          "checked": 10,
+          "skipped": 0,
+          "supported": 10,
+          "unsupported": 0,
+          "contradicted": 0,
+          "miscited": 0,
+          "supported_ratio": 1.0
+        },
+        "needs_revision": false
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 10,
+      "iteration": 4,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 3677,
+      "tokens": {
+        "input": 2428,
+        "output": 390,
+        "thinking": 0
+      },
+      "action": "FINAL",
+      "reason": "The draft report is approved by the reviewer and fully supported by the fact checker, meeting all depth and formatting criteria.",
+      "forced": false
+    }
+  ],
+  "final_output": "# Comparing SQLite and PostgreSQL for Small Web Applications\n\nChoosing between SQLite and PostgreSQL for a small web app depends primarily on your concurrency needs and your tolerance for operational overhead. SQLite is an embedded library stored in a single file that requires zero configuration, making it exceptionally easy to deploy [E6][E11]. PostgreSQL is a traditional client-server database that offers robust performance for complex, high-concurrency workloads [E1][E11].\n\n## Concurrency and Performance\n\nPostgreSQL excels in environments requiring heavy write concurrency. It uses true Multi-Version Concurrency Control (MVCC) to support many concurrent writers without blocking readers, and it handles larger datasets and intricate queries effectively [E1][E11]. \n\nSQLite operates as an embedded library with in-process calls that achieve microsecond read latencies [E11]. While Write-Ahead Logging (WAL) allows concurrent reads, SQLite limits write concurrency to a single writer at a time [E11]. For a small web app with modest write volumes, this performance is often more than sufficient.\n\n## Hosting and Operational Complexity\n\nSQLite eliminates an entire class of operational work. Because the database is just a file, it requires no separate server process, network port configuration, user management, or database administrator [E6][E11]. While traditional deployments relied solely on local files, modern tools like Litestream enable straightforward backups to cloud storage [E8][E9]. \n\nPostgreSQL runs as a dedicated database daemon that requires active server installation and ongoing maintenance [E11]. Administrators must manage roles, tune configuration files, and monitor parameters like autovacuum and WAL [E11]. If your small web app aims to minimize infrastructure management, SQLite offers a compelling advantage [E12].",
+  "flags": [],
+  "memory_used": [],
+  "error": null,
+  "approval": {
+    "required": false,
+    "draft": null,
+    "expires_at": null,
+    "revisions": 0
+  },
+  "sample": true
+}

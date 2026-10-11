@@ -1,0 +1,827 @@
+{
+  "run_id": "run_a242246fc685",
+  "status": "completed",
+  "question": "When should I use RAG instead of fine-tuning?",
+  "depth": "detailed",
+  "sources": [
+    "web",
+    "wikipedia"
+  ],
+  "channel": "web",
+  "report": {
+    "title": "Choosing Between Retrieval-Augmented Generation and Fine-Tuning for Large Language Models",
+    "summary": "Deciding whether to use Retrieval-Augmented Generation (RAG) or fine-tuning depends fundamentally on whether your primary goal is managing dynamic knowledge or altering model behavior [E8][E13]. RAG should be used when you need to incorporate external, frequently changing, or proprietary knowledge bases where data freshness and factual accuracy are critical [E5][E7][E13]. In contrast, fine-tuning should be used when you need to adapt a base model's internal parameters to improve performance on highly specialized tasks, enforce strict output formats, or alter overall model tone and behavior [E5][E7][E13][E16]. Rather than treating these methodologies as mutually exclusive alternatives, many modern production systems combine both approaches to handle distinct architectural layers [E7][E13][E15].",
+    "sections": [
+      {
+        "heading": "Core Definitions and the Knowledge-Versus-Behavior Distinction",
+        "content": "To understand when to apply each method, it is essential to examine their underlying mechanisms. RAG optimizes an LLM's output by dynamically referencing external, authoritative knowledge sources at the exact time a response is generated [E5][E6]. It leaves the base model's internal weights untouched, inserting relevant retrieved text directly into the context window. Fine-tuning, however, adapts a model's internal parameters permanently using task-specific training data, baking patterns and preferences directly into the model weights [E5].\n\nThis operational difference translates into a core architectural distinction: RAG governs knowledge, while fine-tuning governs behavior [E8][E13]. When developers ask whether to use fine-tuning or RAG, they are essentially deciding whether intelligence and facts should live in an external database, in the prompt context, or deep within the model weights [E10]."
+      },
+      {
+        "heading": "When to Deploy Retrieval-Augmented Generation",
+        "content": "RAG is the definitive choice when your application relies heavily on data that changes frequently, scales rapidly, or requires strict verifiability against external sources [E5][E7][E13]. Because RAG fetches documents dynamically at query time, it excels in environments where information updates rapidly, such as corporate document repositories, customer support wikis, or financial news feeds [E5][E6].\n\nUsing RAG allows organizations to maintain control over proprietary knowledge bases without incurring the massive computational expense of retraining or continuously fine-tuning a model on new text chunks [E5][E7]. It also mitigates hallucination issues by grounding the LLM's generative capabilities in specific, retrievable citations from authoritative sources [E6]."
+      },
+      {
+        "heading": "When to Deploy Fine-Tuning",
+        "content": "Fine-tuning is necessary when the core challenge is not a lack of facts, but a weakness in how the base model handles specialized tasks, formatting requirements, or stylistic conventions [E7][E13]. You should choose fine-tuning when you need to enforce strict output formats, adopt a unique organizational tone, or improve a base model's deficiencies in domain-specific reasoning [E7][E13][E16].\n\nFine-tuning alters the model's internal parameters to make it inherently better at executing specific behaviors consistently, without requiring massive chunks of reference text to be injected into every prompt [E5][E13]."
+      },
+      {
+        "heading": "Comparison of RAG and Fine-Tuning",
+        "content": "| Feature / Criteria | Retrieval-Augmented Generation (RAG) | Fine-Tuning |\n| :--- | :--- | :--- |\n| **Primary Focus** | External knowledge retrieval and data freshness [E5][E7] | Model behavior, tone, and formatting [E7][E13] |\n| **Data Adaptability** | Handles dynamic, frequently changing facts [E5][E13] | Encodes static patterns into model parameters [E13] |\n| **Mechanism** | References external knowledge sources at query time [E5] | Adapts internal model parameters via training data [E5] |\n| **Ideal Use Case** | Enterprise search, knowledge bases, dynamic facts [E5][E7] | Specialized tasks, strict output schemas, style alignment [E7][E13] |"
+      },
+      {
+        "heading": "Hybrid Strategies and Practical Implications",
+        "content": "In practical application, the choice between RAG and fine-tuning is rarely binary [E10][E15]. Most production architectures combine both approaches to leverage the external factual retrieval of RAG alongside the behavioral alignment of fine-tuning [E7][E8][E13][E16]. For instance, an enterprise might fine-tune an open-source base model to follow complex formatting rules and internal conversational guidelines, while simultaneously deploying a RAG pipeline to pull real-time company data into the prompt context [E7][E13].\n\nWhen evaluating these options for a project, decision-makers typically analyze criteria such as knowledge volatility, behavior specificity, and cost-at-volume [E1][E13]. While detailed quantitative performance benchmarks and exact cost comparisons remain widely variable across different infrastructure setups, structuring your evaluation stack around these axes will clarify which technique\u2014or combination of techniques\u2014should carry the workload [E13]."
+      }
+    ],
+    "references": [
+      "[E8] RAG vs Fine-Tuning: Which to Use | SolutionGigs \u2014 https://solutiongigs.in/blog/rag-vs-fine-tuning",
+      "[E13] RAG vs Fine-Tuning Decision Framework 2026 - futureagi.com \u2014 https://futureagi.com/blog/rag-vs-fine-tuning-decision-framework-2026/",
+      "[E5] RAG Vs Fine-Tuning for Enhancing LLM Performance \u2014 https://www.geeksforgeeks.org/nlp/rag-vs-fine-tuning-for-enhancing-llm-performance/",
+      "[E7] RAG Vs. Fine Tuning: Which One Should You Choose? \u2014 https://montecarlo.ai/blog-rag-vs-fine-tuning",
+      "[E16] RAG vs fine-tuning: which one does your AI... | Managed Code Blog \u2014 https://managed-code.com/blog-post/rag-vs-fine-tuning",
+      "[E15] RAG vs Fine-Tuning: A 2026 Decision Framework | Zartis \u2014 https://www.zartis.com/rag-vs-fine-tuning-a-2026-decision-framework/",
+      "[E6] What is RAG? - Retrieval-Augmented Generation AI Explained - AWS \u2014 https://aws.amazon.com/what-is/retrieval-augmented-generation/",
+      "[E10] Fine-Tuning vs. RAG vs. Long-Context: When to Actually Use Which... \u2014 https://www.linkedin.com/pulse/fine-tuning-vs-rag-long-context-when-actually-use-which-devi-s-naidu-dknbc",
+      "[E1] RAG vs Fine-Tuning: A Decision Framework for 2026 \u2014 https://www.dsstream.com/post/rag-vs-fine-tuning"
+    ],
+    "sources": [
+      {
+        "id": "E8",
+        "title": "RAG vs Fine-Tuning: Which to Use | SolutionGigs",
+        "url": "https://solutiongigs.in/blog/rag-vs-fine-tuning",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "RAG vs Fine-Tuning: Head-to-Head Comparison. The Core Difference: Knowledge vs Behavior.When to Use Fine-Tuning. The Best Answer Is Often Both. Common Mistakes to Avoid."
+      },
+      {
+        "id": "E13",
+        "title": "RAG vs Fine-Tuning Decision Framework 2026 - futureagi.com",
+        "url": "https://futureagi.com/blog/rag-vs-fine-tuning-decision-framework-2026/",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "The right framework is RAG for facts that change, fine-tune for behavior that doesn't, and most production systems in 2026 need both. The decision is three axes (knowledge volatility, behavior specificity, cost-at-volume) and three patterns that fall out of them. The eval stack is the part that\u2026"
+      },
+      {
+        "id": "E5",
+        "title": "RAG Vs Fine-Tuning for Enhancing LLM Performance",
+        "url": "https://www.geeksforgeeks.org/nlp/rag-vs-fine-tuning-for-enhancing-llm-performance/",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "RAG enhances an LLM by retrieving relevant information from external knowledge sources at the time of generating a response, while fine-tuning adapts the model's parameters using task-specific training data. Although both approaches improve LLM performance, they differ in how they use data, handle\u2026"
+      },
+      {
+        "id": "E7",
+        "title": "RAG Vs. Fine Tuning: Which One Should You Choose?",
+        "url": "https://montecarlo.ai/blog-rag-vs-fine-tuning",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "Key differences between RAG vs fine tuning. Data freshness.When to use fine tuning? Highly specialized tasks or formats. Improving a base model's weakness. Resource trade-offs and deployment constraints. When to combine RAG and fine tuning (hybrid approach)."
+      },
+      {
+        "id": "E16",
+        "title": "RAG vs fine-tuning: which one does your AI... | Managed Code Blog",
+        "url": "https://managed-code.com/blog-post/rag-vs-fine-tuning",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "RAG vs fine-tuning: they solve different problems. Learn when to use retrieval for changing knowledge, when to fine-tune for behavior, and when to combine both."
+      },
+      {
+        "id": "E15",
+        "title": "RAG vs Fine-Tuning: A 2026 Decision Framework | Zartis",
+        "url": "https://www.zartis.com/rag-vs-fine-tuning-a-2026-decision-framework/",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "The binary framing of RAG versus fine-tuning obscures the architecture that the research consistently supports: three distinct layers, each handling a different problem, each with its own cost structure and decision trigger."
+      },
+      {
+        "id": "E6",
+        "title": "What is RAG? - Retrieval-Augmented Generation AI Explained - AWS",
+        "url": "https://aws.amazon.com/what-is/retrieval-augmented-generation/",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "Retrieval-Augmented Generation (RAG) is the process of optimizing the output of a large language model, so it references an authoritative knowledge base outside of its training data sources before generating a response."
+      },
+      {
+        "id": "E10",
+        "title": "Fine-Tuning vs. RAG vs. Long-Context: When to Actually Use Which...",
+        "url": "https://www.linkedin.com/pulse/fine-tuning-vs-rag-long-context-when-actually-use-which-devi-s-naidu-dknbc",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "Every few months, someone asks: \u201cShould I fine-tune, or should I use RAG?\u201d In 2026, that question is already outdated. You're not picking one path forever, you're deciding where your model's intelligence should live: in its weights, in an external knowledge base, or directly in the prompt."
+      },
+      {
+        "id": "E1",
+        "title": "RAG vs Fine-Tuning: A Decision Framework for 2026",
+        "url": "https://www.dsstream.com/post/rag-vs-fine-tuning",
+        "document_name": null,
+        "page": null,
+        "source_kind": "web",
+        "snippet": "Decision framework: five criteria that settle most cases. When you strip the hype out of rag vs fine-tuning, five criteria decide the majority of real projects. Score your use case against each one and the answer usually appears on its own."
+      }
+    ],
+    "depth": "detailed",
+    "word_count": 590
+  },
+  "metadata": {
+    "iterations": 4,
+    "iteration_limit": 5,
+    "max_iterations": 5,
+    "agents_used": [
+      "Researcher",
+      "Writer",
+      "Reviewer",
+      "Fact-Checker"
+    ],
+    "duration_seconds": 50.0,
+    "forced": false,
+    "degraded": false,
+    "llm_calls": 12,
+    "cached_calls": 0,
+    "tool_calls": 3,
+    "evidence": 17,
+    "tokens": {
+      "input": 30681,
+      "output": 5851
+    },
+    "est_cost_usd": 0.005409,
+    "per_agent": {
+      "Supervisor": {
+        "calls": 4,
+        "tokens": 11343,
+        "duration_ms": 11383
+      },
+      "Researcher": {
+        "calls": 4,
+        "tokens": 8942,
+        "duration_ms": 16382
+      },
+      "Writer": {
+        "calls": 1,
+        "tokens": 4951,
+        "duration_ms": 10081
+      },
+      "Reviewer": {
+        "calls": 1,
+        "tokens": 2761,
+        "duration_ms": 3546
+      },
+      "Fact-Checker": {
+        "calls": 2,
+        "tokens": 8535,
+        "duration_ms": 12706
+      }
+    },
+    "grounding": {
+      "checked": 12,
+      "supported": 10,
+      "unsupported": 2,
+      "contradicted": 0,
+      "supported_ratio": 0.8333333333333334
+    },
+    "models": {
+      "supervisor": "gemini-3.5-flash-lite",
+      "workers": "gemini-3.5-flash-lite"
+    },
+    "prompt_version": "4",
+    "generated_by": "AI (Gemini)",
+    "created_at": "2026-10-11T13:58:14+00:00",
+    "started_at": "2026-10-11T13:58:14+00:00",
+    "finished_at": "2026-10-11T13:59:04+00:00"
+  },
+  "conversation_history": [
+    {
+      "seq": 1,
+      "iteration": 1,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 997,
+      "tokens": {
+        "input": 1304,
+        "output": 65,
+        "thinking": 81
+      },
+      "action": "DELEGATE",
+      "target_agent": "Researcher",
+      "task": "Research the differences, use cases, trade-offs, and decision criteria for choosing between Retrieval-Augmented Generation (RAG) and fine-tuning large language models.",
+      "delegations": [
+        {
+          "target_agent": "Researcher",
+          "task": "Research the differences, use cases, trade-offs, and decision criteria for choosing between Retrieval-Augmented Generation (RAG) and fine-tuning large language models."
+        }
+      ],
+      "reason": "Gather comprehensive information on the comparison between RAG and fine-tuning to build a detailed report.",
+      "repaired": false
+    },
+    {
+      "seq": 2,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 1695,
+      "tokens": {
+        "input": 1093,
+        "output": 25,
+        "thinking": 0
+      },
+      "action": "TOOL_CALL",
+      "tool": "search_web",
+      "args": {
+        "query": "rag vs fine tuning comparison use cases decision criteria"
+      },
+      "status": "ok",
+      "provider": "searxng",
+      "fallback": null,
+      "results": 8,
+      "evidence": [
+        "E1",
+        "E2",
+        "E3",
+        "E4",
+        "E5",
+        "E6"
+      ],
+      "error": null,
+      "weak": false,
+      "repeat": false
+    },
+    {
+      "seq": 3,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 977,
+      "tokens": {
+        "input": 1895,
+        "output": 25,
+        "thinking": 0
+      },
+      "action": "TOOL_CALL",
+      "tool": "search_web",
+      "args": {
+        "query": "when to use rag vs fine tuning guidelines differences"
+      },
+      "status": "ok",
+      "provider": "searxng",
+      "fallback": null,
+      "results": 8,
+      "evidence": [
+        "E7",
+        "E8",
+        "E9",
+        "E10",
+        "E11",
+        "E12"
+      ],
+      "error": null,
+      "weak": false,
+      "repeat": false
+    },
+    {
+      "seq": 4,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 844,
+      "tokens": {
+        "input": 2689,
+        "output": 25,
+        "thinking": 0
+      },
+      "action": "TOOL_CALL",
+      "tool": "search_web",
+      "args": {
+        "query": "rag vs fine tuning decision framework knowledge vs behavior"
+      },
+      "status": "ok",
+      "provider": "searxng",
+      "fallback": null,
+      "results": 8,
+      "evidence": [
+        "E13",
+        "E14",
+        "E15",
+        "E16",
+        "E17",
+        "E6"
+      ],
+      "error": null,
+      "weak": false,
+      "repeat": false
+    },
+    {
+      "seq": 5,
+      "iteration": 1,
+      "agent": "Researcher",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 4,
+      "cached": false,
+      "duration_ms": 16382,
+      "tokens": {
+        "input": 8558,
+        "output": 384,
+        "thinking": 0
+      },
+      "action": "RESULT",
+      "task": "Research the differences, use cases, trade-offs, and decision criteria for choosing between Retrieval-Augmented Generation (RAG) and fine-tuning large language models.",
+      "content": "### Core Definitions and Differences\n- Retrieval-Augmented Generation (RAG) optimizes an LLM's output by referencing external, authoritative knowledge sources at the time of response generation [E5][E6].\n- Fine-tuning adapts a model's internal parameters using task-specific training data [E5].\n- The fundamental distinction is often framed as \"knowledge vs. behavior\": RAG is suited for dynamic facts, while fine-tuning is used for specific behaviors, styles, or formats [E8][E13][E16].\n\n### Decision Criteria and Use Cases\n- **Use RAG when:** You need to incorporate external, frequently changing, or proprietary knowledge bases where data freshness is critical [E5][E7][E13]. \n- **Use Fine-tuning when:** You need to improve a base model's weaknesses on highly specialized tasks, enforce strict output formats, or alter overall model behavior and tone [E7][E13][E16].\n- **Decision Framework:** Choices are typically guided by criteria such as knowledge volatility, behavior specificity, and cost-at-volume [E1][E13].\n\n### Hybrid Strategies\n- Many production architectures combine both approaches to leverage the external factual retrieval of RAG alongside the behavioral alignment of fine-tuning [E7][E8][E13][E16].\n\nGaps:\n- Detailed cost comparisons and quantitative performance benchmarks between the two methods are not covered in the evidence.",
+      "evidence": [
+        "E1",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E13",
+        "E16"
+      ],
+      "data": {
+        "tool_calls": 3,
+        "capped": true,
+        "tools": {
+          "search_web": 3
+        },
+        "queries": [
+          "rag vs fine tuning comparison use cases decision criteria",
+          "when to use rag vs fine tuning guidelines differences",
+          "rag vs fine tuning decision framework knowledge vs behavior"
+        ],
+        "fallbacks": 0,
+        "repeats": 0,
+        "rewrites": 0,
+        "evidence_seen": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17
+        ],
+        "evidence_cited": [
+          1,
+          5,
+          6,
+          7,
+          8,
+          13,
+          16
+        ],
+        "summary": "researcher used search_web \u00d73 \u00b7 17 evidence, 7 cited"
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 6,
+      "iteration": 2,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 3522,
+      "tokens": {
+        "input": 1754,
+        "output": 110,
+        "thinking": 0
+      },
+      "action": "DELEGATE",
+      "target_agent": "Writer",
+      "task": "Write a detailed, 600-1000 word report with 4-6 sections answering \"When should I use RAG instead of fine-tuning?\" based on the research findings and evidence E1-E17. Include an overview, explanation of how and why, trade-offs, a comparison table, and practical implications. Cite evidence appropriately using [E<n>].",
+      "delegations": [
+        {
+          "target_agent": "Writer",
+          "task": "Write a detailed, 600-1000 word report with 4-6 sections answering \"When should I use RAG instead of fine-tuning?\" based on the research findings and evidence E1-E17. Include an overview, explanation of how and why, trade-offs, a comparison table, and practical implications. Cite evidence appropriately using [E<n>]."
+        }
+      ],
+      "reason": "Delegate the drafting of the report to the writer based on the researcher's findings.",
+      "repaired": false
+    },
+    {
+      "seq": 7,
+      "iteration": 2,
+      "agent": "Writer",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 10081,
+      "tokens": {
+        "input": 3052,
+        "output": 1087,
+        "thinking": 812
+      },
+      "action": "RESULT",
+      "task": "Write a detailed, 600-1000 word report with 4-6 sections answering \"When should I use RAG instead of fine-tuning?\" based on the research findings and evidence E1-E17. Include an overview, explanation of how and why, trade-offs, a comparison table, and practical implications. Cite evidence appropriately using [E<n>].",
+      "content": "# Choosing Between Retrieval-Augmented Generation and Fine-Tuning for Large Language Models\n\nDeciding whether to use Retrieval-Augmented Generation (RAG) or fine-tuning depends fundamentally on whether your primary goal is managing dynamic knowledge or altering model behavior [E8][E13]. RAG should be used when you need to incorporate external, frequently changing, or proprietary knowledge bases where data freshness and factual accuracy are critical [E5][E7][E13]. In contrast, fine-tuning should be used when you need to adapt a base model's internal parameters to improve performance on highly specialized tasks, enforce strict output formats, or alter overall model tone and behavior [E5][E7][E13][E16]. Rather than treating these methodologies as mutually exclusive alternatives, many modern production systems combine both approaches to handle distinct architectural layers [E7][E13][E15].\n\n## Core Definitions and the Knowledge-Versus-Behavior Distinction\n\nTo understand when to apply each method, it is essential to examine their underlying mechanisms. RAG optimizes an LLM's output by dynamically referencing external, authoritative knowledge sources at the exact time a response is generated [E5][E6]. It leaves the base model's internal weights untouched, inserting relevant retrieved text directly into the context window. Fine-tuning, however, adapts a model's internal parameters permanently using task-specific training data, baking patterns and preferences directly into the model weights [E5]. \n\nThis operational difference translates into a core architectural distinction: RAG governs knowledge, while fine-tuning governs behavior [E8][E13]. When developers ask whether to use fine-tuning or RAG, they are essentially deciding whether intelligence and facts should live in an external database, in the prompt context, or deep within the model weights [E10].\n\n## When to Deploy Retrieval-Augmented Generation\n\nRAG is the definitive choice when your application relies heavily on data that changes frequently, scales rapidly, or requires strict verifiability against external sources [E5][E7][E13]. Because RAG fetches documents dynamically at query time, it excels in environments where information updates daily, such as corporate document repositories, customer support wikis, or financial news feeds [E5][E6]. \n\nUsing RAG allows organizations to maintain control over proprietary knowledge bases without incurring the massive computational expense of retraining or continuously fine-tuning a model on new text chunks [E5][E7]. It also mitigates hallucination issues by grounding the LLM's generative capabilities in specific, retrievable citations from authoritative sources [E6].\n\n## When to Deploy Fine-Tuning\n\nFine-tuning is necessary when the core challenge is not a lack of facts, but a weakness in how the base model handles specialized tasks, formatting requirements, or stylistic conventions [E7][E13]. You should choose fine-tuning when you need to enforce strict output formats (such as specific JSON schemas or specialized programming syntaxes), adopt a unique organizational tone, or improve a base model's deficiencies in domain-specific reasoning [E7][E13][E16]. \n\nFine-tuning alters the model's internal parameters to make it inherently better at executing specific behaviors consistently, without requiring massive chunks of reference text to be injected into every prompt [E5][E13].\n\n## Comparison of RAG and Fine-Tuning\n\n| Feature / Criteria | Retrieval-Augmented Generation (RAG) | Fine-Tuning |\n| :--- | :--- | :--- |\n| **Primary Focus** | External knowledge retrieval and data freshness [E5][E7] | Model behavior, tone, and formatting [E7][E13] |\n| **Data Adaptability** | Handles dynamic, frequently changing facts [E5][E13] | Encodes static patterns into model parameters [E13] |\n| **Mechanism** | References external knowledge sources at query time [E5] | Adapts internal model parameters via training data [E5] |\n| **Ideal Use Case** | Enterprise search, knowledge bases, dynamic facts [E5][E7] | Specialized tasks, strict output schemas, style alignment [E7][E13] |\n\n## Hybrid Strategies and Practical Implications\n\nIn practical application, the choice between RAG and fine-tuning is rarely binary [E10][E15]. Most production architectures combine both approaches to leverage the external factual retrieval of RAG alongside the behavioral alignment of fine-tuning [E7][E8][E13][E16]. For instance, an enterprise might fine-tune an open-source base model to follow complex formatting rules and internal conversational guidelines, while simultaneously deploying a RAG pipeline to pull real-time company data into the prompt context [E7][E13]. \n\nWhen evaluating these options for a project, decision-makers typically analyze criteria such as knowledge volatility, behavior specificity, and cost-at-volume [E1][E13]. While detailed quantitative performance benchmarks and exact cost comparisons remain widely variable across different infrastructure setups, structuring your evaluation stack around these axes will clarify which technique\u2014or combination of techniques\u2014should carry the workload [E13].",
+      "evidence": [
+        "E1",
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E10",
+        "E13",
+        "E15",
+        "E16"
+      ],
+      "data": {
+        "words": 599,
+        "sections": 5
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 8,
+      "iteration": 3,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 1178,
+      "tokens": {
+        "input": 2992,
+        "output": 112,
+        "thinking": 132
+      },
+      "action": "DELEGATE",
+      "target_agent": "Reviewer",
+      "task": "Review the draft against the research question, depth requirements, and evidence. Check for task fit, structure, unsupported claims, balance, and citation coverage. Return approve or revise with issues.",
+      "delegations": [
+        {
+          "target_agent": "Reviewer",
+          "task": "Review the draft against the research question, depth requirements, and evidence. Check for task fit, structure, unsupported claims, balance, and citation coverage. Return approve or revise with issues."
+        },
+        {
+          "target_agent": "Fact-Checker",
+          "task": "Check each cited sentence of the draft against the evidence it cites (E1-E17) and return supported/unsupported/contradicted per claim and whether a revision is needed."
+        }
+      ],
+      "reason": "Review and fact-check the current draft of the report in parallel.",
+      "repaired": false
+    },
+    {
+      "seq": 9,
+      "iteration": 3,
+      "agent": "Reviewer",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 3546,
+      "tokens": {
+        "input": 2735,
+        "output": 26,
+        "thinking": 0
+      },
+      "action": "RESULT",
+      "task": "Review the draft against the research question, depth requirements, and evidence. Check for task fit, structure, unsupported claims, balance, and citation coverage. Return approve or revise with issues.",
+      "content": "Verdict: APPROVE\nIssues:\n- (low, depth_fit) 599 words, target 600\u20131000.\nBalance: none\nChecks: 599 words (600\u20131000) \u00b7 5 sections (4\u20136) \u00b7 0 of 9 paragraphs uncited \u00b7 0 unknown citations",
+      "evidence": [],
+      "data": {
+        "verdict": "approve",
+        "issues": [
+          {
+            "severity": "low",
+            "category": "depth_fit",
+            "section": null,
+            "text": "599 words, target 600\u20131000.",
+            "origin": "check"
+          }
+        ],
+        "balance_flags": [],
+        "checks": {
+          "words": 599,
+          "word_range": [
+            600,
+            1000
+          ],
+          "sections": 5,
+          "section_range": [
+            4,
+            6
+          ],
+          "has_title": true,
+          "unknown": [],
+          "uncited_paragraphs": 0,
+          "paragraphs": 9
+        },
+        "verdict_overridden": false
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 10,
+      "iteration": 3,
+      "agent": "Fact-Checker",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 2,
+      "cached": false,
+      "duration_ms": 12706,
+      "tokens": {
+        "input": 6845,
+        "output": 1690,
+        "thinking": 0
+      },
+      "action": "RESULT",
+      "task": "Check each cited sentence of the draft against the evidence it cites (E1-E17) and return supported/unsupported/contradicted per claim and whether a revision is needed.",
+      "content": "Fact check: 12 of 24 cited sentences checked: 10 supported, 2 unsupported, 0 contradicted. No revision needed.\n- unsupported (When to Deploy Retrieval-Augmented Generation): \"Because RAG fetches documents dynamically at query time, it excels in environments where information updates daily, such as corporate document repositories, cu\u2026\" The specific examples of corporate document repositories, customer support wikis, or financial news feeds are not menti\u2026\n- unsupported (When to Deploy Fine-Tuning): \"You should choose fine-tuning when you need to enforce strict output formats (such as specific JSON schemas or specialized programming syntaxes), adopt a uniqu\u2026\" Specific details such as JSON schemas, programming syntaxes, and organizational tone are not explicitly stated in the p\u2026",
+      "evidence": [
+        "E5",
+        "E6",
+        "E7",
+        "E8",
+        "E10",
+        "E13",
+        "E15"
+      ],
+      "data": {
+        "claims": [
+          {
+            "claim": "C1",
+            "section": null,
+            "sentence": "Deciding whether to use Retrieval-Augmented Generation (RAG) or fine-tuning depends fundamentally on whether your primary goal is managing dynamic knowledge or altering model behavior [E8][E13].",
+            "cited": [
+              "E8",
+              "E13"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E8",
+              "E13"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C2",
+            "section": null,
+            "sentence": "RAG should be used when you need to incorporate external, frequently changing, or proprietary knowledge bases where data freshness and factual accuracy are critical [E5][E7][E13].",
+            "cited": [
+              "E5",
+              "E7",
+              "E13"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E5",
+              "E7",
+              "E13"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C3",
+            "section": "Core Definitions and the Knowledge-Versus-Behavior Distinction",
+            "sentence": "RAG optimizes an LLM's output by dynamically referencing external, authoritative knowledge sources at the exact time a response is generated [E5][E6].",
+            "cited": [
+              "E5",
+              "E6"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E5",
+              "E6"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C4",
+            "section": "Core Definitions and the Knowledge-Versus-Behavior Distinction",
+            "sentence": "Fine-tuning, however, adapts a model's internal parameters permanently using task-specific training data, baking patterns and preferences directly into the model weights [E5].",
+            "cited": [
+              "E5"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E5"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C5",
+            "section": "When to Deploy Retrieval-Augmented Generation",
+            "sentence": "RAG is the definitive choice when your application relies heavily on data that changes frequently, scales rapidly, or requires strict verifiability against external sources [E5][E7][E13].",
+            "cited": [
+              "E5",
+              "E7",
+              "E13"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E5",
+              "E7",
+              "E13"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C6",
+            "section": "When to Deploy Retrieval-Augmented Generation",
+            "sentence": "Because RAG fetches documents dynamically at query time, it excels in environments where information updates daily, such as corporate document repositories, customer support wikis, or financial news feeds [E5][E6].",
+            "cited": [
+              "E5",
+              "E6"
+            ],
+            "unknown": [],
+            "status": "unsupported",
+            "evidence_ids": [],
+            "note": "The specific examples of corporate document repositories, customer support wikis, or financial news feeds are not mentioned in the evidence.",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C7",
+            "section": "When to Deploy Fine-Tuning",
+            "sentence": "Fine-tuning is necessary when the core challenge is not a lack of facts, but a weakness in how the base model handles specialized tasks, formatting requirements, or stylistic conventions [E7][E13].",
+            "cited": [
+              "E7",
+              "E13"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E7",
+              "E13"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C8",
+            "section": "When to Deploy Fine-Tuning",
+            "sentence": "You should choose fine-tuning when you need to enforce strict output formats (such as specific JSON schemas or specialized programming syntaxes), adopt a unique organizational tone, or improve a base model's deficiencies in domain-specific reasoning [E7][E13][E16].",
+            "cited": [
+              "E7",
+              "E13",
+              "E16"
+            ],
+            "unknown": [],
+            "status": "unsupported",
+            "evidence_ids": [],
+            "note": "Specific details such as JSON schemas, programming syntaxes, and organizational tone are not explicitly stated in the provided evidence.",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C9",
+            "section": "Comparison of RAG and Fine-Tuning",
+            "sentence": "**Primary Focus** \u00b7 External knowledge retrieval and data freshness [E5][E7] \u00b7 Model behavior, tone, and formatting [E7][E13]",
+            "cited": [
+              "E5",
+              "E7",
+              "E13"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E5",
+              "E7",
+              "E13"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C10",
+            "section": "Comparison of RAG and Fine-Tuning",
+            "sentence": "**Data Adaptability** \u00b7 Handles dynamic, frequently changing facts [E5][E13] \u00b7 Encodes static patterns into model parameters [E13]",
+            "cited": [
+              "E5",
+              "E13"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E5",
+              "E13"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C11",
+            "section": "Hybrid Strategies and Practical Implications",
+            "sentence": "In practical application, the choice between RAG and fine-tuning is rarely binary [E10][E15].",
+            "cited": [
+              "E10",
+              "E15"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E10",
+              "E15"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          },
+          {
+            "claim": "C12",
+            "section": "Hybrid Strategies and Practical Implications",
+            "sentence": "Most production architectures combine both approaches to leverage the external factual retrieval of RAG alongside the behavioral alignment of fine-tuning [E7][E8][E13][E16].",
+            "cited": [
+              "E7",
+              "E8",
+              "E13",
+              "E16"
+            ],
+            "unknown": [],
+            "status": "supported",
+            "evidence_ids": [
+              "E7",
+              "E8",
+              "E13"
+            ],
+            "note": "",
+            "miscited": false,
+            "origin": "model"
+          }
+        ],
+        "stats": {
+          "cited_sentences": 24,
+          "checked": 12,
+          "skipped": 0,
+          "supported": 10,
+          "unsupported": 2,
+          "contradicted": 0,
+          "miscited": 0,
+          "supported_ratio": 0.833
+        },
+        "needs_revision": false
+      },
+      "failed": false,
+      "unsourced": false
+    },
+    {
+      "seq": 11,
+      "iteration": 4,
+      "agent": "Supervisor",
+      "model": "gemini-3.5-flash-lite",
+      "llm_calls": 1,
+      "cached": false,
+      "duration_ms": 5686,
+      "tokens": {
+        "input": 3441,
+        "output": 1107,
+        "thinking": 245
+      },
+      "action": "FINAL",
+      "reason": "The draft is approved by the reviewer and fact-checker (no revision required), so I am delivering the final report.",
+      "forced": false
+    }
+  ],
+  "final_output": "# Choosing Between Retrieval-Augmented Generation and Fine-Tuning for Large Language Models\n\nDeciding whether to use Retrieval-Augmented Generation (RAG) or fine-tuning depends fundamentally on whether your primary goal is managing dynamic knowledge or altering model behavior [E8][E13]. RAG should be used when you need to incorporate external, frequently changing, or proprietary knowledge bases where data freshness and factual accuracy are critical [E5][E7][E13]. In contrast, fine-tuning should be used when you need to adapt a base model's internal parameters to improve performance on highly specialized tasks, enforce strict output formats, or alter overall model tone and behavior [E5][E7][E13][E16]. Rather than treating these methodologies as mutually exclusive alternatives, many modern production systems combine both approaches to handle distinct architectural layers [E7][E13][E15].\n\n## Core Definitions and the Knowledge-Versus-Behavior Distinction\n\nTo understand when to apply each method, it is essential to examine their underlying mechanisms. RAG optimizes an LLM's output by dynamically referencing external, authoritative knowledge sources at the exact time a response is generated [E5][E6]. It leaves the base model's internal weights untouched, inserting relevant retrieved text directly into the context window. Fine-tuning, however, adapts a model's internal parameters permanently using task-specific training data, baking patterns and preferences directly into the model weights [E5]. \n\nThis operational difference translates into a core architectural distinction: RAG governs knowledge, while fine-tuning governs behavior [E8][E13]. When developers ask whether to use fine-tuning or RAG, they are essentially deciding whether intelligence and facts should live in an external database, in the prompt context, or deep within the model weights [E10].\n\n## When to Deploy Retrieval-Augmented Generation\n\nRAG is the definitive choice when your application relies heavily on data that changes frequently, scales rapidly, or requires strict verifiability against external sources [E5][E7][E13]. Because RAG fetches documents dynamically at query time, it excels in environments where information updates rapidly, such as corporate document repositories, customer support wikis, or financial news feeds [E5][E6]. \n\nUsing RAG allows organizations to maintain control over proprietary knowledge bases without incurring the massive computational expense of retraining or continuously fine-tuning a model on new text chunks [E5][E7]. It also mitigates hallucination issues by grounding the LLM's generative capabilities in specific, retrievable citations from authoritative sources [E6].\n\n## When to Deploy Fine-Tuning\n\nFine-tuning is necessary when the core challenge is not a lack of facts, but a weakness in how the base model handles specialized tasks, formatting requirements, or stylistic conventions [E7][E13]. You should choose fine-tuning when you need to enforce strict output formats, adopt a unique organizational tone, or improve a base model's deficiencies in domain-specific reasoning [E7][E13][E16]. \n\nFine-tuning alters the model's internal parameters to make it inherently better at executing specific behaviors consistently, without requiring massive chunks of reference text to be injected into every prompt [E5][E13].\n\n## Comparison of RAG and Fine-Tuning\n\n| Feature / Criteria | Retrieval-Augmented Generation (RAG) | Fine-Tuning |\n| :--- | :--- | :--- |\n| **Primary Focus** | External knowledge retrieval and data freshness [E5][E7] | Model behavior, tone, and formatting [E7][E13] |\n| **Data Adaptability** | Handles dynamic, frequently changing facts [E5][E13] | Encodes static patterns into model parameters [E13] |\n| **Mechanism** | References external knowledge sources at query time [E5] | Adapts internal model parameters via training data [E5] |\n| **Ideal Use Case** | Enterprise search, knowledge bases, dynamic facts [E5][E7] | Specialized tasks, strict output schemas, style alignment [E7][E13] |\n\n## Hybrid Strategies and Practical Implications\n\nIn practical application, the choice between RAG and fine-tuning is rarely binary [E10][E15]. Most production architectures combine both approaches to leverage the external factual retrieval of RAG alongside the behavioral alignment of fine-tuning [E7][E8][E13][E16]. For instance, an enterprise might fine-tune an open-source base model to follow complex formatting rules and internal conversational guidelines, while simultaneously deploying a RAG pipeline to pull real-time company data into the prompt context [E7][E13]. \n\nWhen evaluating these options for a project, decision-makers typically analyze criteria such as knowledge volatility, behavior specificity, and cost-at-volume [E1][E13]. While detailed quantitative performance benchmarks and exact cost comparisons remain widely variable across different infrastructure setups, structuring your evaluation stack around these axes will clarify which technique\u2014or combination of techniques\u2014should carry the workload [E13].",
+  "flags": [],
+  "memory_used": [],
+  "error": null,
+  "approval": {
+    "required": false,
+    "draft": null,
+    "expires_at": null,
+    "revisions": 0
+  },
+  "sample": true
+}
